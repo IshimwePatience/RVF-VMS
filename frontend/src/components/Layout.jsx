@@ -78,7 +78,9 @@ export default function Layout() {
                 <NavLink to="/stocks" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Stock Overview</NavLink>
                 <NavLink to="/vaccines" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Vaccine Types</NavLink>
                 <NavLink to="/inventory" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Current Inventory</NavLink>
-                <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Suppliers</NavLink>
+                {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
+                  <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Suppliers</NavLink>
+                )}
               </nav>
             </div>
 
@@ -93,7 +95,7 @@ export default function Layout() {
               </nav>
             </div>
             
-            {user?.is_central && (
+            {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
               <>
                 <div className="mx-6 my-3 border-t border-slate-200"></div>
                 <div className="px-6 mb-2">

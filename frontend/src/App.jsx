@@ -6,6 +6,8 @@ import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
+import Suppliers from './pages/Suppliers';
+import Stocks from './pages/Stocks';
 
 function App() {
   return (
@@ -18,9 +20,9 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="inventory" element={<Inventory />} />
               <Route path="requests" element={<div className="p-8">Requests Placeholder</div>} />
-              <Route path="stocks" element={<div className="p-8">Stock Overview Placeholder</div>} />
+              <Route path="stocks" element={<Stocks />} />
               <Route path="vaccines" element={<div className="p-8">Vaccine Types Placeholder</div>} />
-              <Route path="suppliers" element={<div className="p-8">Suppliers Placeholder</div>} />
+              <Route path="suppliers" element={<Suppliers />} />
               <Route path="requests/new" element={<div className="p-8">New Request Placeholder</div>} />
               <Route path="transfers" element={<div className="p-8">Transfers Placeholder</div>} />
               <Route path="reports" element={<div className="p-8">Reports Placeholder</div>} />
