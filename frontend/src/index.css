@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: 'Lato', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    background-color: theme('colors.background');
+    color: #1F2432;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  background-color: var(--color-background);
+  color: #1e293b;
+}
+
+/* Modal and skeleton styles */
+.skeleton-bg {
+  pointer-events: none;
+  opacity: 0.8;
+}

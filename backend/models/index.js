@@ -1,0 +1,63 @@
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const basename = path.basename(__filename);
+const db = {};
+
+const sequelize = new Sequelize('rvf_vms', 'postgres', 'Patience123@', {
+  host: 'localhost',
+  dialect: 'postgres',
+  logging: false,
+});
+
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
+  })
+  .forEach(file => {
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    db[model.name] = model;
+  });
+
+const { Stock, User, Batch, Vaccine, Supplier, StockInventory, Request, Transfer, PasswordResetRequest } = db;
+
+Stock.belongsTo(Stock, { as: 'ParentStock', foreignKey: 'parent_stock_id' });
+Stock.hasMany(Stock, { as: 'ChildStocks', foreignKey: 'parent_stock_id' });
+
+User.belongsTo(Stock, { foreignKey: 'stock_id' });
+Stock.hasMany(User, { foreignKey: 'stock_id' });
+
+PasswordResetRequest.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(PasswordResetRequest, { foreignKey: 'user_id' });
+
+Batch.belongsTo(Vaccine, { foreignKey: 'vaccine_id' });
+Vaccine.hasMany(Batch, { foreignKey: 'vaccine_id' });
+
+Batch.belongsTo(Supplier, { foreignKey: 'supplier_id' });
+Supplier.hasMany(Batch, { foreignKey: 'supplier_id' });
+
+StockInventory.belongsTo(Stock, { foreignKey: 'stock_id' });
+Stock.hasMany(StockInventory, { foreignKey: 'stock_id' });
+
+StockInventory.belongsTo(Batch, { foreignKey: 'batch_id' });
+Batch.hasMany(StockInventory, { foreignKey: 'batch_id' });
+
+Request.belongsTo(Stock, { as: 'RequestingStock', foreignKey: 'requesting_stock_id' });
+Request.belongsTo(Stock, { as: 'ParentStock', foreignKey: 'parent_stock_id' });
+Request.belongsTo(Vaccine, { foreignKey: 'vaccine_id' });
+Request.belongsTo(Batch, { foreignKey: 'batch_id' });
+Request.belongsTo(User, { as: 'Requester', foreignKey: 'requested_by' });
+Request.belongsTo(User, { as: 'Reviewer', foreignKey: 'reviewed_by' });
+
+Transfer.belongsTo(Stock, { as: 'FromStock', foreignKey: 'from_stock_id' });
+Transfer.belongsTo(Stock, { as: 'ToStock', foreignKey: 'to_stock_id' });
+Transfer.belongsTo(Batch, { foreignKey: 'batch_id' });
+Transfer.belongsTo(Request, { foreignKey: 'request_id' });
+Transfer.belongsTo(User, { as: 'Shipper', foreignKey: 'shipped_by' });
+Transfer.belongsTo(User, { as: 'Receiver', foreignKey: 'received_by' });
+
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;
