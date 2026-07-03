@@ -108,10 +108,12 @@ export default function Stocks() {
               {stocks.map(stock => (
                 <tr key={stock.id} className="group">
                   <td className="py-4 pr-6">
-                    <div className="font-medium text-slate-900 text-base mb-1.5">{stock.name}</div>
-                    <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
-                      {stock.is_central ? 'Central Hub' : 'Subordinate'}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-slate-900 text-base">{stock.name}</span>
+                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
+                        {stock.is_central ? 'CENTRAL HUB' : 'SUBORDINATE'}
+                      </span>
+                    </div>
                   </td>
                   <td className="py-4 text-slate-600">
                     {stock.ParentStock ? stock.ParentStock.name : (stock.is_central ? '—' : 'None Assigned')}

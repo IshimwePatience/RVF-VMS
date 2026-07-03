@@ -10,7 +10,7 @@ export default function Vaccines() {
   const [vaccines, setVaccines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', product_code: '' });
+  const [formData, setFormData] = useState({ name: '', description: '' });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function Vaccines() {
       await axios.post('http://localhost:3001/api/vaccines', formData);
       addToast('Vaccine created successfully', 'success');
       setShowModal(false);
-      setFormData({ name: '', description: '', product_code: '' });
+      setFormData({ name: '', description: '' });
       fetchVaccines();
     } catch (err) {
       console.error(err);
@@ -88,7 +88,6 @@ export default function Vaccines() {
                 <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
                   Vaccine Name <ChevronDown className="w-4 h-4 text-slate-400" />
                 </th>
-                <th className="py-3 font-semibold text-slate-800">Product Code</th>
                 <th className="py-3 font-semibold text-slate-800">Description</th>
                 <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
               </tr>
@@ -97,12 +96,13 @@ export default function Vaccines() {
               {vaccines.map(vaccine => (
                 <tr key={vaccine.id} className="group">
                   <td className="py-4 pr-6">
-                    <div className="font-medium text-slate-900 text-base mb-1.5">{vaccine.name}</div>
-                    <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
-                      VACCINE
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-slate-900 text-base">{vaccine.name}</span>
+                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
+                        VACCINE
+                      </span>
+                    </div>
                   </td>
-                  <td className="py-4 text-slate-600 font-medium">{vaccine.product_code}</td>
                   <td className="py-4 text-slate-500 whitespace-pre-wrap">{vaccine.description}</td>
                   <td className="py-4">
                     <button className="text-slate-400 hover:text-blue-600 font-medium transition-colors opacity-0 group-hover:opacity-100">Edit</button>
@@ -129,17 +129,6 @@ export default function Vaccines() {
                     placeholder="e.g. RVF Live Attenuated"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Product Code</label>
-                  <input 
-                    type="text" required
-                    placeholder="e.g. RVF-LA-001"
-                    value={formData.product_code}
-                    onChange={(e) => setFormData({...formData, product_code: e.target.value})}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
                   />
                 </div>

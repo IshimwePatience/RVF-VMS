@@ -108,10 +108,12 @@ export default function Suppliers() {
               {suppliers.map(supplier => (
                 <tr key={supplier.id} className="group">
                   <td className="py-4 pr-6">
-                    <div className="font-medium text-slate-900 text-base mb-1.5">{supplier.name}</div>
-                    <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
-                      REGISTERED SUPPLIER
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-slate-900 text-base">{supplier.name}</span>
+                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
+                        REGISTERED SUPPLIER
+                      </span>
+                    </div>
                   </td>
                   <td className="py-4 text-slate-600 whitespace-pre-wrap">{supplier.contact_info}</td>
                   <td className="py-4">
