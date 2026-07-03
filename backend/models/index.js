@@ -4,7 +4,7 @@ const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const db = {};
 
-const sequelize = new Sequelize('rvf_vms', 'postgres', 'Patience123@', {
+const sequelize = new Sequelize('postgres', 'postgres', 'Patience123@', {
   host: 'localhost',
   dialect: 'postgres',
   logging: false,
@@ -20,16 +20,13 @@ fs
     db[model.name] = model;
   });
 
-const { Stock, User, Batch, Vaccine, Supplier, StockInventory, Request, Transfer, PasswordResetRequest } = db;
+const { Stock, User, Batch, Vaccine, Supplier, StockInventory, Request, Transfer } = db;
 
 Stock.belongsTo(Stock, { as: 'ParentStock', foreignKey: 'parent_stock_id' });
 Stock.hasMany(Stock, { as: 'ChildStocks', foreignKey: 'parent_stock_id' });
 
 User.belongsTo(Stock, { foreignKey: 'stock_id' });
 Stock.hasMany(User, { foreignKey: 'stock_id' });
-
-PasswordResetRequest.belongsTo(User, { foreignKey: 'user_id' });
-User.hasMany(PasswordResetRequest, { foreignKey: 'user_id' });
 
 Batch.belongsTo(Vaccine, { foreignKey: 'vaccine_id' });
 Vaccine.hasMany(Batch, { foreignKey: 'vaccine_id' });

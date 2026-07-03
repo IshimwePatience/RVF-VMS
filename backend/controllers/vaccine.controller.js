@@ -14,6 +14,7 @@ exports.getVaccines = async (req, res) => {
     const vaccines = await vaccineService.getVaccines();
     res.json(vaccines);
   } catch (error) {
+    console.error('Error fetching vaccines:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

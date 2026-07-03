@@ -16,7 +16,7 @@ async function seed() {
     username: 'admin',
     email: 'ishimwepatience102@gmail.com',
     password_hash,
-    must_change_password: true,
+    must_change_password: false,
     stock_id: centralStock.id,
     role: 'Admin'
   });

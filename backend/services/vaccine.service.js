@@ -1,6 +1,9 @@
 const { Vaccine } = require('../models');
 
 exports.createVaccine = async (data) => {
+  if (!data.product_code) {
+    data.product_code = `VAC-${Math.floor(1000 + Math.random() * 9000)}`;
+  }
   return await Vaccine.create(data);
 };
 

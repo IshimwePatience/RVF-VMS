@@ -27,6 +27,24 @@ exports.login = async (req, res) => {
 
     const sessionId = crypto.randomBytes(32).toString('hex');
 
+    if (user.must_change_password) {
+      // Generate OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const tempToken = crypto.randomBytes(32).toString('hex');
+      
+      // Cache OTP for 5 minutes
+      otpCache.set(tempToken, { otp, user: user.toJSON() }, 300);
+      
+      // Send OTP via email
+      if (user.email) {
+        await sendOTP(user.email, otp).catch(console.error);
+      } else {
+        console.log(`[DEV] User has no email. Generated OTP for ${user.username}: ${otp}`);
+      }
+      
+      return res.json({ requires_otp: true, tempToken, message: 'OTP sent to your email.' });
+    }
+
     const token = jwt.sign(
       { 
         id: user.id, 
@@ -50,7 +68,8 @@ exports.login = async (req, res) => {
         username: user.username,
         role: user.role,
         must_change_password: user.must_change_password,
-        stock: user.Stock
+        stock: user.Stock,
+        settings: user.settings
       }
     });
 
@@ -86,7 +105,7 @@ exports.verifyOTP = async (req, res) => {
         username: user.username, 
         role: user.role,
         stock_id: user.stock_id,
-        is_central: user.is_central,
+        is_central: user.Stock ? user.Stock.is_central : false,
         sessionId
       },
       JWT_SECRET,
@@ -103,7 +122,8 @@ exports.verifyOTP = async (req, res) => {
         username: user.username,
         role: user.role,
         must_change_password: user.must_change_password,
-        stock: user.Stock
+        stock: user.Stock,
+        settings: user.settings
       }
     });
 
@@ -157,6 +177,19 @@ exports.requestPasswordReset = async (req, res) => {
     res.json({ message: 'Your password reset request has been submitted and is pending admin approval.' });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.updateSettings = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    const settings = { ...user.settings, ...req.body.settings };
+    await user.update({ settings });
+    res.json(settings);
+  } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 };

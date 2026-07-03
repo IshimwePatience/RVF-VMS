@@ -9,6 +9,8 @@ import Inventory from './pages/Inventory';
 import Suppliers from './pages/Suppliers';
 import Stocks from './pages/Stocks';
 import Vaccines from './pages/Vaccines';
+import Users from './pages/Users';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
               <Route path="requests/new" element={<div className="p-8">New Request Placeholder</div>} />
               <Route path="transfers" element={<div className="p-8">Transfers Placeholder</div>} />
               <Route path="reports" element={<div className="p-8">Reports Placeholder</div>} />
+              <Route path="users" element={<Users />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

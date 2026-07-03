@@ -8,6 +8,7 @@ module.exports = (sequelize) => {
     must_change_password: { type: DataTypes.BOOLEAN, defaultValue: true },
     stock_id: { type: DataTypes.UUID, allowNull: true },
     role: { type: DataTypes.STRING, allowNull: false, defaultValue: 'Viewer' },
+    settings: { type: DataTypes.JSON, allowNull: true, defaultValue: {} },
     reset_password_requested: { type: DataTypes.BOOLEAN, defaultValue: false },
     reset_password_approved: { type: DataTypes.BOOLEAN, defaultValue: false }
   });

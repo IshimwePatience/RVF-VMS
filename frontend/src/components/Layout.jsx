@@ -100,9 +100,9 @@ export default function Layout() {
                 <div className="mx-6 my-3 border-t border-slate-200"></div>
                 <div className="px-6 mb-2">
                   <h3 className="text-sm font-medium text-slate-900 mb-2">Admin</h3>
-                  <nav className="space-y-0.5">
-                    <a href="#" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-full transition-colors">Users & Roles</a>
-                    <a href="#" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-full transition-colors">Settings</a>
+                  <nav className="space-y-0.5 flex flex-col">
+                    <NavLink to="/users" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Users & Roles</NavLink>
+                    <NavLink to="/settings" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Settings</NavLink>
                   </nav>
                 </div>
               </>
