@@ -65,6 +65,18 @@ exports.approveRequest = async (id, user) => {
   });
 };
 
+exports.rejectRequest = async (id, user) => {
+  const request = await Request.findByPk(id);
+  if (!request || request.parent_stock_id !== user.stock_id) throw new Error('Unauthorized or not found');
+  if (request.status !== 'Pending') throw new Error('Request is already processed');
+
+  request.status = 'Rejected';
+  request.reviewed_by = user.id;
+  await request.save();
+
+  return request;
+};
+
 exports.deleteRequest = async (id, user) => {
   const request = await Request.findByPk(id);
   if (!request || request.requesting_stock_id !== user.stock_id) throw new Error('Unauthorized or not found');

@@ -52,6 +52,17 @@ export default function Requests() {
     }
   };
 
+  const handleReject = async (id) => {
+    if (!window.confirm('Are you sure you want to reject this request?')) return;
+    try {
+      await axios.post(`http://localhost:3001/api/requests/${id}/reject`);
+      addToast('Request rejected successfully!', 'success');
+      fetchRequests();
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to reject request', 'error');
+    }
+  };
+
   const getStatusStyle = (status) => {
     switch (status) {
       case 'Pending': return 'bg-amber-100 text-amber-700';
@@ -166,13 +177,21 @@ export default function Requests() {
                     {activeTab === 'incoming' && (
                       <td className="py-4 text-right">
                         {req.status === 'Pending' && (
-                          <button 
-                            onClick={() => handleApprove(req.id)}
-                            disabled={!hasEnough}
-                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${hasEnough ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
-                          >
-                            Approve
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={() => handleReject(req.id)}
+                              className="px-4 py-1.5 rounded-full text-xs font-bold transition-colors bg-red-100 text-red-600 hover:bg-red-200"
+                            >
+                              Reject
+                            </button>
+                            <button 
+                              onClick={() => handleApprove(req.id)}
+                              disabled={!hasEnough}
+                              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${hasEnough ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+                            >
+                              Approve
+                            </button>
+                          </div>
                         )}
                       </td>
                     )}

@@ -135,7 +135,7 @@ export default function NewRequest() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {parentInventory.map(item => {
-                const pendingRequest = myRequests.find(r => r.batch_id === item.batch_id && r.status === 'Pending');
+                const latestRequest = myRequests.find(r => r.batch_id === item.batch_id);
                 
                 return (
                 <tr key={item.id} className="group hover:bg-slate-50/50 transition-colors">
@@ -155,18 +155,32 @@ export default function NewRequest() {
                     {item.Batch?.expiration_date ? new Date(item.Batch.expiration_date).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="py-4">
-                    {pendingRequest ? (
+                    {latestRequest ? (
                       <div className="flex items-center justify-end gap-3">
-                        <span className="text-sm font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                          Pending
-                        </span>
-                        <button 
-                          onClick={() => handleCancel(pendingRequest.id)}
-                          className="text-sm font-semibold text-slate-500 hover:text-red-600 transition-colors underline decoration-transparent hover:decoration-red-600"
-                        >
-                          Stop Request
-                        </button>
+                        {latestRequest.status === 'Pending' && (
+                          <>
+                            <span className="text-sm font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                              Pending
+                            </span>
+                            <button 
+                              onClick={() => handleCancel(latestRequest.id)}
+                              className="text-sm font-semibold text-slate-500 hover:text-red-600 transition-colors underline decoration-transparent hover:decoration-red-600"
+                            >
+                              Stop Request
+                            </button>
+                          </>
+                        )}
+                        {latestRequest.status === 'Approved' && (
+                          <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                            Approved
+                          </span>
+                        )}
+                        {latestRequest.status === 'Rejected' && (
+                          <span className="text-sm font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                            Rejected
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <div className="flex items-center justify-end gap-2">

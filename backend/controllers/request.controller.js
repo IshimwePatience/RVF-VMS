@@ -29,6 +29,15 @@ exports.approveRequest = async (req, res) => {
   }
 };
 
+exports.rejectRequest = async (req, res) => {
+  try {
+    const request = await requestService.rejectRequest(req.params.id, req.user);
+    res.json({ message: 'Request rejected successfully', request });
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Server error' });
+  }
+};
+
 exports.deleteRequest = async (req, res) => {
   try {
     await requestService.deleteRequest(req.params.id, req.user);
