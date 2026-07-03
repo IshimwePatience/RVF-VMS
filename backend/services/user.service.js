@@ -58,3 +58,45 @@ exports.getUsers = async () => {
     include: [{ model: Stock, as: 'Stock' }]
   });
 };
+
+exports.updateUser = async (id, data) => {
+  const user = await User.findByPk(id);
+  if (!user) throw new Error('User not found');
+
+  if (data.username && data.username !== user.username) {
+    const existingUsername = await User.findOne({ where: { username: data.username } });
+    if (existingUsername) throw new Error('Username already exists');
+    user.username = data.username;
+  }
+
+  if (data.email && data.email !== user.email) {
+    const existingEmail = await User.findOne({ where: { email: data.email } });
+    if (existingEmail) throw new Error('Email already exists');
+    user.email = data.email;
+  }
+
+  if (data.role) user.role = data.role;
+  if (data.stock_id !== undefined) user.stock_id = data.stock_id || null;
+
+  await user.save();
+
+  return await User.findByPk(id, {
+    attributes: { exclude: ['password_hash'] },
+    include: [{ model: Stock, as: 'Stock' }]
+  });
+};
+
+exports.deleteUser = async (id) => {
+  const user = await User.findByPk(id);
+  if (!user) throw new Error('User not found');
+  
+  if (user.role === 'Admin') {
+    const adminCount = await User.count({ where: { role: 'Admin' } });
+    if (adminCount <= 1) {
+      throw new Error('Cannot delete the last admin user');
+    }
+  }
+
+  await user.destroy();
+  return true;
+};

@@ -17,3 +17,21 @@ exports.getUsers = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.updateUser = async (req, res) => {
+  try {
+    const user = await userService.updateUser(req.params.id, req.body);
+    res.json({ message: 'User updated successfully', user });
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Server error' });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    await userService.deleteUser(req.params.id);
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Server error' });
+  }
+};

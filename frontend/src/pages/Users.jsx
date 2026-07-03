@@ -20,6 +20,7 @@ export default function Users() {
     role: 'Viewer',
     stock_id: ''
   });
+  const [editingId, setEditingId] = useState(null);
 
   const fetchUsers = async () => {
     try {
@@ -51,16 +52,49 @@ export default function Users() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await axios.post('http://localhost:3001/api/users', formData);
-      addToast('User created successfully. Credentials sent to email.', 'success');
-      setShowModal(false);
-      setFormData({ username: '', email: '', role: 'Viewer', stock_id: '' });
+      if (editingId) {
+        await axios.put(`http://localhost:3001/api/users/${editingId}`, formData);
+        addToast('User updated successfully', 'success');
+      } else {
+        await axios.post('http://localhost:3001/api/users', formData);
+        addToast('User created successfully. Credentials sent to email.', 'success');
+      }
+      closeModal();
       fetchUsers();
     } catch (err) {
       console.error(err);
-      addToast(err.response?.data?.message || 'Failed to create user', 'error');
+      addToast(err.response?.data?.message || 'Failed to save user', 'error');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setFormData({ username: '', email: '', role: 'Viewer', stock_id: '' });
+  };
+
+  const handleEdit = (u) => {
+    setEditingId(u.id);
+    setFormData({
+      username: u.username,
+      email: u.email,
+      role: u.role,
+      stock_id: u.stock_id || ''
+    });
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    try {
+      await axios.delete(`http://localhost:3001/api/users/${id}`);
+      addToast('User deleted successfully', 'success');
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
+      addToast(err.response?.data?.message || 'Failed to delete user', 'error');
     }
   };
 
@@ -131,10 +165,10 @@ export default function Users() {
                   </td>
                   <td className="py-4">
                     <div className="flex items-center gap-3">
-                      <button className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
+                      <button onClick={() => handleEdit(u)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
                         <Pencil className="w-4 h-4" />
                       </button>
-                      <button className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
+                      <button onClick={() => handleDelete(u.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -160,8 +194,8 @@ export default function Users() {
           
           <div className="relative w-full max-w-[480px] bg-white h-full shadow-2xl flex flex-col animate-[slideIn_0.3s_ease-out]">
             <div className="px-10 pt-10 pb-6 shrink-0 relative">
-              <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">Add New User</h2>
-              <p className="text-[15px] text-slate-500 mt-1">Create an account and set permissions</p>
+              <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">{editingId ? 'Edit User' : 'Add New User'}</h2>
+              <p className="text-[15px] text-slate-500 mt-1">{editingId ? 'Update user roles and permissions' : 'Create an account and set permissions'}</p>
               
               <button 
                 onClick={() => setShowModal(false)}
@@ -251,7 +285,7 @@ export default function Users() {
                   disabled={submitting}
                   className="px-6 py-3 bg-[#4285f4] hover:bg-[#3367d6] text-white font-semibold text-[13px] tracking-wide rounded transition-colors uppercase disabled:opacity-70"
                 >
-                  {submitting ? 'Creating...' : 'Create User'}
+                  {submitting ? 'Saving...' : editingId ? 'Update User' : 'Create User'}
                 </button>
               </div>
             </form>
