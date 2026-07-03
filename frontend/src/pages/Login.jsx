@@ -103,8 +103,8 @@ export default function Login() {
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-[450px] p-8 pt-10 relative overflow-hidden text-left border border-slate-200">
         {/* Top brand header */}
         <div className="mb-6">
-          <h2 className="text-[22px] font-bold text-[#1F2432] leading-tight mb-2">
-            {showForgotPassword ? 'Reset Password' : requiresPinSet ? 'Set New PIN' : requiresOtp ? 'Two-Factor Authentication' : 'Welcome to RVF VMS'}
+          <h2 className="text-[22px] font-medium text-[#5f6368] tracking-tight leading-tight mb-2">
+            {showForgotPassword ? 'Reset Password' : requiresPinSet ? 'Set New PIN' : requiresOtp ? 'Two-Factor Authentication' : 'Welcome to rvf vaccine hub'}
           </h2>
           <p className="text-[16px] text-[#373A3C] leading-normal">
             {showForgotPassword 
@@ -269,7 +269,7 @@ export default function Login() {
 
 
         <div className="text-[12px] text-[#5E6D7E] leading-[1.5] mt-6">
-          I accept RVF VMS's <a href="#" className="underline hover:text-[#1F2432]">Terms of Use</a> and <a href="#" className="underline hover:text-[#1F2432]">Privacy Notice</a>. Having trouble logging in? <a href="#" className="underline hover:text-[#1F2432]">Help center</a>
+          I accept rvf vaccine hub's <a href="#" className="underline hover:text-[#1F2432]">Terms of Use</a> and <a href="#" className="underline hover:text-[#1F2432]">Privacy Notice</a>. Having trouble logging in? <a href="#" className="underline hover:text-[#1F2432]">Help center</a>
           <br /><br />
           This site is protected by reCAPTCHA Enterprise and the Google <a href="#" className="underline hover:text-[#1F2432]">Privacy Policy</a> and <a href="#" className="underline hover:text-[#1F2432]">Terms of Service</a> apply.
         </div>

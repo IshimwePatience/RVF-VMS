@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Search, MoreVertical, Grid, LogOut } from 'lucide-react';
 import { Outlet, Navigate, NavLink } from 'react-router-dom';
+import minisanteLogo from '../assets/images/MINISANTE.png';
 
 export default function Layout() {
   const { user, logout, token } = useContext(AuthContext);
@@ -13,8 +14,9 @@ export default function Layout() {
     <div className="flex flex-col h-screen bg-white text-slate-800">
       {/* Top Navbar */}
       <header className="h-16 px-4 flex items-center justify-between border-b border-transparent">
-        <div className="flex items-center gap-3 w-64 shrink-0">
-          <span className="font-bold text-xl tracking-tight text-slate-800">RVF VMS</span>
+        <div className="flex items-center gap-3 w-80 shrink-0">
+          <img src={minisanteLogo} alt="MINISANTE" className="h-10 object-contain" />
+          <span className="text-[22px] text-[#5f6368] font-medium tracking-tight">rvf vaccine hub</span>
         </div>
         
         <div className="flex-1 flex justify-center max-w-3xl px-4">
