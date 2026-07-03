@@ -296,7 +296,9 @@ export default function Inventory() {
                 <th className="py-3 font-semibold text-slate-800">Issued</th>
                 <th className="py-3 font-semibold text-slate-800">Balance</th>
                 <th className="py-3 font-semibold text-slate-800">Expiration Date</th>
-                <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
+                {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
+                  <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -323,16 +325,18 @@ export default function Inventory() {
                   <td className="py-4 text-slate-600">
                     {item.Batch?.expiration_date ? new Date(item.Batch.expiration_date).toLocaleDateString() : 'N/A'}
                   </td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => handleEdit(item)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+                  {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
+                    <td className="py-4">
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => handleEdit(item)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(item.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
