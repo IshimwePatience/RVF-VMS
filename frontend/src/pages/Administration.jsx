@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
-import { Search, Plus, Filter, MapPin, Syringe } from 'lucide-react';
+import { Search, Plus, Filter, MapPin, Syringe, ChevronDown } from 'lucide-react';
 
 export default function Administration() {
   const { user } = useContext(AuthContext);
@@ -29,8 +29,8 @@ export default function Administration() {
     try {
       setLoading(true);
       const [adminRes, invRes] = await Promise.all([
-        axios.get(`http://localhost:3001/api/administrations?stock_id=${user?.stock_id || ''}`),
-        axios.get(`http://localhost:3001/api/inventory?stock_id=${user?.stock_id || ''}`)
+        axios.get(`http://localhost:3001/api/administrations?stock_id=${user?.stock?.id || ''}`),
+        axios.get(`http://localhost:3001/api/inventory?stock_id=${user?.stock?.id || ''}`)
       ]);
       setAdministrations(adminRes.data);
       // Only include inventory that has available quantity
@@ -44,7 +44,7 @@ export default function Administration() {
   };
 
   useEffect(() => {
-    if (user?.stock_id) {
+    if (user?.stock?.id) {
       fetchData();
     }
   }, [user]);
@@ -64,7 +64,7 @@ export default function Administration() {
     try {
       await axios.post('http://localhost:3001/api/administrations', {
         ...formData,
-        stock_id: user.stock_id,
+        stock_id: user.stock?.id,
         quantity: parseInt(formData.quantity)
       });
       addToast('Administration recorded successfully', 'success');
@@ -94,90 +94,91 @@ export default function Administration() {
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Vaccine Administration</h1>
-          <p className="text-sm text-slate-500 mt-1">Record vaccines distributed to veterinaries.</p>
-        </div>
-        
-        <button 
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-full hover:bg-blue-700 transition-colors shadow-sm text-sm"
-        >
-          <Plus className="w-4 h-4" /> Log Administration
-        </button>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="relative w-72">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text" 
-              placeholder="Search by veterinary or location..." 
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-lg text-sm focus:ring-1 focus:ring-blue-500 outline-none"
-            />
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Vaccine Administration</h1>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-slate-500">Filter by</span>
+            <div className="relative">
+              <select className="appearance-none bg-white border border-slate-200 rounded-full pl-4 pr-10 py-1.5 text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer transition-all">
+                <option>All</option>
+                <option>Today</option>
+                <option>This Week</option>
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
           </div>
-          <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors font-medium">
-            <Filter className="w-4 h-4" /> Filter
+          <button 
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-5 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors ml-4"
+          >
+            <Plus className="w-4 h-4" />
+            Log Administration
           </button>
         </div>
-        
+      </div>
+
+      <div className="mt-4">
         {administrations.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">
-            No administration records found.
+          <div className="py-16 flex flex-col items-center justify-center text-center">
+            <div className="relative w-48 h-48 mb-2">
+              <img 
+                src="/empty_mascot.png" 
+                alt="Empty Records Mascot" 
+                className="w-full h-full object-contain mix-blend-multiply"
+              />
+            </div>
+            <h3 className="text-lg font-bold text-slate-800">No administration records found</h3>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50">
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Date</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Veterinary</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Location</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Vaccine</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-100">Doses</th>
-                </tr>
-              </thead>
+          <table className="w-full text-left text-sm text-slate-700">
+            <thead className="border-b border-slate-200">
+              <tr>
+                <th className="py-3 font-semibold text-slate-800">Date</th>
+                <th className="py-3 font-semibold text-slate-800">Veterinary</th>
+                <th className="py-3 font-semibold text-slate-800">Location</th>
+                <th className="py-3 font-semibold text-slate-800">Vaccine</th>
+                <th className="py-3 font-semibold text-slate-800">Doses</th>
+              </tr>
+            </thead>
               <tbody className="divide-y divide-slate-100">
                 {administrations.map(record => (
                   <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {new Date(record.date_administered).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
-                          {record.veterinary_name.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="font-medium text-slate-900 text-sm">{record.veterinary_name}</span>
+                  <td className="py-4 text-slate-600">
+                    {new Date(record.date_administered).toLocaleDateString()}
+                  </td>
+                  <td className="py-4 pr-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                        {record.veterinary_name.charAt(0).toUpperCase()}
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-slate-600 text-sm">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="truncate max-w-[200px]" title={`${record.village}, ${record.cell}, ${record.sector}, ${record.district}, ${record.province}`}>
-                          {record.village}, {record.cell}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-slate-900 text-sm">{record.Batch?.Vaccine?.name}</span>
-                        <span className="text-xs text-slate-500">Batch {record.Batch?.batch_number}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-green-50 text-green-700 text-xs font-bold">
-                        <Syringe className="w-3.5 h-3.5" />
-                        {record.quantity}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <span className="font-medium text-slate-900 text-base">{record.veterinary_name}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 text-slate-600">
+                    <div className="flex items-center gap-1.5 text-sm">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="truncate max-w-[200px]" title={`${record.village}, ${record.cell}, ${record.sector}, ${record.district}, ${record.province}`}>
+                        {record.village}, {record.cell}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-4 text-slate-600">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-slate-900 text-sm">{record.Batch?.Vaccine?.name}</span>
+                      <span className="text-xs text-slate-500">Batch {record.Batch?.batch_number}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 text-slate-600">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-green-50 text-green-700 text-xs font-bold">
+                      <Syringe className="w-3.5 h-3.5" />
+                      {record.quantity}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
