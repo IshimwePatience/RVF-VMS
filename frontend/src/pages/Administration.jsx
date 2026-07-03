@@ -22,7 +22,10 @@ export default function Administration() {
     district: '',
     sector: '',
     cell: '',
-    village: ''
+    village: '',
+    phone_number: '',
+    national_id: '',
+    email: ''
   });
 
   const fetchData = async () => {
@@ -51,7 +54,7 @@ export default function Administration() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.batch_id || !formData.quantity || !formData.veterinary_name || !formData.province || !formData.district || !formData.sector || !formData.cell || !formData.village) {
+    if (!formData.batch_id || !formData.quantity || !formData.veterinary_name || !formData.province || !formData.district || !formData.sector || !formData.cell || !formData.village || !formData.phone_number || !formData.national_id || !formData.email) {
       return addToast('Please fill all fields', 'error');
     }
     
@@ -77,7 +80,10 @@ export default function Administration() {
         district: '',
         sector: '',
         cell: '',
-        village: ''
+        village: '',
+        phone_number: '',
+        national_id: '',
+        email: ''
       });
       fetchData();
     } catch (err) {
@@ -183,112 +189,194 @@ export default function Administration() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Syringe className="w-5 h-5 text-blue-600" />
-                Log Vaccine Administration
-              </h2>
-            </div>
-            <div className="p-6 overflow-y-auto flex-1">
-              <form id="adminForm" onSubmit={handleSubmit} className="space-y-6">
+        <div className="fixed inset-0 bg-slate-900/20 z-50 overflow-y-auto transition-opacity" onClick={() => setShowModal(false)}>
+          <div className="min-h-full flex items-start justify-center p-4 sm:p-6">
+            <div className="bg-white rounded-sm w-full max-w-[1100px] my-4 sm:my-8 shadow-xl flex flex-col" onClick={e => e.stopPropagation()}>
+              
+              {/* Header */}
+              <div className="px-10 pt-10 pb-6 shrink-0 relative">
+                <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">Log Vaccine Administration</h2>
+                <p className="text-[15px] text-slate-500 mt-1">Record vaccines distributed to veterinaries.</p>
                 
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <h3 className="text-sm font-semibold text-slate-800 mb-4">Vaccine Details</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Select Batch</label>
+                <button 
+                  onClick={() => setShowModal(false)}
+                  className="absolute top-10 right-8 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Form Content */}
+              <div className="px-10 pb-10">
+              <form id="adminForm" onSubmit={handleSubmit} className="space-y-8">
+                
+                {/* Vaccine Details */}
+                <div className="space-y-8">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Select Batch *</label>
+                    <div className="relative">
                       <select 
                         required
                         value={formData.batch_id}
                         onChange={(e) => setFormData({...formData, batch_id: e.target.value})}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white"
+                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium appearance-none"
                       >
-                        <option value="">-- Choose available batch --</option>
+                        <option value="" disabled>Select a batch</option>
                         {inventory.map(item => (
                           <option key={item.batch_id} value={item.batch_id}>
-                            {item.Batch?.Vaccine?.name} (Batch {item.Batch?.batch_number}) - {item.quantity_available} avail.
+                            {item.Batch?.Vaccine?.name} (Batch {item.Batch?.batch_number})
                           </option>
                         ))}
                       </select>
+                      <div className="absolute right-0 top-1 pointer-events-none text-slate-400">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Doses Administered *</label>
+                    <input 
+                      type="number" 
+                      required min="1"
+                      placeholder="e.g. 50"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData({...formData, quantity: e.target.value})}
+                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                    />
+                  </div>
+                </div>
+
+                {/* Veterinary & Location */}
+                <div className="space-y-8 pt-4 border-t border-slate-100">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Veterinary Name *</label>
+                    <input 
+                      type="text" required
+                      placeholder="Dr. John Doe"
+                      value={formData.veterinary_name}
+                      onChange={(e) => setFormData({...formData, veterinary_name: e.target.value})}
+                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Email Address *</label>
+                    <input 
+                      type="email" required
+                      placeholder="vet@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Phone Number *</label>
+                    <div className="flex items-center border-b border-slate-200 pb-2 focus-within:border-blue-500 transition-colors">
+                      <span className="flex items-center gap-1.5 pr-3 text-[17px] text-slate-900 font-medium">
+                        🇷🇼 +250
+                      </span>
+                      <input 
+                        type="tel" required
+                        placeholder="788 000 000"
+                        value={formData.phone_number}
+                        onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
+                        className="w-full bg-transparent outline-none text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">National ID *</label>
+                    <input 
+                      type="text" required
+                      placeholder="1 1990 8..."
+                      value={formData.national_id}
+                      onChange={(e) => setFormData({...formData, national_id: e.target.value})}
+                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                    />
+                  </div>
+
+                  <div className="space-y-8">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Province *</label>
+                      <input 
+                        type="text" required
+                        placeholder="Province"
+                        value={formData.province}
+                        onChange={(e) => setFormData({...formData, province: e.target.value})}
+                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Doses Administered</label>
+                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">District *</label>
                       <input 
-                        type="number" 
-                        required
-                        min="1"
-                        value={formData.quantity}
-                        onChange={(e) => setFormData({...formData, quantity: e.target.value})}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white"
-                        placeholder="e.g. 50"
+                        type="text" required
+                        placeholder="District"
+                        value={formData.district}
+                        onChange={(e) => setFormData({...formData, district: e.target.value})}
+                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-8">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Sector *</label>
+                      <input 
+                        type="text" required
+                        placeholder="Sector"
+                        value={formData.sector}
+                        onChange={(e) => setFormData({...formData, sector: e.target.value})}
+                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Cell *</label>
+                      <input 
+                        type="text" required
+                        placeholder="Cell"
+                        value={formData.cell}
+                        onChange={(e) => setFormData({...formData, cell: e.target.value})}
+                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Village *</label>
+                      <input 
+                        type="text" required
+                        placeholder="Village"
+                        value={formData.village}
+                        onChange={(e) => setFormData({...formData, village: e.target.value})}
+                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <h3 className="text-sm font-semibold text-slate-800 mb-4">Veterinary & Location</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Veterinary Name</label>
-                      <input 
-                        type="text" 
-                        required
-                        value={formData.veterinary_name}
-                        onChange={(e) => setFormData({...formData, veterinary_name: e.target.value})}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm bg-white"
-                        placeholder="Dr. John Doe"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Province</label>
-                        <input type="text" required value={formData.province} onChange={(e) => setFormData({...formData, province: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-white" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">District</label>
-                        <input type="text" required value={formData.district} onChange={(e) => setFormData({...formData, district: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-white" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Sector</label>
-                        <input type="text" required value={formData.sector} onChange={(e) => setFormData({...formData, sector: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-white" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Cell</label>
-                        <input type="text" required value={formData.cell} onChange={(e) => setFormData({...formData, cell: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-white" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Village</label>
-                        <input type="text" required value={formData.village} onChange={(e) => setFormData({...formData, village: e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-white" />
-                      </div>
-                    </div>
-                  </div>
+                <div className="pt-8 flex justify-end gap-6 items-center">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowModal(false)}
+                    className="text-[13px] font-bold text-slate-500 hover:text-slate-800 tracking-wider transition-colors"
+                  >
+                    CANCEL
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={submitting}
+                    className="px-6 py-3 bg-[#4384F5] text-white font-bold text-[13px] tracking-wider rounded transition-colors hover:bg-blue-600 disabled:opacity-70"
+                  >
+                    {submitting ? 'RECORDING...' : 'RECORD'}
+                  </button>
                 </div>
-
               </form>
             </div>
-            <div className="px-6 py-4 border-t border-slate-100 flex gap-3 bg-white shrink-0">
-              <button 
-                type="button" 
-                onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition-colors text-sm"
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                form="adminForm"
-                disabled={submitting}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-70"
-              >
-                {submitting ? 'Saving...' : 'Record Administration'}
-              </button>
-            </div>
           </div>
+        </div>
         </div>
       )}
     </div>

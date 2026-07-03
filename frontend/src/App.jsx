@@ -15,6 +15,7 @@ import Requests from './pages/Requests';
 import NewRequest from './pages/NewRequest';
 import Transfers from './pages/Transfers';
 import Administration from './pages/Administration';
+import ReportUsage from './pages/ReportUsage';
 import { AuthContext } from './context/AuthContext';
 
 const CentralOnlyRoute = ({ children }) => {
@@ -62,6 +63,7 @@ function App() {
               <Route path="users" element={<AdminOnlyRoute><Users /></AdminOnlyRoute>} />
               <Route path="settings" element={<AdminOnlyRoute><Settings /></AdminOnlyRoute>} />
             </Route>
+            <Route path="/report-usage/:token" element={<ReportUsage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
