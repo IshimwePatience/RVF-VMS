@@ -6,5 +6,6 @@ const { authenticate } = require('../middleware/auth.middleware');
 router.post('/', authenticate, requestController.createRequest);
 router.get('/', authenticate, requestController.getRequests);
 router.post('/:id/approve', authenticate, requestController.approveRequest);
+router.delete('/:id', authenticate, requestController.deleteRequest);
 
 module.exports = router;

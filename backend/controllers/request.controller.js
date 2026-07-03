@@ -28,3 +28,12 @@ exports.approveRequest = async (req, res) => {
     res.status(400).json({ message: error.message || 'Server error' });
   }
 };
+
+exports.deleteRequest = async (req, res) => {
+  try {
+    await requestService.deleteRequest(req.params.id, req.user);
+    res.json({ message: 'Request cancelled successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Server error' });
+  }
+};

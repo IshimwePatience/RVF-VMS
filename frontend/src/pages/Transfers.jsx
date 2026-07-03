@@ -11,6 +11,14 @@ export default function Transfers() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('incoming');
 
+  const isCentral = user?.role === 'Admin' || user?.stock?.is_central || user?.is_central;
+
+  useEffect(() => {
+    if (isCentral) {
+      setActiveTab('outgoing');
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchTransfers();
   }, [activeTab]);
@@ -62,12 +70,14 @@ export default function Transfers() {
       </div>
 
       <div className="flex border-b border-slate-200 mb-6">
-        <button 
-          onClick={() => setActiveTab('incoming')}
-          className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'incoming' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-        >
-          <Package className="w-4 h-4" /> Incoming Deliveries
-        </button>
+        {!isCentral && (
+          <button 
+            onClick={() => setActiveTab('incoming')}
+            className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'incoming' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+          >
+            <Package className="w-4 h-4" /> Incoming Deliveries
+          </button>
+        )}
         <button 
           onClick={() => setActiveTab('outgoing')}
           className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'outgoing' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
@@ -88,26 +98,25 @@ export default function Transfers() {
             <p className="text-slate-500 mt-1">When shipments are dispatched, they will appear here.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <table className="w-full text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200 bg-slate-50/50">
+          <table className="w-full text-left text-sm text-slate-700">
+            <thead className="border-b border-slate-200">
               <tr>
-                <th className="py-4 px-6 font-semibold text-slate-800">Date Shipped</th>
-                <th className="py-4 px-6 font-semibold text-slate-800">Batch ID</th>
-                <th className="py-4 px-6 font-semibold text-slate-800">Quantity</th>
-                <th className="py-4 px-6 font-semibold text-slate-800">Status</th>
-                {activeTab === 'incoming' && <th className="py-4 px-6 font-semibold text-slate-800 text-right">Actions</th>}
+                <th className="py-3 pr-6 font-semibold text-slate-800">Date Shipped</th>
+                <th className="py-3 font-semibold text-slate-800">Batch ID</th>
+                <th className="py-3 font-semibold text-slate-800">Quantity</th>
+                <th className="py-3 font-semibold text-slate-800">Status</th>
+                {activeTab === 'incoming' && <th className="py-3 font-semibold text-slate-800 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {transfers.map(t => (
                 <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-4 px-6">{new Date(t.createdAt).toLocaleDateString()}</td>
-                  <td className="py-4 px-6 font-medium text-slate-900">{t.batch_id}</td>
-                  <td className="py-4 px-6">
+                  <td className="py-4 pr-6">{new Date(t.createdAt).toLocaleDateString()}</td>
+                  <td className="py-4 font-medium text-slate-900">{t.batch_id}</td>
+                  <td className="py-4">
                     <span className="font-bold text-slate-900">{t.quantity.toLocaleString()}</span> doses
                   </td>
-                  <td className="py-4 px-6">
+                  <td className="py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${getStatusStyle(t.status)}`}>
                       {t.status === 'In Transit' && <Truck className="w-3.5 h-3.5" />}
                       {t.status === 'Completed' && <CheckCircle className="w-3.5 h-3.5" />}
@@ -115,7 +124,7 @@ export default function Transfers() {
                     </span>
                   </td>
                   {activeTab === 'incoming' && (
-                    <td className="py-4 px-6 text-right">
+                    <td className="py-4 text-right">
                       {t.status === 'In Transit' && (
                         <button 
                           onClick={() => handleConfirmReceipt(t.id)}
@@ -129,8 +138,7 @@ export default function Transfers() {
                 </tr>
               ))}
             </tbody>
-            </table>
-          </div>
+          </table>
         )}
       </div>
     </div>

@@ -11,12 +11,17 @@ export default function NewRequest() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(null);
   const [quantities, setQuantities] = useState({});
+  const [myRequests, setMyRequests] = useState([]);
 
   useEffect(() => {
-    const fetchParentInventory = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get('http://localhost:3001/api/inventory?view_parent=true');
-        setParentInventory(res.data);
+        const [invRes, reqRes] = await Promise.all([
+          axios.get('http://localhost:3001/api/inventory?view_parent=true'),
+          axios.get('http://localhost:3001/api/requests?type=outgoing')
+        ]);
+        setParentInventory(invRes.data);
+        setMyRequests(reqRes.data);
       } catch (err) {
         addToast('Failed to load available vaccines', 'error');
       } finally {
@@ -24,7 +29,7 @@ export default function NewRequest() {
       }
     };
     if (!user?.is_central) {
-      fetchParentInventory();
+      fetchData();
     } else {
       setLoading(false);
     }
@@ -52,10 +57,26 @@ export default function NewRequest() {
       });
       addToast('Request sent successfully!', 'success');
       setQuantities(prev => ({ ...prev, [item.batch_id]: '' }));
+      
+      const reqRes = await axios.get('http://localhost:3001/api/requests?type=outgoing');
+      setMyRequests(reqRes.data);
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to send request', 'error');
     } finally {
       setSubmitting(null);
+    }
+  };
+
+  const handleCancel = async (id) => {
+    if (!window.confirm('Are you sure you want to stop this request?')) return;
+    try {
+      await axios.delete(`http://localhost:3001/api/requests/${id}`);
+      addToast('Request stopped successfully!', 'success');
+      
+      const reqRes = await axios.get('http://localhost:3001/api/requests?type=outgoing');
+      setMyRequests(reqRes.data);
+    } catch (err) {
+      addToast(err.response?.data?.message || 'Failed to stop request', 'error');
     }
   };
 
@@ -113,7 +134,10 @@ export default function NewRequest() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {parentInventory.map(item => (
+              {parentInventory.map(item => {
+                const pendingRequest = myRequests.find(r => r.batch_id === item.batch_id && r.status === 'Pending');
+                
+                return (
                 <tr key={item.id} className="group hover:bg-slate-50/50 transition-colors">
                   <td className="py-4 pr-6">
                     <div className="flex items-center gap-3">
@@ -131,28 +155,44 @@ export default function NewRequest() {
                     {item.Batch?.expiration_date ? new Date(item.Batch.expiration_date).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <input 
-                        type="number"
-                        placeholder="Qty"
-                        min="1"
-                        max={item.quantity_available}
-                        value={quantities[item.batch_id] || ''}
-                        onChange={(e) => handleQuantityChange(item.batch_id, e.target.value)}
-                        className="w-24 px-3 py-1.5 text-sm border border-slate-200 rounded outline-none focus:border-blue-500 transition-colors"
-                      />
-                      <button 
-                        onClick={() => handleRequest(item)}
-                        disabled={submitting === item.batch_id || !quantities[item.batch_id]}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        {submitting === item.batch_id ? 'Sending...' : 'Request'}
-                      </button>
-                    </div>
+                    {pendingRequest ? (
+                      <div className="flex items-center justify-end gap-3">
+                        <span className="text-sm font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                          Pending
+                        </span>
+                        <button 
+                          onClick={() => handleCancel(pendingRequest.id)}
+                          className="text-sm font-semibold text-slate-500 hover:text-red-600 transition-colors underline decoration-transparent hover:decoration-red-600"
+                        >
+                          Stop Request
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-end gap-2">
+                        <input 
+                          type="number"
+                          placeholder="Qty"
+                          min="1"
+                          max={item.quantity_available}
+                          value={quantities[item.batch_id] || ''}
+                          onChange={(e) => handleQuantityChange(item.batch_id, e.target.value)}
+                          className="w-24 px-3 py-1.5 text-sm border border-slate-200 rounded outline-none focus:border-blue-500 transition-colors"
+                        />
+                        <button 
+                          onClick={() => handleRequest(item)}
+                          disabled={submitting === item.batch_id || !quantities[item.batch_id]}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          {submitting === item.batch_id ? 'Sending...' : 'Request'}
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         )}

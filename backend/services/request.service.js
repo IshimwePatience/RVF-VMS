@@ -64,3 +64,11 @@ exports.approveRequest = async (id, user) => {
     return { request, transfer };
   });
 };
+
+exports.deleteRequest = async (id, user) => {
+  const request = await Request.findByPk(id);
+  if (!request || request.requesting_stock_id !== user.stock_id) throw new Error('Unauthorized or not found');
+  if (request.status !== 'Pending') throw new Error('Can only cancel pending requests');
+  await request.destroy();
+  return true;
+};
