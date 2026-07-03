@@ -6,4 +6,8 @@ const { authenticate, requireCentralStock } = require('../middleware/auth.middle
 router.post('/', authenticate, requireCentralStock, vaccineController.createVaccine);
 router.get('/', authenticate, vaccineController.getVaccines);
 
+
+router.put('/:id', authenticate, requireCentralStock, vaccineController.updateVaccine);
+router.delete('/:id', authenticate, requireCentralStock, vaccineController.deleteVaccine);
+
 module.exports = router;

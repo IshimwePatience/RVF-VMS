@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 
@@ -12,6 +12,7 @@ export default function Suppliers() {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', contact_info: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     fetchSuppliers();
@@ -33,16 +34,44 @@ export default function Suppliers() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await axios.post('http://localhost:3001/api/suppliers', formData);
-      addToast('Supplier created successfully', 'success');
-      setShowModal(false);
-      setFormData({ name: '', contact_info: '' });
+      if (editingId) {
+        await axios.put(`http://localhost:3001/api/suppliers/${editingId}`, formData);
+        addToast('Supplier updated successfully', 'success');
+      } else {
+        await axios.post('http://localhost:3001/api/suppliers', formData);
+        addToast('Supplier created successfully', 'success');
+      }
+      closeModal();
       fetchSuppliers();
     } catch (err) {
       console.error(err);
-      addToast(err.response?.data?.message || 'Failed to create supplier', 'error');
+      addToast(err.response?.data?.message || 'Failed to save supplier', 'error');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setFormData({ name: '', contact_info: '' });
+  };
+
+  const handleEdit = (supplier) => {
+    setEditingId(supplier.id);
+    setFormData({ name: supplier.name, contact_info: supplier.contact_info || '' });
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this supplier?')) return;
+    try {
+      await axios.delete(`http://localhost:3001/api/suppliers/${id}`);
+      addToast('Supplier deleted successfully', 'success');
+      fetchSuppliers();
+    } catch (err) {
+      console.error(err);
+      addToast('Failed to delete supplier', 'error');
     }
   };
 
@@ -117,7 +146,14 @@ export default function Suppliers() {
                   </td>
                   <td className="py-4 text-slate-600 whitespace-pre-wrap">{supplier.contact_info}</td>
                   <td className="py-4">
-                    <button className="text-slate-400 hover:text-blue-600 font-medium transition-colors opacity-0 group-hover:opacity-100">Edit</button>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => handleEdit(supplier)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(supplier.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -130,7 +166,7 @@ export default function Suppliers() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">Add New Supplier</h2>
+              <h2 className="text-lg font-bold text-slate-900">{editingId ? 'Edit Supplier' : 'Add New Supplier'}</h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6">
               <div className="space-y-4">
@@ -158,7 +194,7 @@ export default function Suppliers() {
               <div className="mt-8 flex gap-3">
                 <button 
                   type="button" 
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition-colors text-sm"
                 >
                   Cancel
@@ -168,7 +204,7 @@ export default function Suppliers() {
                   disabled={submitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-70"
                 >
-                  {submitting ? 'Saving...' : 'Save Supplier'}
+                  {submitting ? 'Saving...' : editingId ? 'Update Supplier' : 'Save Supplier'}
                 </button>
               </div>
             </form>

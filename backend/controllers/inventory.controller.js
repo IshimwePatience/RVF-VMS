@@ -27,3 +27,19 @@ exports.getInventory = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+exports.updateInventory = async (req, res) => {
+  try {
+    const inv = await inventoryService.updateInventory(req.params.id, req.body, req.user);
+    res.json(inv);
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Server error' });
+  }
+};
+exports.deleteInventory = async (req, res) => {
+  try {
+    await inventoryService.deleteInventory(req.params.id, req.user);
+    res.json({ message: 'Inventory deleted' });
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Server error' });
+  }
+};

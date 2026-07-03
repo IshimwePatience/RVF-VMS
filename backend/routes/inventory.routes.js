@@ -7,4 +7,7 @@ router.post('/receive', authenticate, requireCentralStock, inventoryController.r
 router.get('/', authenticate, inventoryController.getInventory);
 router.post('/exchange-rate', authenticate, requireCentralStock, inventoryController.setExchangeRate);
 
+router.put('/:id', authenticate, requireCentralStock, inventoryController.updateInventory);
+router.delete('/:id', authenticate, requireCentralStock, inventoryController.deleteInventory);
+
 module.exports = router;

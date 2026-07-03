@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, Search, LayoutGrid, List, Pencil, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
@@ -15,6 +15,13 @@ export default function Inventory() {
   const [suppliers, setSuppliers] = useState([]);
   const [vaccines, setVaccines] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('inventoryViewMode') || 'grid');
+
+  useEffect(() => {
+    localStorage.setItem('inventoryViewMode', viewMode);
+  }, [viewMode]);
   const [formData, setFormData] = useState({
     supplier_id: '',
     vaccine_id: '',
@@ -65,15 +72,58 @@ export default function Inventory() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await axios.post('http://localhost:3001/api/inventory/receive', formData);
-      addToast('Stock received successfully', 'success');
-      setShowReceiveModal(false);
+      if (editingId) {
+        await axios.put(`http://localhost:3001/api/inventory/${editingId}`, formData);
+        addToast('Stock updated successfully', 'success');
+      } else {
+        await axios.post('http://localhost:3001/api/inventory/receive', formData);
+        addToast('Stock received successfully', 'success');
+      }
+      closeModal();
       fetchInventory();
     } catch (err) {
       console.error(err);
-      addToast(err.response?.data?.message || 'Failed to receive stock', 'error');
+      addToast(err.response?.data?.message || 'Failed to save stock', 'error');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowReceiveModal(false);
+    setEditingId(null);
+    setFormData({
+      supplier_id: '', vaccine_id: '', batch_number: '', arrival_date: new Date().toISOString().split('T')[0], expiration_date: '', unit_per_container: '', number_of_containers: '', original_price_per_dose: '', currency: 'USD'
+    });
+  };
+
+  const handleEdit = (item) => {
+    fetchOptions();
+    setEditingId(item.id);
+    setFormData({
+      supplier_id: item.Batch?.supplier_id || '',
+      vaccine_id: item.Batch?.vaccine_id || '',
+      batch_number: item.Batch?.batch_number || '',
+      arrival_date: item.Batch?.arrival_date ? new Date(item.Batch.arrival_date).toISOString().split('T')[0] : '',
+      expiration_date: item.Batch?.expiration_date ? new Date(item.Batch.expiration_date).toISOString().split('T')[0] : '',
+      unit_per_container: item.Batch?.unit_per_container || '',
+      number_of_containers: item.Batch?.number_of_containers || '',
+      original_price_per_dose: item.Batch?.original_price_per_dose || '',
+      currency: item.Batch?.currency || 'USD',
+      quantity_available: item.quantity_available
+    });
+    setShowReceiveModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this inventory record? This will also delete the associated batch if it exists.')) return;
+    try {
+      await axios.delete(`http://localhost:3001/api/inventory/${id}`);
+      addToast('Inventory deleted successfully', 'success');
+      fetchInventory();
+    } catch (err) {
+      console.error(err);
+      addToast('Failed to delete inventory', 'error');
     }
   };
 
@@ -95,6 +145,22 @@ export default function Inventory() {
               Most relevant <ChevronDown className="w-4 h-4 text-slate-500" />
             </button>
           </div>
+
+          <div className="flex bg-slate-100 p-1 rounded-lg ml-2">
+            <button 
+              onClick={() => setViewMode('grid')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setViewMode('list')}
+              className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+
           {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
             <button 
               onClick={openModal}
@@ -106,14 +172,13 @@ export default function Inventory() {
           )}
         </div>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="mt-4">
         {loading ? (
-          <div className="col-span-full py-12 flex justify-center">
+          <div className="py-12 flex justify-center">
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : inventoryItems.length === 0 ? (
-          <div className="col-span-full py-16 flex flex-col items-center justify-center text-center">
+          <div className="py-16 flex flex-col items-center justify-center text-center">
             <div className="relative w-48 h-48 mb-2">
               <img 
                 src="/empty_mascot.png" 
@@ -123,34 +188,83 @@ export default function Inventory() {
             </div>
             <h3 className="text-lg font-bold text-slate-800">No inventory found</h3>
           </div>
-        ) : inventoryItems.map((item) => (
-          <div key={item.id} className="group bg-white rounded-2xl p-4 transition-all duration-300 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] cursor-pointer border border-transparent hover:border-slate-100 flex flex-col h-full">
-            <div className={`h-36 rounded-xl w-full mb-4 flex items-center justify-center text-white font-bold text-xl relative overflow-hidden ${item.quantity_available < 5000 ? 'bg-gradient-to-br from-red-500 to-rose-600' :
-                item.quantity_available < 15000 ? 'bg-gradient-to-br from-orange-400 to-amber-500' :
-                  'bg-gradient-to-br from-blue-500 to-indigo-600'
-              }`}>
-              <div className="absolute inset-0 bg-black/10"></div>
-              <span className="relative z-10 text-center px-4 drop-shadow-md">{item.Batch.Vaccine.name}</span>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-slate-900 mb-1">{item.Batch.Vaccine.name}</h3>
-              <div className="flex items-center gap-1 text-sm text-slate-600 mb-2">
-                <span>Batch: {item.Batch.batch_number}</span>
-                {item.Batch.Supplier && (
-                  <>
-                    <span className="text-slate-300 mx-1">|</span>
-                    <span className="text-blue-600 hover:underline">{item.Batch.Supplier.name}</span>
-                  </>
-                )}
+        ) : viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {inventoryItems.map((item) => (
+              <div key={item.id} className="group bg-white rounded-2xl p-4 transition-all duration-300 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] cursor-pointer border border-transparent hover:border-slate-100 flex flex-col h-full">
+                <div className={`h-36 rounded-xl w-full mb-4 flex items-center justify-center text-white font-bold text-xl relative overflow-hidden ${item.quantity_available < 5000 ? 'bg-gradient-to-br from-red-500 to-rose-600' :
+                    item.quantity_available < 15000 ? 'bg-gradient-to-br from-orange-400 to-amber-500' :
+                      'bg-gradient-to-br from-blue-500 to-indigo-600'
+                  }`}>
+                  <div className="absolute inset-0 bg-black/10"></div>
+                  <span className="relative z-10 text-center px-4 drop-shadow-md">{item.Batch.Vaccine.name}</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-slate-900 mb-1">{item.Batch.Vaccine.name}</h3>
+                  <div className="flex items-center gap-1 text-sm text-slate-600 mb-2">
+                    <span>Batch: {item.Batch.batch_number}</span>
+                    {item.Batch.Supplier && (
+                      <>
+                        <span className="text-slate-300 mx-1">|</span>
+                        <span className="text-blue-600 hover:underline">{item.Batch.Supplier.name}</span>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    Available stock: <span className="font-medium text-slate-800">{item.quantity_available.toLocaleString()} doses</span>.
+                    <br />
+                    Expires: {new Date(item.Batch.expiration_date).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Available stock: <span className="font-medium text-slate-800">{item.quantity_available.toLocaleString()} doses</span>.
-                <br />
-                Expires: {new Date(item.Batch.expiration_date).toLocaleDateString()}
-              </p>
-            </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          <table className="w-full text-left text-sm text-slate-700">
+            <thead className="border-b border-slate-200">
+              <tr>
+                <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
+                  Vaccine Name <ChevronDown className="w-4 h-4 text-slate-400" />
+                </th>
+                <th className="py-3 font-semibold text-slate-800">Batch</th>
+                <th className="py-3 font-semibold text-slate-800">Available Stock</th>
+                <th className="py-3 font-semibold text-slate-800">Expiration Date</th>
+                <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {inventoryItems.map(item => (
+                <tr key={item.id} className="group hover:bg-slate-50/50 transition-colors">
+                  <td className="py-4 pr-6">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-slate-900 text-base">{item.Batch?.Vaccine?.name}</span>
+                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
+                        VACCINE
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-4 text-slate-600 font-medium">{item.Batch?.batch_number}</td>
+                  <td className="py-4 text-slate-600">
+                    <span className="font-bold text-slate-900">{item.quantity_available.toLocaleString()}</span> doses
+                  </td>
+                  <td className="py-4 text-slate-600">
+                    {item.Batch?.expiration_date ? new Date(item.Batch.expiration_date).toLocaleDateString() : 'N/A'}
+                  </td>
+                  <td className="py-4">
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => handleEdit(item)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(item.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {showReceiveModal && (
@@ -166,11 +280,11 @@ export default function Inventory() {
             
             {/* Header (No bottom border, spacious) */}
             <div className="px-10 pt-10 pb-6 shrink-0 relative">
-              <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">Receive Vaccines</h2>
-              <p className="text-[15px] text-slate-500 mt-1">Add a new batch to your central stock</p>
+              <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">{editingId ? 'Edit Inventory' : 'Receive Vaccines'}</h2>
+              <p className="text-[15px] text-slate-500 mt-1">{editingId ? 'Update details for this inventory batch' : 'Add a new batch to your central stock'}</p>
               
               <button 
-                onClick={() => setShowReceiveModal(false)}
+                onClick={closeModal}
                 className="absolute top-10 right-8 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 {/* Arrow to line icon ->| */}
@@ -320,7 +434,7 @@ export default function Inventory() {
               <div className="p-8 pb-10 flex items-center justify-end gap-6 shrink-0">
                 <button 
                   type="button" 
-                  onClick={() => setShowReceiveModal(false)}
+                  onClick={closeModal}
                   className="text-slate-600 font-semibold text-[13px] tracking-wide hover:text-slate-900 transition-colors uppercase"
                 >
                   Cancel
@@ -330,7 +444,7 @@ export default function Inventory() {
                   disabled={submitting}
                   className="px-6 py-3 bg-[#4285f4] hover:bg-[#3367d6] text-white font-semibold text-[13px] tracking-wide rounded transition-colors uppercase disabled:opacity-70"
                 >
-                  {submitting ? 'Receiving...' : 'Confirm Receipt'}
+                  {submitting ? 'Saving...' : editingId ? 'Update Inventory' : 'Confirm Receipt'}
                 </button>
               </div>
             </form>

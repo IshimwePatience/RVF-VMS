@@ -6,4 +6,8 @@ const { authenticate, requireCentralStock } = require('../middleware/auth.middle
 router.post('/', authenticate, requireCentralStock, supplierController.createSupplier);
 router.get('/', authenticate, requireCentralStock, supplierController.getSuppliers);
 
+
+router.put('/:id', authenticate, requireCentralStock, supplierController.updateSupplier);
+router.delete('/:id', authenticate, requireCentralStock, supplierController.deleteSupplier);
+
 module.exports = router;

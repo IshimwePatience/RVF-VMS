@@ -6,4 +6,8 @@ const { authenticate, requireAdmin } = require('../middleware/auth.middleware');
 router.post('/', authenticate, requireAdmin, stockController.createStock);
 router.get('/', authenticate, stockController.getStocks);
 
+
+router.put('/:id', authenticate, requireAdmin, stockController.updateStock);
+router.delete('/:id', authenticate, requireAdmin, stockController.deleteStock);
+
 module.exports = router;

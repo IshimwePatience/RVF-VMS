@@ -9,8 +9,15 @@ exports.receiveCentralStock = async (data, user) => {
 
   let rate = 1;
   if (data.currency !== 'RWF') {
-    const exchange = await ExchangeRate.findOne({ where: { currency: data.currency }, order: [['effective_date', 'DESC']] });
-    if (!exchange) throw new Error(`No exchange rate found for ${data.currency}`);
+    let exchange = await ExchangeRate.findOne({ where: { currency: data.currency }, order: [['effective_date', 'DESC']] });
+    if (!exchange) {
+      const defaultRates = { 'USD': 1300, 'EUR': 1400 };
+      if (defaultRates[data.currency]) {
+        exchange = await ExchangeRate.create({ currency: data.currency, rate_to_rwf: defaultRates[data.currency] });
+      } else {
+        throw new Error(`No exchange rate found for ${data.currency}`);
+      }
+    }
     rate = exchange.rate_to_rwf;
   }
 
@@ -64,4 +71,40 @@ exports.getInventory = async (user, viewParent) => {
     }
     return data;
   });
+};
+exports.updateInventory = async (id, data, user) => {
+  const { StockInventory, Batch } = require('../models');
+  if (!user.is_central && user.role !== 'Admin') throw new Error('Not authorized');
+  const inventory = await StockInventory.findByPk(id);
+  if (!inventory) throw new Error('Inventory not found');
+  
+  if (data.quantity_available !== undefined) {
+    await inventory.update({ quantity_available: data.quantity_available });
+  }
+  
+  if (inventory.batch_id) {
+    const batch = await Batch.findByPk(inventory.batch_id);
+    if (batch) {
+      await batch.update({
+        batch_number: data.batch_number || batch.batch_number,
+        expiration_date: data.expiration_date || batch.expiration_date,
+        vaccine_id: data.vaccine_id || batch.vaccine_id,
+        supplier_id: data.supplier_id || batch.supplier_id
+      });
+    }
+  }
+  return inventory;
+};
+
+exports.deleteInventory = async (id, user) => {
+  const { StockInventory, Batch } = require('../models');
+  if (!user.is_central && user.role !== 'Admin') throw new Error('Not authorized');
+  const inventory = await StockInventory.findByPk(id);
+  if (!inventory) throw new Error('Inventory not found');
+  const batchId = inventory.batch_id;
+  await inventory.destroy();
+  if (batchId) {
+    await Batch.destroy({ where: { id: batchId } });
+  }
+  return true;
 };

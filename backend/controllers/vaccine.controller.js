@@ -17,3 +17,19 @@ exports.getVaccines = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+exports.updateVaccine = async (req, res) => {
+  try {
+    const item = await vaccineService.updateVaccine(req.params.id, req.body);
+    res.json(item);
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Server error' });
+  }
+};
+exports.deleteVaccine = async (req, res) => {
+  try {
+    await vaccineService.deleteVaccine(req.params.id);
+    res.json({ message: 'Vaccine deleted successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Server error' });
+  }
+};

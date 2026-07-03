@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
@@ -18,6 +18,7 @@ export default function Stocks() {
     is_central: false,
     parent_stock_id: ''
   });
+  const [editingId, setEditingId] = useState(null);
 
   const fetchStocks = async () => {
     try {
@@ -39,16 +40,48 @@ export default function Stocks() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await axios.post('http://localhost:3001/api/stocks', formData);
-      addToast('Stock point created successfully', 'success');
-      setShowModal(false);
-      setFormData({ name: '', is_central: false, parent_stock_id: '' });
+      if (editingId) {
+        await axios.put(`http://localhost:3001/api/stocks/${editingId}`, formData);
+        addToast('Stock point updated successfully', 'success');
+      } else {
+        await axios.post('http://localhost:3001/api/stocks', formData);
+        addToast('Stock point created successfully', 'success');
+      }
+      closeModal();
       fetchStocks();
     } catch (err) {
       console.error(err);
-      addToast(err.response?.data?.message || 'Failed to create stock point', 'error');
+      addToast(err.response?.data?.message || 'Failed to save stock point', 'error');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setFormData({ name: '', is_central: false, parent_stock_id: '' });
+  };
+
+  const handleEdit = (stock) => {
+    setEditingId(stock.id);
+    setFormData({ 
+      name: stock.name, 
+      is_central: stock.is_central, 
+      parent_stock_id: stock.parent_stock_id || '' 
+    });
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this stock point?')) return;
+    try {
+      await axios.delete(`http://localhost:3001/api/stocks/${id}`);
+      addToast('Stock point deleted successfully', 'success');
+      fetchStocks();
+    } catch (err) {
+      console.error(err);
+      addToast('Failed to delete stock point', 'error');
     }
   };
 
@@ -119,7 +152,14 @@ export default function Stocks() {
                     {stock.ParentStock ? stock.ParentStock.name : (stock.is_central ? '—' : 'None Assigned')}
                   </td>
                   <td className="py-4">
-                    <button className="text-slate-400 hover:text-blue-600 font-medium transition-colors opacity-0 group-hover:opacity-100">Edit</button>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => handleEdit(stock)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(stock.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -132,7 +172,7 @@ export default function Stocks() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">Add New Stock Point</h2>
+              <h2 className="text-lg font-bold text-slate-900">{editingId ? 'Edit Stock Point' : 'Add New Stock Point'}</h2>
             </div>
             <form onSubmit={handleSubmit} className="p-6">
               <div className="space-y-4">
@@ -180,7 +220,7 @@ export default function Stocks() {
               <div className="mt-8 flex gap-3">
                 <button 
                   type="button" 
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200 transition-colors text-sm"
                 >
                   Cancel
@@ -190,7 +230,7 @@ export default function Stocks() {
                   disabled={submitting}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-70"
                 >
-                  {submitting ? 'Saving...' : 'Create Stock'}
+                  {submitting ? 'Saving...' : editingId ? 'Update Stock' : 'Create Stock'}
                 </button>
               </div>
             </form>
