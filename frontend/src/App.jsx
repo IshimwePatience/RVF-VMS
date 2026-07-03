@@ -5,6 +5,7 @@ import { ToastProvider } from './context/ToastContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Inventory from './pages/Inventory';
 
 function App() {
   return (
@@ -15,7 +16,14 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
-              {/* Add more routes here */}
+              <Route path="inventory" element={<Inventory />} />
+              <Route path="requests" element={<div className="p-8">Requests Placeholder</div>} />
+              <Route path="stocks" element={<div className="p-8">Stock Overview Placeholder</div>} />
+              <Route path="vaccines" element={<div className="p-8">Vaccine Types Placeholder</div>} />
+              <Route path="suppliers" element={<div className="p-8">Suppliers Placeholder</div>} />
+              <Route path="requests/new" element={<div className="p-8">New Request Placeholder</div>} />
+              <Route path="transfers" element={<div className="p-8">Transfers Placeholder</div>} />
+              <Route path="reports" element={<div className="p-8">Reports Placeholder</div>} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

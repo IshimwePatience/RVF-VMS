@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { Search, MoreVertical, Grid, LogOut } from 'lucide-react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, NavLink } from 'react-router-dom';
 
 export default function Layout() {
   const { user, logout, token } = useContext(AuthContext);
@@ -66,19 +66,19 @@ export default function Layout() {
         <div className="w-[280px] shrink-0 overflow-y-auto flex flex-col">
           {/* Top horizontal tabs for sidebar */}
           <div className="flex items-center gap-6 px-6 py-2 border-b border-slate-100">
-            <button className="text-sm text-slate-600 hover:text-slate-900 pb-3 font-medium">Dashboard</button>
-            <button className="text-sm text-blue-600 border-b-2 border-blue-600 pb-3 font-medium">Inventory</button>
-            <button className="text-sm text-slate-600 hover:text-slate-900 pb-3 font-medium">Requests</button>
+            <NavLink to="/" end className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Dashboard</NavLink>
+            <NavLink to="/inventory" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Inventory</NavLink>
+            <NavLink to="/requests" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Requests</NavLink>
           </div>
           
           <div className="py-4">
             <div className="px-6 mb-2">
               <h3 className="text-sm font-medium text-slate-900 mb-2">Management</h3>
-              <nav className="space-y-0.5">
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-full transition-colors">Stock Overview</a>
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-full transition-colors">Vaccine Types</a>
-                <a href="#" className="flex items-center px-4 py-2 text-sm bg-blue-100/50 text-blue-700 font-medium rounded-full transition-colors">Current Inventory</a>
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-full transition-colors">Suppliers</a>
+              <nav className="space-y-0.5 flex flex-col">
+                <NavLink to="/stocks" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Stock Overview</NavLink>
+                <NavLink to="/vaccines" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Vaccine Types</NavLink>
+                <NavLink to="/inventory" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Current Inventory</NavLink>
+                <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Suppliers</NavLink>
               </nav>
             </div>
 
@@ -86,10 +86,10 @@ export default function Layout() {
 
             <div className="px-6 mb-2">
               <h3 className="text-sm font-medium text-slate-900 mb-2">Operations</h3>
-              <nav className="space-y-0.5">
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-full transition-colors">New Request</a>
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-full transition-colors">Transfers</a>
-                <a href="#" className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 rounded-full transition-colors">Reports</a>
+              <nav className="space-y-0.5 flex flex-col">
+                <NavLink to="/requests/new" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>New Request</NavLink>
+                <NavLink to="/transfers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Transfers</NavLink>
+                <NavLink to="/reports" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-100'}`}>Reports</NavLink>
               </nav>
             </div>
             
