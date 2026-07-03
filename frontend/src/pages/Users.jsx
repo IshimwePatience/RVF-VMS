@@ -110,7 +110,7 @@ export default function Users() {
           <p className="text-slate-500 mt-1">Manage system access and assign permissions</p>
         </div>
 
-        <button 
+        <button
           onClick={() => setShowModal(true)}
           className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
         >
@@ -197,59 +197,59 @@ export default function Users() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex justify-end">
-          <div 
+          <div
             className="fixed inset-0 bg-slate-900/40 transition-opacity"
             onClick={() => setShowModal(false)}
           ></div>
-          
+
           <div className="relative w-full max-w-[480px] bg-white h-full shadow-2xl flex flex-col animate-[slideIn_0.3s_ease-out]">
             <div className="px-10 pt-10 pb-6 shrink-0 relative">
               <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">{editingId ? 'Edit User' : 'Add New User'}</h2>
               <p className="text-[15px] text-slate-500 mt-1">{editingId ? 'Update user roles and permissions' : 'Create an account and set permissions'}</p>
-              
-              <button 
+
+              <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-10 right-8 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 12h12"/><path d="m12 6 4 6-4 6"/><path d="M20 5v14"/>
+                  <path d="M4 12h12" /><path d="m12 6 4 6-4 6" /><path d="M20 5v14" />
                 </svg>
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto px-10 pb-10 space-y-8">
-                
+
                 <div className="space-y-6 mt-6">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Username *</label>
-                    <input 
+                    <input
                       type="text" required
                       placeholder="e.g. jdoe"
                       value={formData.username}
-                      onChange={(e) => setFormData({...formData, username: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Full Names</label>
-                    <input 
+                    <input
                       type="text"
                       placeholder="e.g. John Doe"
                       value={formData.full_name}
-                      onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Email *</label>
-                    <input 
+                    <input
                       type="email" required
                       placeholder="john.doe@example.com"
                       value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>
@@ -257,11 +257,11 @@ export default function Users() {
                   {!editingId && (
                     <div>
                       <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Password *</label>
-                      <input 
+                      <input
                         type="text" required={!editingId}
                         placeholder="Assign an initial password"
                         value={formData.password}
-                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>
@@ -270,10 +270,10 @@ export default function Users() {
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Role *</label>
                     <div className="relative">
-                      <select 
+                      <select
                         required
                         value={formData.role}
-                        onChange={(e) => setFormData({...formData, role: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                         className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium appearance-none"
                       >
                         <option value="Viewer">Viewer (Read-only)</option>
@@ -281,7 +281,7 @@ export default function Users() {
                         <option value="Admin">Admin (Full Access)</option>
                       </select>
                       <div className="absolute right-0 top-1 pointer-events-none text-slate-400">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>
                       </div>
                     </div>
                   </div>
@@ -289,16 +289,16 @@ export default function Users() {
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Assigned Stock Point</label>
                     <div className="relative">
-                      <select 
+                      <select
                         value={formData.stock_id}
-                        onChange={(e) => setFormData({...formData, stock_id: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, stock_id: e.target.value })}
                         className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium appearance-none"
                       >
                         <option value="">None (Global Access)</option>
                         {stocks.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                       <div className="absolute right-0 top-1 pointer-events-none text-slate-400">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6" /></svg>
                       </div>
                     </div>
                     <p className="text-xs text-slate-500 mt-2">Leave blank if the user should have access to all stock points (typically Admins).</p>
@@ -307,15 +307,15 @@ export default function Users() {
               </div>
 
               <div className="p-8 pb-10 flex items-center justify-end gap-6 shrink-0 bg-slate-50 border-t border-slate-100">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowModal(false)}
                   className="text-slate-600 font-semibold text-[13px] tracking-wide hover:text-slate-900 transition-colors uppercase"
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={submitting}
                   className="px-6 py-3 bg-[#4285f4] hover:bg-[#3367d6] text-white font-semibold text-[13px] tracking-wide rounded transition-colors uppercase disabled:opacity-70"
                 >

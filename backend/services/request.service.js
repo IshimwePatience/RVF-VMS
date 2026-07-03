@@ -15,10 +15,19 @@ exports.createRequest = async (data, user) => {
 };
 
 exports.getRequests = async (user, type) => {
+  const { Vaccine, Batch, Stock } = require('../models');
   const where = type === 'incoming' 
     ? { parent_stock_id: user.stock_id } 
     : { requesting_stock_id: user.stock_id };
-  return await Request.findAll({ where });
+  return await Request.findAll({ 
+    where,
+    include: [
+      { model: Vaccine },
+      { model: Batch },
+      { model: Stock, as: 'RequestingStock' }
+    ],
+    order: [['createdAt', 'DESC']]
+  });
 };
 
 exports.approveRequest = async (id, user) => {
