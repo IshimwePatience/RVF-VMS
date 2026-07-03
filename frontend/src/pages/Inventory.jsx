@@ -16,6 +16,7 @@ export default function Inventory() {
   const [vaccines, setVaccines] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [activeTab, setActiveTab] = useState('batches');
   
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('inventoryViewMode') || 'grid');
 
@@ -172,6 +173,22 @@ export default function Inventory() {
           )}
         </div>
       </div>
+
+      <div className="flex border-b border-slate-200 mb-6">
+        <button 
+          onClick={() => setActiveTab('batches')}
+          className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${activeTab === 'batches' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+        >
+          Received Shipments
+        </button>
+        <button 
+          onClick={() => setActiveTab('balances')}
+          className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${activeTab === 'balances' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+        >
+          Vaccine Balances
+        </button>
+      </div>
+
       <div className="mt-4">
         {loading ? (
           <div className="py-12 flex justify-center">
@@ -188,6 +205,50 @@ export default function Inventory() {
             </div>
             <h3 className="text-lg font-bold text-slate-800">No inventory found</h3>
           </div>
+        ) : activeTab === 'balances' ? (
+          <table className="w-full text-left text-sm text-slate-700">
+            <thead className="border-b border-slate-200">
+              <tr>
+                <th className="py-3 font-semibold text-slate-800">Vaccine Name</th>
+                <th className="py-3 font-semibold text-slate-800">Total Received</th>
+                <th className="py-3 font-semibold text-slate-800">Total Issued</th>
+                <th className="py-3 font-semibold text-slate-800">Overall Balance</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(() => {
+                const balances = {};
+                inventoryItems.forEach(item => {
+                  const vid = item.Batch.Vaccine.id;
+                  if (!balances[vid]) {
+                    balances[vid] = { vaccine: item.Batch.Vaccine, received: 0, issued: 0, balance: 0 };
+                  }
+                  balances[vid].received += item.quantity_available + (item.issued_quantity || 0);
+                  balances[vid].issued += (item.issued_quantity || 0);
+                  balances[vid].balance += item.quantity_available;
+                });
+                return Object.values(balances);
+              })().map(b => (
+                <tr key={b.vaccine.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="py-4 pr-6">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-slate-900 text-base">{b.vaccine.name}</span>
+                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">VACCINE</span>
+                    </div>
+                  </td>
+                  <td className="py-4 text-slate-600">
+                    <span className="font-medium text-slate-700">{b.received.toLocaleString()}</span> doses
+                  </td>
+                  <td className="py-4 text-slate-600">
+                    <span className="font-medium text-slate-700">{b.issued.toLocaleString()}</span> doses
+                  </td>
+                  <td className="py-4 text-slate-600">
+                    <span className="font-bold text-slate-900">{b.balance.toLocaleString()}</span> doses
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {inventoryItems.map((item) => (
@@ -211,7 +272,11 @@ export default function Inventory() {
                     )}
                   </div>
                   <p className="text-sm text-slate-500 leading-relaxed">
-                    Available stock: <span className="font-medium text-slate-800">{item.quantity_available.toLocaleString()} doses</span>.
+                    Received: <span className="font-medium text-slate-800">{(item.quantity_available + (item.issued_quantity || 0)).toLocaleString()} doses</span>.
+                    <br />
+                    Issued: <span className="font-medium text-slate-800">{(item.issued_quantity || 0).toLocaleString()} doses</span>.
+                    <br />
+                    Balance: <span className="font-bold text-slate-900">{item.quantity_available.toLocaleString()} doses</span>.
                     <br />
                     Expires: {new Date(item.Batch.expiration_date).toLocaleDateString()}
                   </p>
@@ -227,7 +292,9 @@ export default function Inventory() {
                   Vaccine Name <ChevronDown className="w-4 h-4 text-slate-400" />
                 </th>
                 <th className="py-3 font-semibold text-slate-800">Batch</th>
-                <th className="py-3 font-semibold text-slate-800">Available Stock</th>
+                <th className="py-3 font-semibold text-slate-800">Received</th>
+                <th className="py-3 font-semibold text-slate-800">Issued</th>
+                <th className="py-3 font-semibold text-slate-800">Balance</th>
                 <th className="py-3 font-semibold text-slate-800">Expiration Date</th>
                 <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
               </tr>
@@ -244,6 +311,12 @@ export default function Inventory() {
                     </div>
                   </td>
                   <td className="py-4 text-slate-600 font-medium">{item.Batch?.batch_number}</td>
+                  <td className="py-4 text-slate-600">
+                    <span className="font-medium text-slate-700">{(item.quantity_available + (item.issued_quantity || 0)).toLocaleString()}</span> doses
+                  </td>
+                  <td className="py-4 text-slate-600">
+                    <span className="font-medium text-slate-700">{(item.issued_quantity || 0).toLocaleString()}</span> doses
+                  </td>
                   <td className="py-4 text-slate-600">
                     <span className="font-bold text-slate-900">{item.quantity_available.toLocaleString()}</span> doses
                   </td>

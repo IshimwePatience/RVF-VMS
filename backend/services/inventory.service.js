@@ -25,17 +25,46 @@ exports.receiveCentralStock = async (data, user) => {
   const price_per_dose_rwf = data.original_price_per_dose * rate;
 
   return await sequelize.transaction(async (t) => {
-    const batch = await Batch.create({
-      ...data,
-      total_doses,
-      price_per_dose_rwf
-    }, { transaction: t });
+    let batch = await Batch.findOne({
+      where: {
+        batch_number: data.batch_number,
+        vaccine_id: data.vaccine_id
+      },
+      transaction: t
+    });
 
-    await StockInventory.create({
-      stock_id: user.stock_id,
-      batch_id: batch.id,
-      quantity_available: total_doses
-    }, { transaction: t });
+    if (batch) {
+      batch.total_doses += total_doses;
+      await batch.save({ transaction: t });
+
+      let inventory = await StockInventory.findOne({
+        where: { stock_id: user.stock_id, batch_id: batch.id },
+        transaction: t
+      });
+
+      if (inventory) {
+        inventory.quantity_available += total_doses;
+        await inventory.save({ transaction: t });
+      } else {
+        await StockInventory.create({
+          stock_id: user.stock_id,
+          batch_id: batch.id,
+          quantity_available: total_doses
+        }, { transaction: t });
+      }
+    } else {
+      batch = await Batch.create({
+        ...data,
+        total_doses,
+        price_per_dose_rwf
+      }, { transaction: t });
+
+      await StockInventory.create({
+        stock_id: user.stock_id,
+        batch_id: batch.id,
+        quantity_available: total_doses
+      }, { transaction: t });
+    }
 
     return batch;
   });
@@ -62,15 +91,29 @@ exports.getInventory = async (user, viewParent) => {
     }]
   });
 
-  return inventory.map(inv => {
+  const { Transfer } = require('../models');
+  const processedInventory = [];
+
+  for (let inv of inventory) {
     const data = inv.toJSON();
+
+    const issued = await Transfer.sum('quantity', {
+      where: {
+        from_stock_id: query.stock_id,
+        batch_id: inv.batch_id
+      }
+    });
+    data.issued_quantity = issued || 0;
+
     if (!user.is_central) {
       delete data.Batch.original_price_per_dose;
       delete data.Batch.price_per_dose_rwf;
       delete data.Batch.currency;
     }
-    return data;
-  });
+    processedInventory.push(data);
+  }
+
+  return processedInventory;
 };
 exports.updateInventory = async (id, data, user) => {
   const { StockInventory, Batch } = require('../models');
