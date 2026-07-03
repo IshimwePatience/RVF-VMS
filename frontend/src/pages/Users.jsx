@@ -16,7 +16,9 @@ export default function Users() {
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
+    full_name: '',
     email: '',
+    password: '',
     role: 'Viewer',
     stock_id: ''
   });
@@ -72,14 +74,16 @@ export default function Users() {
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setFormData({ username: '', email: '', role: 'Viewer', stock_id: '' });
+    setFormData({ username: '', full_name: '', email: '', password: '', role: 'Viewer', stock_id: '' });
   };
 
   const handleEdit = (u) => {
     setEditingId(u.id);
     setFormData({
       username: u.username,
+      full_name: u.full_name || '',
       email: u.email,
+      password: '',
       role: u.role,
       stock_id: u.stock_id || ''
     });
@@ -127,6 +131,7 @@ export default function Users() {
                 <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
                   User <ChevronDown className="w-4 h-4 text-slate-400" />
                 </th>
+                <th className="py-3 font-semibold text-slate-800">Full Names</th>
                 <th className="py-3 font-semibold text-slate-800">Email</th>
                 <th className="py-3 font-semibold text-slate-800">Assigned Stock Point</th>
                 <th className="py-3 font-semibold text-slate-800">Status</th>
@@ -138,11 +143,16 @@ export default function Users() {
                 <tr key={u.id} className="group">
                   <td className="py-4 pr-6">
                     <div className="flex items-center gap-3">
-                      <span className="font-medium text-slate-900 text-base">{u.username}</span>
-                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
-                        {u.role}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-slate-900 text-base">{u.username}</span>
+                        <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
+                          {u.role}
+                        </span>
+                      </div>
                     </div>
+                  </td>
+                  <td className="py-4 text-slate-600">
+                    {u.full_name || <span className="text-slate-400 italic">Not set</span>}
                   </td>
                   <td className="py-4 text-slate-600">
                     {u.email}
@@ -210,7 +220,7 @@ export default function Users() {
             <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto px-10 pb-10 space-y-8">
                 
-                <div className="space-y-6">
+                <div className="space-y-6 mt-6">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Username *</label>
                     <input 
@@ -218,6 +228,17 @@ export default function Users() {
                       placeholder="e.g. jdoe"
                       value={formData.username}
                       onChange={(e) => setFormData({...formData, username: e.target.value})}
+                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Full Names</label>
+                    <input 
+                      type="text"
+                      placeholder="e.g. John Doe"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>
@@ -232,6 +253,19 @@ export default function Users() {
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>
+
+                  {!editingId && (
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Password *</label>
+                      <input 
+                        type="text" required={!editingId}
+                        placeholder="Assign an initial password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Role *</label>

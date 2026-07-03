@@ -9,17 +9,18 @@ exports.createUser = async (data) => {
   const existingEmail = await User.findOne({ where: { email: data.email } });
   if (existingEmail) throw new Error('Email already exists');
 
-  const generatedPin = Math.floor(100000 + Math.random() * 900000).toString();
+  const passwordToUse = data.password || Math.floor(100000 + Math.random() * 900000).toString();
   const salt = await bcrypt.genSalt(10);
-  const password_hash = await bcrypt.hash(generatedPin, salt);
+  const password_hash = await bcrypt.hash(passwordToUse, salt);
 
   const user = await User.create({
     username: data.username,
+    full_name: data.full_name || null,
     email: data.email,
     password_hash,
     role: data.role,
     stock_id: data.stock_id || null,
-    must_change_password: true
+    must_change_password: !data.password // If password was provided by admin, don't force change
   });
 
   try {
@@ -40,9 +41,9 @@ exports.createUser = async (data) => {
       subject: 'Welcome to RVF VMS - Your Login Credentials',
       html: `<p>Hello ${user.username},</p>
              <p>Your account has been created successfully.</p>
-             <p><b>Username:</b> ${user.username}</p>
-             <p><b>Temporary PIN:</b> ${generatedPin}</p>
-             <p>Please log in using these credentials. You will be asked to set a new PIN.</p>`
+              <p><b>Username:</b> ${user.username}</p>
+              <p><b>Password/PIN:</b> ${passwordToUse}</p>
+              <p>Please log in using these credentials. ${!data.password ? 'You will be asked to set a new PIN.' : ''}</p>`
     });
   } catch (err) {
     console.error('Failed to send email:', err);
@@ -75,6 +76,7 @@ exports.updateUser = async (id, data) => {
     user.email = data.email;
   }
 
+  if (data.full_name !== undefined) user.full_name = data.full_name || null;
   if (data.role) user.role = data.role;
   if (data.stock_id !== undefined) user.stock_id = data.stock_id || null;
 
