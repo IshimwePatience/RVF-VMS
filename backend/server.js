@@ -27,6 +27,7 @@ const requestRoutes = require('./routes/request.routes');
 const transferRoutes = require('./routes/transfer.routes');
 const reportRoutes = require('./routes/report.routes');
 const settingsRoutes = require('./routes/settings.routes');
+const administrationRoutes = require('./routes/administration.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -38,6 +39,7 @@ app.use('/api/requests', requestRoutes);
 app.use('/api/transfers', transferRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/administrations', administrationRoutes);
 
 
 app.get('/api/health', (req, res) => {

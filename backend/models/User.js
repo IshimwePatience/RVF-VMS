@@ -3,7 +3,6 @@ module.exports = (sequelize) => {
   return sequelize.define('User', {
     id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     username: { type: DataTypes.STRING, unique: true, allowNull: false },
-    full_name: { type: DataTypes.STRING, allowNull: true },
     email: { type: DataTypes.STRING, unique: true, allowNull: false },
     password_hash: { type: DataTypes.STRING, allowNull: false },
     must_change_password: { type: DataTypes.BOOLEAN, defaultValue: true },

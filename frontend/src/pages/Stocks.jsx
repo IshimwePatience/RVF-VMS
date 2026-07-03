@@ -16,6 +16,7 @@ export default function Stocks() {
   const [formData, setFormData] = useState({
     name: '',
     is_central: false,
+    is_endpoint: false,
     parent_stock_id: ''
   });
   const [editingId, setEditingId] = useState(null);
@@ -60,7 +61,7 @@ export default function Stocks() {
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setFormData({ name: '', is_central: false, parent_stock_id: '' });
+    setFormData({ name: '', is_central: false, is_endpoint: false, parent_stock_id: '' });
   };
 
   const handleEdit = (stock) => {
@@ -68,6 +69,7 @@ export default function Stocks() {
     setFormData({ 
       name: stock.name, 
       is_central: stock.is_central, 
+      is_endpoint: stock.is_endpoint || false,
       parent_stock_id: stock.parent_stock_id || '' 
     });
     setShowModal(true);
@@ -143,9 +145,9 @@ export default function Stocks() {
                   <td className="py-4 pr-6">
                     <div className="flex items-center gap-3">
                       <span className="font-medium text-slate-900 text-base">{stock.name}</span>
-                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
-                        {stock.is_central ? 'CENTRAL HUB' : 'SUBORDINATE'}
-                      </span>
+                      {stock.is_central && <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">CENTRAL HUB</span>}
+                      {!stock.is_central && !stock.is_endpoint && <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">SUBORDINATE</span>}
+                      {stock.is_endpoint && <span className="inline-block px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[11px] font-bold uppercase tracking-wider">ENDPOINT</span>}
                     </div>
                   </td>
                   <td className="py-4 text-slate-600">
@@ -209,11 +211,23 @@ export default function Stocks() {
                     >
                       <option value="">Select a Parent Stock (Optional)</option>
                       {centralStocks.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                      {stocks.filter(s => !s.is_central && s.id !== formData.parent_stock_id).map(s => (
+                      {stocks.filter(s => !s.is_central && !s.is_endpoint && s.id !== formData.parent_stock_id).map(s => (
                          <option key={s.id} value={s.id}>{s.name} (Subordinate)</option>
                       ))}
                     </select>
-                    <p className="text-xs text-slate-500 mt-1">This stock will request vaccines from the assigned parent.</p>
+                    <p className="text-xs text-slate-500 mt-1 mb-4">This stock will request vaccines from the assigned parent.</p>
+
+                    <div className="flex items-center gap-2 mt-4">
+                      <input 
+                        type="checkbox" 
+                        id="is_endpoint"
+                        checked={formData.is_endpoint}
+                        onChange={(e) => setFormData({...formData, is_endpoint: e.target.checked})}
+                        className="w-4 h-4 text-blue-600 rounded border-slate-300"
+                      />
+                      <label htmlFor="is_endpoint" className="text-sm font-medium text-slate-700">This is an Endpoint Stock (Distributes to Veterinaries)</label>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1 ml-6">If checked, no other stock can request from this one.</p>
                   </div>
                 )}
               </div>

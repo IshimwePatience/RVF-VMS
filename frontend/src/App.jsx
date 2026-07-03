@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import Requests from './pages/Requests';
 import NewRequest from './pages/NewRequest';
 import Transfers from './pages/Transfers';
+import Administration from './pages/Administration';
 import { AuthContext } from './context/AuthContext';
 
 const CentralOnlyRoute = ({ children }) => {
@@ -32,6 +33,14 @@ const AdminOnlyRoute = ({ children }) => {
   return children;
 };
 
+const EndpointOnlyRoute = ({ children }) => {
+  const { user } = React.useContext(AuthContext);
+  if (!user?.stock?.is_endpoint) {
+    return <Navigate to="/inventory" replace />;
+  }
+  return children;
+};
+
 function App() {
   return (
     <ToastProvider>
@@ -45,6 +54,7 @@ function App() {
               <Route path="requests" element={<Requests />} />
               <Route path="requests/new" element={<NewRequest />} />
               <Route path="transfers" element={<Transfers />} />
+              <Route path="administrations" element={<EndpointOnlyRoute><Administration /></EndpointOnlyRoute>} />
               <Route path="stocks" element={<CentralOnlyRoute><Stocks /></CentralOnlyRoute>} />
               <Route path="vaccines" element={<CentralOnlyRoute><Vaccines /></CentralOnlyRoute>} />
               <Route path="suppliers" element={<CentralOnlyRoute><Suppliers /></CentralOnlyRoute>} />
