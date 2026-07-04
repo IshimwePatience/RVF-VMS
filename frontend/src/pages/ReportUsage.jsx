@@ -17,7 +17,10 @@ export default function ReportUsage() {
     domestic_animals_vaccinated: '',
     animals_affected: '',
     animals_healed: '',
-    animals_died: ''
+    animals_died: '',
+    owner_name: '',
+    owner_phone: '',
+    owner_national_id: ''
   });
 
   useEffect(() => {
@@ -34,7 +37,10 @@ export default function ReportUsage() {
             domestic_animals_vaccinated: res.data.domestic_animals_vaccinated ?? '',
             animals_affected: res.data.animals_affected ?? '',
             animals_healed: res.data.animals_healed ?? '',
-            animals_died: res.data.animals_died ?? ''
+            animals_died: res.data.animals_died ?? '',
+            owner_name: res.data.owner_name ?? '',
+            owner_phone: res.data.owner_phone ?? '',
+            owner_national_id: res.data.owner_national_id ?? ''
           });
         }
       } catch (err) {
@@ -56,7 +62,10 @@ export default function ReportUsage() {
         domestic_animals_vaccinated: parseInt(formData.domestic_animals_vaccinated) || 0,
         animals_affected: parseInt(formData.animals_affected) || 0,
         animals_healed: parseInt(formData.animals_healed) || 0,
-        animals_died: parseInt(formData.animals_died) || 0
+        animals_died: parseInt(formData.animals_died) || 0,
+        owner_name: formData.owner_name,
+        owner_phone: formData.owner_phone,
+        owner_national_id: formData.owner_national_id
       };
       
       const res = await axios.post(`http://localhost:3001/api/administrations/report/${token}`, payload);
@@ -116,6 +125,48 @@ export default function ReportUsage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+            <label className="block text-[15px] font-medium text-[#202124] mb-4">
+              Owner's Full Name <span className="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" required
+              value={formData.owner_name}
+              onChange={(e) => setFormData({...formData, owner_name: e.target.value})}
+              placeholder="Your answer"
+              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
+            />
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+            <label className="block text-[15px] font-medium text-[#202124] mb-4">
+              Owner's Phone Number <span className="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" required
+              value={formData.owner_phone}
+              onChange={(e) => setFormData({...formData, owner_phone: e.target.value})}
+              placeholder="Your answer"
+              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
+            />
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+            <label className="block text-[15px] font-medium text-[#202124] mb-4">
+              Owner's National ID (16 digits) <span className="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" required maxLength="16"
+              value={formData.owner_national_id}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 16);
+                setFormData({...formData, owner_national_id: val});
+              }}
+              placeholder="Your answer"
+              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
+            />
+          </div>
+
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
             <label className="block text-[15px] font-medium text-[#202124] mb-4">
               How many doses were successfully used? <span className="text-red-500">*</span>

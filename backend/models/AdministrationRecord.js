@@ -23,6 +23,9 @@ module.exports = (sequelize) => {
     animals_affected: { type: DataTypes.INTEGER, allowNull: true },
     animals_healed: { type: DataTypes.INTEGER, allowNull: true },
     animals_died: { type: DataTypes.INTEGER, allowNull: true },
+    owner_name: { type: DataTypes.STRING, allowNull: true },
+    owner_phone: { type: DataTypes.STRING, allowNull: true },
+    owner_national_id: { type: DataTypes.STRING, allowNull: true },
     date_administered: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   });
 };

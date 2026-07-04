@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
-import { Search, Plus, Filter, MapPin, Syringe, ChevronDown } from 'lucide-react';
+import { Search, Plus, Filter, MapPin, Syringe, ChevronDown, MoreVertical, Eye, Pencil, Trash2 } from 'lucide-react';
 
 export default function Administration() {
   const { user } = useContext(AuthContext);
@@ -13,6 +13,9 @@ export default function Administration() {
   const [loading, setLoading] = useState(true);
   
   const [showModal, setShowModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [viewRecord, setViewRecord] = useState(null);
+  const [activeDropdown, setActiveDropdown] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     batch_id: '',
@@ -59,39 +62,80 @@ export default function Administration() {
     }
     
     const selectedItem = inventory.find(i => i.batch_id === formData.batch_id);
-    if (!selectedItem || selectedItem.quantity_available < parseInt(formData.quantity)) {
-      return addToast('Insufficient inventory available for this batch', 'error');
+    
+    // For updates, the item might not exist in inventory if quantity_available is 0 now.
+    // We only enforce inventory check strictly if creating new, or if increasing quantity.
+    if (!selectedRecord) {
+      if (!selectedItem || selectedItem.quantity_available < parseInt(formData.quantity)) {
+        return addToast('Insufficient inventory available for this batch', 'error');
+      }
+    } else {
+      if (parseInt(formData.quantity) > selectedRecord.quantity) {
+        const diff = parseInt(formData.quantity) - selectedRecord.quantity;
+        if (!selectedItem || selectedItem.quantity_available < diff) {
+          return addToast('Insufficient inventory available to increase quantity', 'error');
+        }
+      }
     }
 
     setSubmitting(true);
     try {
-      await axios.post('http://localhost:3001/api/administrations', {
-        ...formData,
-        stock_id: user.stock?.id,
-        quantity: parseInt(formData.quantity)
-      });
-      addToast('Administration recorded successfully', 'success');
+      if (selectedRecord) {
+        await axios.put(`http://localhost:3001/api/administrations/${selectedRecord.id}`, {
+          ...formData,
+          quantity: parseInt(formData.quantity)
+        });
+        addToast('Administration updated successfully', 'success');
+      } else {
+        await axios.post('http://localhost:3001/api/administrations', {
+          ...formData,
+          stock_id: user.stock?.id,
+          quantity: parseInt(formData.quantity)
+        });
+        addToast('Administration recorded successfully', 'success');
+      }
       setShowModal(false);
+      setSelectedRecord(null);
       setFormData({
-        batch_id: '',
-        quantity: '',
-        veterinary_name: '',
-        province: '',
-        district: '',
-        sector: '',
-        cell: '',
-        village: '',
-        phone_number: '',
-        national_id: '',
-        email: ''
+        batch_id: '', quantity: '', veterinary_name: '', province: '', district: '',
+        sector: '', cell: '', village: '', phone_number: '', national_id: '', email: ''
       });
       fetchData();
     } catch (err) {
       console.error(err);
-      addToast(err.response?.data?.message || 'Failed to record administration', 'error');
+      addToast(err.response?.data?.message || 'Failed to save administration', 'error');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this record? The stock will be returned to inventory.')) return;
+    try {
+      await axios.delete(`http://localhost:3001/api/administrations/${id}`);
+      addToast('Administration deleted successfully', 'success');
+      fetchData();
+    } catch (err) {
+      addToast('Failed to delete administration', 'error');
+    }
+  };
+
+  const openUpdateModal = (record) => {
+    setSelectedRecord(record);
+    setFormData({
+      batch_id: record.batch_id,
+      quantity: record.quantity.toString(),
+      veterinary_name: record.veterinary_name,
+      province: record.province,
+      district: record.district,
+      sector: record.sector,
+      cell: record.cell,
+      village: record.village,
+      phone_number: record.phone_number,
+      national_id: record.national_id,
+      email: record.email
+    });
+    setShowModal(true);
   };
 
   if (loading) {
@@ -147,6 +191,8 @@ export default function Administration() {
                 <th className="py-3 font-semibold text-slate-800">Veterinary</th>
                 <th className="py-3 font-semibold text-slate-800">Vaccine</th>
                 <th className="py-3 font-semibold text-slate-800">Doses</th>
+                <th className="py-3 font-semibold text-slate-800">Status</th>
+                <th className="py-3 font-semibold text-slate-800 text-right pr-4">Actions</th>
               </tr>
             </thead>
               <tbody className="divide-y divide-slate-100">
@@ -170,12 +216,99 @@ export default function Administration() {
                       {record.quantity}
                     </div>
                   </td>
+                  <td className="py-4">
+                    {record.report_status === 'submitted' ? (
+                      <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">Done</span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">Pending</span>
+                    )}
+                  </td>
+                  <td className="py-4 text-right pr-4 relative">
+                    <button 
+                      onClick={() => setActiveDropdown(activeDropdown === record.id ? null : record.id)}
+                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                    >
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+                    {activeDropdown === record.id && (
+                      <div className="absolute right-8 top-12 mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-10 text-left">
+                        <button 
+                          onClick={() => { setViewRecord(record); setActiveDropdown(null); }}
+                          className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                        >
+                          <Eye className="w-4 h-4 text-slate-400" /> View Details
+                        </button>
+                        {record.report_status !== 'submitted' && (
+                          <>
+                            <button 
+                              onClick={() => { openUpdateModal(record); setActiveDropdown(null); }}
+                              className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                            >
+                              <Pencil className="w-4 h-4 text-slate-400" /> Update
+                            </button>
+                            <button 
+                              onClick={() => { handleDelete(record.id); setActiveDropdown(null); }}
+                              className="w-full px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                            >
+                              <Trash2 className="w-4 h-4 text-slate-400" /> Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
+
+      {viewRecord && (
+        <div className="fixed inset-0 bg-slate-900/20 z-50 overflow-y-auto transition-opacity" onClick={() => setViewRecord(null)}>
+          <div className="min-h-full flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 relative" onClick={e => e.stopPropagation()}>
+              <button 
+                onClick={() => setViewRecord(null)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+              <h3 className="text-xl font-bold text-slate-900 mb-6">Veterinary Details</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="block text-xs font-semibold text-slate-500 uppercase">Name</span>
+                    <span className="text-sm text-slate-800">{viewRecord.veterinary_name}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-semibold text-slate-500 uppercase">Phone Number</span>
+                    <span className="text-sm text-slate-800">{viewRecord.phone_number}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-semibold text-slate-500 uppercase">National ID</span>
+                    <span className="text-sm text-slate-800">{viewRecord.national_id}</span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-semibold text-slate-500 uppercase">Email</span>
+                    <span className="text-sm text-slate-800">{viewRecord.email}</span>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-slate-100">
+                  <span className="block text-xs font-semibold text-slate-500 uppercase mb-2">Location</span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><span className="text-xs text-slate-500">Province:</span> <span className="text-sm">{viewRecord.province}</span></div>
+                    <div><span className="text-xs text-slate-500">District:</span> <span className="text-sm">{viewRecord.district}</span></div>
+                    <div><span className="text-xs text-slate-500">Sector:</span> <span className="text-sm">{viewRecord.sector}</span></div>
+                    <div><span className="text-xs text-slate-500">Cell:</span> <span className="text-sm">{viewRecord.cell}</span></div>
+                    <div className="col-span-2"><span className="text-xs text-slate-500">Village:</span> <span className="text-sm">{viewRecord.village}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/20 z-50 overflow-y-auto transition-opacity" onClick={() => setShowModal(false)}>

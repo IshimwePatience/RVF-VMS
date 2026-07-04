@@ -9,4 +9,7 @@ router.get('/', authenticate, adminController.getAdministrations);
 router.get('/report/:token', adminController.getReportDetails);
 router.post('/report/:token', adminController.submitReport);
 
+router.put('/:id', authenticate, adminController.updateAdministration);
+router.delete('/:id', authenticate, adminController.deleteAdministration);
+
 module.exports = router;

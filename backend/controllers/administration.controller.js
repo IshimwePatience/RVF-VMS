@@ -104,13 +104,36 @@ exports.getReportDetails = async (req, res) => {
 };
 
 exports.submitReport = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { token } = req.params;
-    const { doses_used, doses_wasted, domestic_animals_vaccinated, animals_affected, animals_healed, animals_died } = req.body;
+    const { 
+      doses_used, doses_wasted, domestic_animals_vaccinated, 
+      animals_affected, animals_healed, animals_died,
+      owner_name, owner_phone, owner_national_id
+    } = req.body;
     
-    const record = await AdministrationRecord.findOne({ where: { report_token: token } });
+    const record = await AdministrationRecord.findOne({ where: { report_token: token }, transaction: t });
     if (!record) {
+      await t.rollback();
       return res.status(404).json({ message: 'Report link is invalid.' });
+    }
+
+    // Only return stock if the report hasn't been submitted yet. 
+    // If it's already submitted and they are just updating, we'd need more complex logic. 
+    // Assuming they can update, we should calculate the difference. 
+    // Wait, the prompt says "can be updated later". If it's updated later, we shouldn't return vaccines twice!
+    // To handle this simply without complex delta math, let's only return vaccines on the *first* submission.
+    let unused_doses = 0;
+    if (record.report_status === 'pending') {
+      unused_doses = record.quantity - ((parseInt(doses_used) || 0) + (parseInt(doses_wasted) || 0));
+    } else {
+      // If updating, calculate the difference between old usage and new usage
+      const oldUsage = (record.doses_used || 0) + (record.doses_wasted || 0);
+      const newUsage = (parseInt(doses_used) || 0) + (parseInt(doses_wasted) || 0);
+      unused_doses = oldUsage - newUsage; 
+      // If newUsage < oldUsage, unused_doses is positive (we return more to stock)
+      // If newUsage > oldUsage, unused_doses is negative (we take from stock)
     }
 
     record.doses_used = doses_used;
@@ -119,14 +142,115 @@ exports.submitReport = async (req, res) => {
     record.animals_affected = animals_affected;
     record.animals_healed = animals_healed;
     record.animals_died = animals_died;
+    record.owner_name = owner_name;
+    record.owner_phone = owner_phone;
+    record.owner_national_id = owner_national_id;
     record.report_status = 'submitted';
 
-    await record.save();
+    await record.save({ transaction: t });
 
+    if (unused_doses !== 0) {
+      const inventory = await StockInventory.findOne({
+        where: { stock_id: record.stock_id, batch_id: record.batch_id },
+        transaction: t
+      });
+      if (inventory) {
+        inventory.quantity_available += unused_doses;
+        await inventory.save({ transaction: t });
+      }
+    }
+
+    await t.commit();
     res.json({ message: 'Report submitted successfully', record });
   } catch (error) {
+    await t.rollback();
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };
 
+exports.updateAdministration = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+    const { veterinary_name, province, district, sector, cell, village, phone_number, national_id, email, quantity } = req.body;
+    
+    const record = await AdministrationRecord.findByPk(id, { transaction: t });
+    if (!record) {
+      await t.rollback();
+      return res.status(404).json({ message: 'Administration not found' });
+    }
+
+    if (quantity && quantity !== record.quantity) {
+      const difference = record.quantity - quantity; 
+      
+      const inventory = await StockInventory.findOne({
+        where: { stock_id: record.stock_id, batch_id: record.batch_id },
+        transaction: t
+      });
+      
+      if (inventory) {
+        if (difference < 0 && inventory.quantity_available < Math.abs(difference)) {
+          await t.rollback();
+          return res.status(400).json({ message: 'Not enough stock available to increase quantity.' });
+        }
+        inventory.quantity_available += difference;
+        await inventory.save({ transaction: t });
+      }
+      record.quantity = quantity;
+    }
+
+    record.veterinary_name = veterinary_name || record.veterinary_name;
+    record.province = province || record.province;
+    record.district = district || record.district;
+    record.sector = sector || record.sector;
+    record.cell = cell || record.cell;
+    record.village = village || record.village;
+    record.phone_number = phone_number || record.phone_number;
+    record.national_id = national_id || record.national_id;
+    record.email = email || record.email;
+
+    await record.save({ transaction: t });
+    await t.commit();
+    
+    res.json({ message: 'Administration updated successfully', record });
+  } catch (error) {
+    await t.rollback();
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.deleteAdministration = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id } = req.params;
+    const record = await AdministrationRecord.findByPk(id, { transaction: t });
+    if (!record) {
+      await t.rollback();
+      return res.status(404).json({ message: 'Administration not found' });
+    }
+
+    const usedDoses = (record.doses_used || 0) + (record.doses_wasted || 0);
+    const returnAmount = record.report_status === 'pending' ? record.quantity : usedDoses;
+
+    const inventory = await StockInventory.findOne({
+      where: { stock_id: record.stock_id, batch_id: record.batch_id },
+      transaction: t
+    });
+    
+    if (inventory && returnAmount > 0) {
+      inventory.quantity_available += returnAmount;
+      await inventory.save({ transaction: t });
+    }
+
+    await record.destroy({ transaction: t });
+    await t.commit();
+    
+    res.json({ message: 'Administration deleted successfully' });
+  } catch (error) {
+    await t.rollback();
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
