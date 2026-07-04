@@ -12,4 +12,6 @@ router.post('/report/:token', adminController.submitReport);
 router.put('/:id', authenticate, adminController.updateAdministration);
 router.delete('/:id', authenticate, adminController.deleteAdministration);
 
+router.post('/verify-veterinary', adminController.verifyVeterinaryEmail);
+
 module.exports = router;

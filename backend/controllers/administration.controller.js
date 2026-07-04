@@ -254,3 +254,33 @@ exports.deleteAdministration = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.verifyVeterinaryEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    const records = await AdministrationRecord.findAll({
+      where: { email },
+      include: [
+        { model: Stock },
+        { 
+          model: Batch,
+          include: [{ model: Vaccine }]
+        }
+      ],
+      order: [['date_administered', 'DESC']]
+    });
+
+    if (!records || records.length === 0) {
+      return res.status(404).json({ message: 'No records found for this email.' });
+    }
+
+    res.json(records);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

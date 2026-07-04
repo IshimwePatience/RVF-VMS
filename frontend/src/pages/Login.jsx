@@ -139,13 +139,13 @@ export default function Login() {
             >
               Submit Reset Request
             </button>
-            <div className="text-center mt-4">
+            <div className="mt-6">
               <button 
                 type="button" 
                 onClick={() => setShowForgotPassword(false)}
-                className="text-[14px] text-[#0056D2] hover:underline font-normal transition-colors"
+                className="block text-[14px] text-[#0056D2] hover:underline font-normal transition-colors"
               >
-                ← Back to Login
+                Back to Login
               </button>
             </div>
           </form>
@@ -243,13 +243,13 @@ export default function Login() {
             >
               Verify & Login
             </button>
-            <div className="text-center mt-4">
+            <div className="mt-6">
               <button
                 type="button"
                 onClick={() => setRequiresOtp(false)}
-                className="text-[14px] text-[#0056D2] hover:underline font-normal transition-colors"
+                className="block text-[14px] text-[#0056D2] hover:underline font-normal transition-colors"
               >
-                ← Back to Login
+                Back to Login
               </button>
             </div>
           </form>

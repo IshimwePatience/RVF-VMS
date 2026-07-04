@@ -65,6 +65,7 @@ function App() {
               <Route path="users" element={<AdminOnlyRoute><Users /></AdminOnlyRoute>} />
               <Route path="settings" element={<AdminOnlyRoute><Settings /></AdminOnlyRoute>} />
             </Route>
+            <Route path="/report-usage" element={<ReportUsage />} />
             <Route path="/report-usage/:token" element={<ReportUsage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
