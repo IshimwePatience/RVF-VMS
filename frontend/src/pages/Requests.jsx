@@ -17,6 +17,7 @@ export default function Requests() {
   const [approvalNote, setApprovalNote] = useState('');
   const [rejectingRequest, setRejectingRequest] = useState(null);
   const [rejectNote, setRejectNote] = useState('');
+  const [viewingNote, setViewingNote] = useState(null);
   useEffect(() => {
     fetchRequests();
     if (user && !(user?.role === 'Admin' || user?.stock?.is_central || user?.is_central)) {
@@ -141,7 +142,9 @@ export default function Requests() {
                 <th className="py-3 font-semibold text-slate-800">Amount Requested</th>
                 {activeTab === 'incoming' && <th className="py-3 font-semibold text-slate-800">Your Remaining Stock</th>}
                 <th className="py-3 font-semibold text-slate-800">Status</th>
-                {activeTab === 'incoming' && <th className="py-3 font-semibold text-slate-800 text-right">Actions</th>}
+                <th className="py-3 font-semibold text-slate-800 text-right">
+                  {activeTab === 'incoming' ? 'Action / Note' : 'Note'}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -180,41 +183,41 @@ export default function Requests() {
                           {req.status === 'Rejected' && <XCircle className="w-3.5 h-3.5" />}
                           {getStatusText(req.status)}
                         </span>
-                        {req.notes && (
-                          <div className="text-[11px] text-amber-700 bg-amber-50 px-2 py-1 rounded mt-1 max-w-[200px] leading-tight">
-                            <span className="font-bold block mb-0.5">Note:</span>
-                            {req.notes}
-                          </div>
-                        )}
                       </div>
                     </td>
-                    {activeTab === 'incoming' && (
-                      <td className="py-4 text-right">
-                        {req.status === 'Pending' && (
-                          <div className="flex items-center justify-end gap-2">
-                            <button 
-                              onClick={() => {
-                                setRejectingRequest(req);
-                                setRejectNote('');
-                              }}
-                              className="px-4 py-1.5 rounded-full text-xs font-bold transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            >
-                              Reject
-                            </button>
-                            <button 
-                              onClick={() => {
-                                setApprovingRequest(req);
-                                setApprovedQuantity(req.requested_quantity);
-                                setApprovalNote('');
-                              }}
-                              className="px-4 py-1.5 rounded-full text-xs font-bold transition-colors bg-[#12aeec] text-white hover:bg-[#12aeec]/90"
-                            >
-                              Approve
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    )}
+                    <td className="py-4 text-right">
+                      {activeTab === 'incoming' && req.status === 'Pending' && (
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => {
+                              setRejectingRequest(req);
+                              setRejectNote('');
+                            }}
+                            className="px-4 py-1.5 rounded-full text-xs font-bold transition-colors bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          >
+                            Reject
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setApprovingRequest(req);
+                              setApprovedQuantity(req.requested_quantity);
+                              setApprovalNote('');
+                            }}
+                            className="px-4 py-1.5 rounded-full text-xs font-bold transition-colors bg-[#12aeec] text-white hover:bg-[#12aeec]/90"
+                          >
+                            Approve
+                          </button>
+                        </div>
+                      )}
+                      {req.status !== 'Pending' && req.notes && (
+                        <button 
+                          onClick={() => setViewingNote(req.notes)}
+                          className="text-[#12aeec] hover:underline font-bold text-xs"
+                        >
+                          Read Note
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
@@ -345,6 +348,38 @@ export default function Requests() {
                     Confirm Rejection
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewingNote && (
+        <div className="fixed inset-0 bg-slate-900/20 z-50 overflow-y-auto transition-opacity" onClick={() => setViewingNote(null)}>
+          <div className="min-h-full flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 relative" onClick={e => e.stopPropagation()}>
+              <button 
+                onClick={() => setViewingNote(null)}
+                className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-slate-900">Admin Note</h3>
+              </div>
+
+              <div className="text-sm text-slate-700 bg-slate-50 border border-slate-100 p-4 rounded-lg leading-relaxed whitespace-pre-wrap">
+                {viewingNote}
+              </div>
+
+              <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+                <button 
+                  onClick={() => setViewingNote(null)}
+                  className="px-6 py-2 bg-[#12aeec] text-white text-sm font-bold rounded-lg hover:bg-[#12aeec]/90 transition-colors"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
