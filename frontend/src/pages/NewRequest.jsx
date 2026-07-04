@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
+import Dropdown from '../components/Dropdown';
 import { Send, ChevronDown, X, Clock } from 'lucide-react';
 
 export default function NewRequest() {
@@ -9,9 +10,11 @@ export default function NewRequest() {
   const { addToast } = useContext(ToastContext);
   const [parentInventory, setParentInventory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(null);
+  const [submitting, setSubmitting] = useState({});
   const [quantities, setQuantities] = useState({});
   const [myRequests, setMyRequests] = useState([]);
+  const [filterBy, setFilterBy] = useState('All');
+  const [sortBy, setSortBy] = useState('Name A-Z');
   const [viewApprovals, setViewApprovals] = useState(null);
 
   useEffect(() => {
@@ -94,6 +97,24 @@ export default function NewRequest() {
     );
   }
 
+  // Filtering and Sorting
+  const getProcessedInventory = () => {
+    let processed = [...parentInventory];
+
+    // Filtering (All - currently no other status applies nicely to requests)
+
+    // Sorting
+    if (sortBy === 'Name A-Z') {
+      processed.sort((a, b) => a.Batch.Vaccine.name.localeCompare(b.Batch.Vaccine.name));
+    } else if (sortBy === 'Name Z-A') {
+      processed.sort((a, b) => b.Batch.Vaccine.name.localeCompare(a.Batch.Vaccine.name));
+    }
+
+    return processed;
+  };
+
+  const processedInventory = getProcessedInventory();
+
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
       <div className="flex items-center justify-between mb-8">
@@ -102,15 +123,19 @@ export default function NewRequest() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Filter by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              All <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={filterBy} 
+              options={['All']} 
+              onChange={setFilterBy} 
+            />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Sort by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              Most relevant <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={sortBy} 
+              options={['Name A-Z', 'Name Z-A']} 
+              onChange={setSortBy} 
+            />
           </div>
         </div>
       </div>
@@ -140,7 +165,7 @@ export default function NewRequest() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {parentInventory.map(item => {
+              {processedInventory.map(item => {
                 const activeRequest = myRequests.find(r => r.batch_id === item.batch_id && r.status === 'Pending');
                 const approvedRequests = myRequests.filter(r => r.batch_id === item.batch_id && r.status === 'Approved').sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
                 

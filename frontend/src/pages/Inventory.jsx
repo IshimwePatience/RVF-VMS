@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { ChevronDown, Plus, Search, LayoutGrid, List, Pencil, Trash2 } from 'lucide-react';
+import { LayoutGrid, List, Plus, ChevronDown, Check, X, Search, Pencil, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
+import Dropdown from '../components/Dropdown';
 
 export default function Inventory() {
   const { user } = useContext(AuthContext);
@@ -15,6 +16,8 @@ export default function Inventory() {
   const [suppliers, setSuppliers] = useState([]);
   const [vaccines, setVaccines] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [filterBy, setFilterBy] = useState('All');
+  const [sortBy, setSortBy] = useState('Name A-Z');
   const [editingId, setEditingId] = useState(null);
   const [activeTab, setActiveTab] = useState('batches');
   
@@ -128,6 +131,32 @@ export default function Inventory() {
     }
   };
 
+  // Filtering and Sorting
+  const getProcessedInventory = () => {
+    let processed = [...inventoryItems];
+
+    // Filtering
+    const now = new Date();
+    if (filterBy === 'Good Condition') {
+      processed = processed.filter(item => new Date(item.Batch.expiration_date) > now);
+    } else if (filterBy === 'Expired') {
+      processed = processed.filter(item => new Date(item.Batch.expiration_date) <= now);
+    }
+
+    // Sorting
+    if (sortBy === 'Name A-Z') {
+      processed.sort((a, b) => a.Batch.Vaccine.name.localeCompare(b.Batch.Vaccine.name));
+    } else if (sortBy === 'Quantity (High-Low)') {
+      processed.sort((a, b) => b.quantity_available - a.quantity_available);
+    } else if (sortBy === 'Quantity (Low-High)') {
+      processed.sort((a, b) => a.quantity_available - b.quantity_available);
+    }
+
+    return processed;
+  };
+
+  const processedInventory = getProcessedInventory();
+
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
       <div className="flex items-center justify-between mb-8">
@@ -136,15 +165,19 @@ export default function Inventory() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Filter by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              All <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={filterBy} 
+              options={['All', 'Good Condition', 'Expired']} 
+              onChange={setFilterBy} 
+            />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Sort by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              Most relevant <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={sortBy} 
+              options={['Name A-Z', 'Quantity (High-Low)', 'Quantity (Low-High)']} 
+              onChange={setSortBy} 
+            />
           </div>
 
           <div className="flex bg-slate-100 p-1 rounded-lg ml-2">
@@ -218,7 +251,7 @@ export default function Inventory() {
             <tbody className="divide-y divide-slate-100">
               {(() => {
                 const balances = {};
-                inventoryItems.forEach(item => {
+                processedInventory.forEach(item => {
                   const vid = item.Batch.Vaccine.id;
                   if (!balances[vid]) {
                     balances[vid] = { vaccine: item.Batch.Vaccine, received: 0, issued: 0, balance: 0 };
@@ -251,7 +284,7 @@ export default function Inventory() {
           </table>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {inventoryItems.map((item) => (
+            {processedInventory.map((item) => (
               <div key={item.id} className="group bg-white rounded-2xl p-4 transition-all duration-300 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] cursor-pointer border border-transparent hover:border-slate-100 flex flex-col h-full">
                 <div className={`h-36 rounded-xl w-full mb-4 flex items-center justify-center text-white font-bold text-xl relative overflow-hidden ${item.quantity_available < 5000 ? 'bg-gradient-to-br from-red-500 to-rose-600' :
                     item.quantity_available < 15000 ? 'bg-gradient-to-br from-orange-400 to-amber-500' :
@@ -302,8 +335,8 @@ export default function Inventory() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {inventoryItems.map(item => (
-                <tr key={item.id} className="group hover:bg-slate-50/50 transition-colors">
+              {processedInventory.map(item => (
+                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-4 pr-6">
                     <div className="flex items-center gap-3">
                       <span className="font-medium text-slate-900 text-base">{item.Batch?.Vaccine?.name}</span>

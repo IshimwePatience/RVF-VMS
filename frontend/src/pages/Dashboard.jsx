@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import Dropdown from '../components/Dropdown';
 
 export default function Dashboard() {
   const inventoryItems = [
@@ -11,6 +12,9 @@ export default function Dashboard() {
     { id: 6, name: 'Emergency Stock (Central)', supplier: 'WHO Hub', stock: '50,000', status: 'Reserved', rating: '5.0' },
   ];
 
+  const [filterBy, setFilterBy] = useState('All');
+  const [sortBy, setSortBy] = useState('Most relevant');
+
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
       <div className="flex items-center justify-between mb-8">
@@ -19,15 +23,19 @@ export default function Dashboard() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Filter by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              All <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={filterBy} 
+              options={['All', 'In Stock', 'Critical']} 
+              onChange={setFilterBy} 
+            />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Sort by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              Most relevant <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={sortBy} 
+              options={['Most relevant', 'Name A-Z']} 
+              onChange={setSortBy} 
+            />
           </div>
         </div>
       </div>

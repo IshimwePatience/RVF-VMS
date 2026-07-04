@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
+import Dropdown from '../components/Dropdown';
 
 export default function Suppliers() {
   const { user } = useContext(AuthContext);
@@ -13,6 +14,8 @@ export default function Suppliers() {
   const [formData, setFormData] = useState({ name: '', contact_info: '' });
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [filterBy, setFilterBy] = useState('All');
+  const [sortBy, setSortBy] = useState('Name A-Z');
 
   useEffect(() => {
     fetchSuppliers();
@@ -85,6 +88,24 @@ export default function Suppliers() {
     );
   }
 
+  // Apply filtering and sorting
+  const getProcessedSuppliers = () => {
+    let processed = [...suppliers];
+    
+    // Filtering (All) - No other status available yet
+    
+    // Sorting
+    if (sortBy === 'Name A-Z') {
+      processed.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === 'Name Z-A') {
+      processed.sort((a, b) => b.name.localeCompare(a.name));
+    }
+    
+    return processed;
+  };
+
+  const processedSuppliers = getProcessedSuppliers();
+
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
       <div className="flex items-center justify-between mb-8">
@@ -93,15 +114,19 @@ export default function Suppliers() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Filter by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              All <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={filterBy} 
+              options={['All']} 
+              onChange={setFilterBy} 
+            />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Sort by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              Name A-Z <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={sortBy} 
+              options={['Name A-Z', 'Name Z-A']} 
+              onChange={setSortBy} 
+            />
           </div>
           <button 
             onClick={() => setShowModal(true)}
@@ -134,7 +159,7 @@ export default function Suppliers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {suppliers.map(supplier => (
+              {processedSuppliers.map(supplier => (
                 <tr key={supplier.id} className="group">
                   <td className="py-4 pr-6">
                     <div className="flex items-center gap-3">

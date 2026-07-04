@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
+import Dropdown from '../components/Dropdown';
 import { Search, Plus, Filter, MapPin, Syringe, ChevronDown, MoreVertical, Eye, Pencil, Trash2 } from 'lucide-react';
 
 export default function Administration() {
@@ -11,12 +12,13 @@ export default function Administration() {
   const [administrations, setAdministrations] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [filterBy, setFilterBy] = useState('All');
   
   const [showModal, setShowModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [viewRecord, setViewRecord] = useState(null);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     batch_id: '',
     quantity: '',
@@ -142,8 +144,25 @@ export default function Administration() {
     return <div className="p-8 text-center text-slate-500">Loading administrations...</div>;
   }
 
-  const selectedBatchItem = inventory.find(i => i.batch_id === formData.batch_id);
-  const maxAvailable = selectedBatchItem ? selectedBatchItem.quantity_available : '';
+  // Filtering
+  const getProcessedAdministrations = () => {
+    let processed = [...administrations];
+    const now = new Date();
+    
+    if (filterBy === 'Today') {
+      processed = processed.filter(a => {
+        const d = new Date(a.date_administered);
+        return d.toDateString() === now.toDateString();
+      });
+    } else if (filterBy === 'This Week') {
+      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      processed = processed.filter(a => new Date(a.date_administered) >= oneWeekAgo);
+    }
+
+    return processed;
+  };
+
+  const processedAdministrations = getProcessedAdministrations();
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
@@ -152,14 +171,11 @@ export default function Administration() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm">
             <span className="text-slate-500">Filter by</span>
-            <div className="relative">
-              <select className="appearance-none bg-white border border-slate-200 rounded-full pl-4 pr-10 py-1.5 text-slate-700 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer transition-all">
-                <option>All</option>
-                <option>Today</option>
-                <option>This Week</option>
-              </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+            <Dropdown 
+              value={filterBy} 
+              options={['All', 'Today', 'This Week']} 
+              onChange={setFilterBy} 
+            />
           </div>
           <button 
             onClick={() => setShowModal(true)}
@@ -196,7 +212,7 @@ export default function Administration() {
               </tr>
             </thead>
               <tbody className="divide-y divide-slate-100">
-                {administrations.map(record => (
+                {processedAdministrations.map(record => (
                   <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-4 text-slate-600">
                     {new Date(record.date_administered).toLocaleDateString()}

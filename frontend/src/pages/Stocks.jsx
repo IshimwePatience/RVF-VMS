@@ -3,6 +3,7 @@ import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
+import Dropdown from '../components/Dropdown';
 
 export default function Stocks() {
   const { user } = useContext(AuthContext);
@@ -24,6 +25,8 @@ export default function Stocks() {
   });
   const [editingId, setEditingId] = useState(null);
   const [viewStock, setViewStock] = useState(null);
+  const [filterBy, setFilterBy] = useState('All');
+  const [sortBy, setSortBy] = useState('Hierarchy');
 
   const fetchStocks = async () => {
     try {
@@ -96,6 +99,32 @@ export default function Stocks() {
 
   const centralStocks = stocks.filter(s => s.is_central);
 
+  // Apply filtering and sorting
+  const getProcessedStocks = () => {
+    let processed = [...stocks];
+    
+    // Filtering
+    if (filterBy === 'Central Hubs') {
+      processed = processed.filter(s => s.is_central);
+    } else if (filterBy === 'Subordinates') {
+      processed = processed.filter(s => !s.is_central && !s.is_endpoint);
+    } else if (filterBy === 'Endpoints') {
+      processed = processed.filter(s => s.is_endpoint);
+    }
+    
+    // Sorting
+    if (sortBy === 'Name A-Z') {
+      processed.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === 'Name Z-A') {
+      processed.sort((a, b) => b.name.localeCompare(a.name));
+    }
+    // Hierarchy (default from DB) is preserved if no other sort
+    
+    return processed;
+  };
+
+  const processedStocks = getProcessedStocks();
+
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
       <div className="flex items-center justify-between mb-8">
@@ -104,15 +133,19 @@ export default function Stocks() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Filter by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              All <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={filterBy} 
+              options={['All', 'Central Hubs', 'Subordinates', 'Endpoints']} 
+              onChange={setFilterBy} 
+            />
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Sort by</span>
-            <button className="flex items-center justify-between gap-8 px-4 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-              Hierarchy <ChevronDown className="w-4 h-4 text-slate-500" />
-            </button>
+            <Dropdown 
+              value={sortBy} 
+              options={['Hierarchy', 'Name A-Z', 'Name Z-A']} 
+              onChange={setSortBy} 
+            />
           </div>
           {user?.role === 'Admin' && (
             <button 
@@ -148,7 +181,7 @@ export default function Stocks() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {stocks.map(stock => (
+              {processedStocks.map(stock => (
                 <tr key={stock.id} className="group">
                   <td className="py-4 pr-6">
                     <div className="flex items-center gap-3">
