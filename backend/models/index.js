@@ -20,7 +20,7 @@ fs
     db[model.name] = model;
   });
 
-const { Stock, User, Batch, Vaccine, Supplier, StockInventory, Request, Transfer, AdministrationRecord, Notification } = db;
+const { Stock, User, Batch, Vaccine, Supplier, StockInventory, Request, Transfer, AdministrationRecord, Notification, Veterinary } = db;
 
 Stock.belongsTo(Stock, { as: 'ParentStock', foreignKey: 'parent_stock_id' });
 Stock.hasMany(Stock, { as: 'ChildStocks', foreignKey: 'parent_stock_id' });
@@ -51,6 +51,11 @@ if (AdministrationRecord) {
 if (Notification) {
   User.hasMany(Notification, { foreignKey: 'user_id' });
   Notification.belongsTo(User, { foreignKey: 'user_id' });
+}
+
+if (Veterinary) {
+  Veterinary.belongsTo(Stock, { foreignKey: 'stock_id' });
+  Stock.hasMany(Veterinary, { foreignKey: 'stock_id' });
 }
 
 Request.belongsTo(Stock, { as: 'RequestingStock', foreignKey: 'requesting_stock_id' });

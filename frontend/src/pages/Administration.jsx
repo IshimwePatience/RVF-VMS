@@ -11,6 +11,7 @@ export default function Administration() {
   
   const [administrations, setAdministrations] = useState([]);
   const [inventory, setInventory] = useState([]);
+  const [veterinaries, setVeterinaries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [filterBy, setFilterBy] = useState('All');
@@ -22,27 +23,21 @@ export default function Administration() {
   const [formData, setFormData] = useState({
     batch_id: '',
     quantity: '',
-    veterinary_name: '',
-    province: '',
-    district: '',
-    sector: '',
-    cell: '',
-    village: '',
-    phone_number: '',
-    national_id: '',
-    email: ''
+    veterinary_id: ''
   });
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [adminRes, invRes] = await Promise.all([
+      const [adminRes, invRes, vetRes] = await Promise.all([
         axios.get(`http://localhost:3001/api/administrations?stock_id=${user?.stock?.id || ''}`),
-        axios.get(`http://localhost:3001/api/inventory?stock_id=${user?.stock?.id || ''}`)
+        axios.get(`http://localhost:3001/api/inventory?stock_id=${user?.stock?.id || ''}`),
+        axios.get(`http://localhost:3001/api/veterinaries`)
       ]);
       setAdministrations(adminRes.data);
       // Only include inventory that has available quantity
       setInventory(invRes.data.filter(item => item.quantity_available > 0));
+      setVeterinaries(vetRes.data);
     } catch (err) {
       console.error(err);
       addToast('Failed to fetch data', 'error');
@@ -59,7 +54,7 @@ export default function Administration() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.batch_id || !formData.quantity || !formData.veterinary_name || !formData.province || !formData.district || !formData.sector || !formData.cell || !formData.village || !formData.phone_number || !formData.national_id || !formData.email) {
+    if (!formData.batch_id || !formData.quantity || !formData.veterinary_id) {
       return addToast('Please fill all fields', 'error');
     }
     
@@ -82,25 +77,36 @@ export default function Administration() {
 
     setSubmitting(true);
     try {
+      const selectedVet = veterinaries.find(v => v.id === formData.veterinary_id);
+      
+      const payload = {
+        batch_id: formData.batch_id,
+        quantity: parseInt(formData.quantity),
+        veterinary_name: selectedVet.name,
+        email: selectedVet.email,
+        phone_number: selectedVet.phone_number,
+        national_id: selectedVet.national_id,
+        province: selectedVet.province,
+        district: selectedVet.district,
+        sector: selectedVet.sector,
+        cell: selectedVet.cell,
+        village: selectedVet.village
+      };
+
       if (selectedRecord) {
-        await axios.put(`http://localhost:3001/api/administrations/${selectedRecord.id}`, {
-          ...formData,
-          quantity: parseInt(formData.quantity)
-        });
+        await axios.put(`http://localhost:3001/api/administrations/${selectedRecord.id}`, payload);
         addToast('Administration updated successfully', 'success');
       } else {
         await axios.post('http://localhost:3001/api/administrations', {
-          ...formData,
-          stock_id: user.stock?.id,
-          quantity: parseInt(formData.quantity)
+          ...payload,
+          stock_id: user.stock?.id
         });
         addToast('Administration recorded successfully', 'success');
       }
       setShowModal(false);
       setSelectedRecord(null);
       setFormData({
-        batch_id: '', quantity: '', veterinary_name: '', province: '', district: '',
-        sector: '', cell: '', village: '', phone_number: '', national_id: '', email: ''
+        batch_id: '', quantity: '', veterinary_id: ''
       });
       fetchData();
     } catch (err) {
@@ -123,19 +129,14 @@ export default function Administration() {
   };
 
   const openUpdateModal = (record) => {
+    // Find the veterinary that matches this record's national ID
+    const matchingVet = veterinaries.find(v => v.national_id === record.national_id);
+    
     setSelectedRecord(record);
     setFormData({
       batch_id: record.batch_id,
       quantity: record.quantity.toString(),
-      veterinary_name: record.veterinary_name,
-      province: record.province,
-      district: record.district,
-      sector: record.sector,
-      cell: record.cell,
-      village: record.village,
-      phone_number: record.phone_number,
-      national_id: record.national_id,
-      email: record.email
+      veterinary_id: matchingVet ? matchingVet.id : ''
     });
     setShowModal(true);
   };
@@ -163,6 +164,9 @@ export default function Administration() {
   };
 
   const processedAdministrations = getProcessedAdministrations();
+
+  const selectedItem = inventory.find(i => i.batch_id === formData.batch_id);
+  const maxAvailable = selectedItem ? selectedItem.quantity_available + (selectedRecord ? selectedRecord.quantity : 0) : '';
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
@@ -327,39 +331,24 @@ export default function Administration() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/20 z-50 overflow-y-auto transition-opacity" onClick={() => setShowModal(false)}>
-          <div className="min-h-full flex items-start justify-center p-4 sm:p-6">
-            <div className="bg-white rounded-sm w-full max-w-[1100px] my-4 sm:my-8 shadow-xl flex flex-col" onClick={e => e.stopPropagation()}>
-              
-              {/* Header */}
-              <div className="px-10 pt-10 pb-6 shrink-0 relative">
-                <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">Log Vaccine Administration</h2>
-                <p className="text-[15px] text-slate-500 mt-1">Record vaccines distributed to veterinaries.</p>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl flex flex-col max-h-full overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+              <h2 className="text-lg font-bold text-slate-900">Log Vaccine Administration</h2>
+            </div>
+            
+            <div className="overflow-y-auto">
+              <form id="adminForm" onSubmit={handleSubmit} className="p-6">
                 
-                <button 
-                  onClick={() => setShowModal(false)}
-                  className="absolute top-10 right-8 text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                  </svg>
-                </button>
-              </div>
-
-              {/* Form Content */}
-              <div className="px-10 pb-10">
-              <form id="adminForm" onSubmit={handleSubmit} className="space-y-8">
-                
-                {/* Vaccine Details */}
-                <div className="space-y-8">
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Select Batch *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Select Batch *</label>
                     <div className="relative">
                       <select 
                         required
                         value={formData.batch_id}
                         onChange={(e) => setFormData({...formData, batch_id: e.target.value, quantity: ''})}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium appearance-none"
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm appearance-none"
                       >
                         <option value="" disabled>Select a batch</option>
                         {inventory.map(item => (
@@ -368,15 +357,16 @@ export default function Administration() {
                           </option>
                         ))}
                       </select>
-                      <div className="absolute right-0 top-1 pointer-events-none text-slate-400">
+                      <div className="absolute right-3 top-3 pointer-events-none text-slate-400">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">
-                      Doses Administered * {maxAvailable !== '' && <span className="text-blue-500 ml-1">(Max Available: {maxAvailable})</span>}
+                    <label className="block text-sm font-medium text-slate-700 mb-1 flex items-center justify-between">
+                      <span>Doses Administered *</span>
+                      {maxAvailable !== '' && <span className="text-blue-500 text-xs font-normal">Max: {maxAvailable}</span>}
                     </label>
                     <input 
                       type="number" 
@@ -391,142 +381,52 @@ export default function Administration() {
                         }
                         setFormData({...formData, quantity: val});
                       }}
-                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
                     />
                   </div>
-                </div>
-
-                {/* Veterinary & Location */}
-                <div className="space-y-8 pt-4 border-t border-slate-100">
+                  
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Veterinary Name *</label>
-                    <input 
-                      type="text" required
-                      placeholder="Dr. John Doe"
-                      value={formData.veterinary_name}
-                      onChange={(e) => setFormData({...formData, veterinary_name: e.target.value})}
-                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Email Address *</label>
-                    <input 
-                      type="email" required
-                      placeholder="vet@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Phone Number *</label>
-                    <div className="flex items-center border-b border-slate-200 pb-2 focus-within:border-blue-500 transition-colors">
-                      <span className="flex items-center gap-1.5 pr-3 text-[17px] text-slate-900 font-medium">
-                        🇷🇼 +250
-                      </span>
-                      <input 
-                        type="tel" required
-                        placeholder="788 000 000"
-                        value={formData.phone_number}
-                        onChange={(e) => setFormData({...formData, phone_number: e.target.value})}
-                        className="w-full bg-transparent outline-none text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">National ID *</label>
-                    <input 
-                      type="text" required maxLength="16"
-                      placeholder="1 1990 8..."
-                      value={formData.national_id}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '').slice(0, 16);
-                        setFormData({...formData, national_id: val});
-                      }}
-                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                    />
-                  </div>
-
-                  <div className="space-y-8">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Province *</label>
-                      <input 
-                        type="text" required
-                        placeholder="Province"
-                        value={formData.province}
-                        onChange={(e) => setFormData({...formData, province: e.target.value})}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">District *</label>
-                      <input 
-                        type="text" required
-                        placeholder="District"
-                        value={formData.district}
-                        onChange={(e) => setFormData({...formData, district: e.target.value})}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-8">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Sector *</label>
-                      <input 
-                        type="text" required
-                        placeholder="Sector"
-                        value={formData.sector}
-                        onChange={(e) => setFormData({...formData, sector: e.target.value})}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Cell *</label>
-                      <input 
-                        type="text" required
-                        placeholder="Cell"
-                        value={formData.cell}
-                        onChange={(e) => setFormData({...formData, cell: e.target.value})}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Village *</label>
-                      <input 
-                        type="text" required
-                        placeholder="Village"
-                        value={formData.village}
-                        onChange={(e) => setFormData({...formData, village: e.target.value})}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Select Veterinary *</label>
+                    <div className="relative">
+                      <select 
+                        required
+                        value={formData.veterinary_id}
+                        onChange={(e) => setFormData({...formData, veterinary_id: e.target.value})}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm appearance-none"
+                      >
+                        <option value="" disabled>Select a veterinary</option>
+                        {veterinaries.map(vet => (
+                          <option key={vet.id} value={vet.id}>
+                            {vet.name} - {vet.phone_number} ({vet.sector})
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute right-3 top-3 pointer-events-none text-slate-400">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-8 flex justify-end gap-6 items-center">
+                <div className="mt-8 flex items-center gap-3">
                   <button 
                     type="button" 
                     onClick={() => setShowModal(false)}
-                    className="text-[13px] font-bold text-slate-500 hover:text-slate-800 tracking-wider transition-colors"
+                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium text-sm transition-colors"
                   >
-                    CANCEL
+                    Cancel
                   </button>
                   <button 
                     type="submit" 
                     disabled={submitting}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[13px] tracking-wider rounded transition-colors disabled:opacity-70"
+                    className="flex-1 py-2.5 bg-[#12aeec] hover:bg-[#12aeec]/90 text-white rounded-lg font-bold text-sm transition-colors shadow-sm disabled:opacity-50"
                   >
-                    {submitting ? 'RECORDING...' : 'RECORD'}
+                    {submitting ? 'Recording...' : 'Record'}
                   </button>
                 </div>
               </form>
             </div>
           </div>
-        </div>
         </div>
       )}
     </div>

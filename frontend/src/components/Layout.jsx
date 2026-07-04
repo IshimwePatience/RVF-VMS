@@ -5,6 +5,7 @@ import { Search, MoreVertical, Grid, LogOut, Bell, CheckCircle2, Clock } from 'l
 import { Outlet, Navigate, NavLink } from 'react-router-dom';
 import axios from 'axios';
 import minisanteLogo from '../assets/images/MINISANTE.png';
+import GlobalSearch from './GlobalSearch';
 
 export default function Layout() {
   const { user, logout, token, socket } = useContext(AuthContext);
@@ -116,14 +117,7 @@ export default function Layout() {
         </div>
         
         <div className="flex-1 flex justify-center max-w-3xl px-4">
-          <div className="w-full flex items-center bg-slate-100/80 hover:bg-slate-100 rounded-full px-4 py-2.5 transition-colors">
-            <Search className="w-5 h-5 text-slate-500 mr-3" />
-            <input 
-              type="text" 
-              placeholder="Search vaccines, inventory, and requests" 
-              className="bg-transparent border-none outline-none w-full text-sm placeholder:text-slate-500 text-slate-800"
-            />
-          </div>
+          <GlobalSearch />
         </div>
 
         <div className="flex items-center gap-4 w-64 justify-end shrink-0">
@@ -283,6 +277,9 @@ export default function Layout() {
                     <NavLink to="/vaccines" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Vaccine Types</NavLink>
                     <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Suppliers</NavLink>
                   </>
+                )}
+                {(user?.role === 'Admin' || user?.stock?.is_endpoint) && (
+                  <NavLink to="/veterinaries" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Veterinaries</NavLink>
                 )}
               </nav>
             </div>

@@ -16,6 +16,7 @@ import NewRequest from './pages/NewRequest';
 import Transfers from './pages/Transfers';
 import Administration from './pages/Administration';
 import ReportUsage from './pages/ReportUsage';
+import Veterinaries from './pages/Veterinaries';
 import { AuthContext } from './context/AuthContext';
 
 const CentralOnlyRoute = ({ children }) => {
@@ -56,6 +57,7 @@ function App() {
               <Route path="requests/new" element={<NewRequest />} />
               <Route path="transfers" element={<Transfers />} />
               <Route path="administrations" element={<EndpointOnlyRoute><Administration /></EndpointOnlyRoute>} />
+              <Route path="veterinaries" element={<Veterinaries />} />
               <Route path="stocks" element={<CentralOnlyRoute><Stocks /></CentralOnlyRoute>} />
               <Route path="vaccines" element={<CentralOnlyRoute><Vaccines /></CentralOnlyRoute>} />
               <Route path="suppliers" element={<CentralOnlyRoute><Suppliers /></CentralOnlyRoute>} />
