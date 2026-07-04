@@ -275,14 +275,14 @@ export default function Layout() {
               <h3 className="text-sm font-medium text-slate-900 mb-2">Management</h3>
               <nav className="space-y-0.5 flex flex-col">
                 {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
-                  <>
-                    <NavLink to="/stocks" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Stock Overview</NavLink>
-                    <NavLink to="/vaccines" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Vaccine Types</NavLink>
-                  </>
+                  <NavLink to="/stocks" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Stock Overview</NavLink>
                 )}
                 <NavLink to="/inventory" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Current Inventory</NavLink>
                 {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
-                  <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Suppliers</NavLink>
+                  <>
+                    <NavLink to="/vaccines" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Vaccine Types</NavLink>
+                    <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Suppliers</NavLink>
+                  </>
                 )}
               </nav>
             </div>
