@@ -40,7 +40,7 @@ export default function Inventory() {
 
   const fetchInventory = async () => {
     try {
-      const res = await axios.get('http://localhost:3001/api/inventory');
+      const res = await axios.get('/api/inventory');
       setInventoryItems(res.data);
     } catch (err) {
       console.error(err);
@@ -56,8 +56,8 @@ export default function Inventory() {
   const fetchOptions = async () => {
     try {
       const [suppRes, vacRes] = await Promise.all([
-        axios.get('http://localhost:3001/api/suppliers'),
-        axios.get('http://localhost:3001/api/vaccines')
+        axios.get('/api/suppliers'),
+        axios.get('/api/vaccines')
       ]);
       setSuppliers(suppRes.data);
       setVaccines(vacRes.data);
@@ -77,10 +77,10 @@ export default function Inventory() {
     setSubmitting(true);
     try {
       if (editingId) {
-        await axios.put(`http://localhost:3001/api/inventory/${editingId}`, formData);
+        await axios.put(`/api/inventory/${editingId}`, formData);
         addToast('Stock updated successfully', 'success');
       } else {
-        await axios.post('http://localhost:3001/api/inventory/receive', formData);
+        await axios.post('/api/inventory/receive', formData);
         addToast('Stock received successfully', 'success');
       }
       closeModal();
@@ -122,7 +122,7 @@ export default function Inventory() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this inventory record? This will also delete the associated batch if it exists.')) return;
     try {
-      await axios.delete(`http://localhost:3001/api/inventory/${id}`);
+      await axios.delete(`/api/inventory/${id}`);
       addToast('Inventory deleted successfully', 'success');
       fetchInventory();
     } catch (err) {

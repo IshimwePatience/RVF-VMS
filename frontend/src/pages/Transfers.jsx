@@ -26,7 +26,7 @@ export default function Transfers() {
     const fetchTransfers = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`http://localhost:3001/api/transfers?type=${activeTab}`);
+        const res = await axios.get(`/api/transfers?type=${activeTab}`);
         if (!ignore) {
           setTransfers(res.data);
         }
@@ -56,7 +56,7 @@ export default function Transfers() {
   const submitConfirmReceipt = async (status) => {
     if (!confirmingTransfer) return;
     try {
-      await axios.post(`http://localhost:3001/api/transfers/${confirmingTransfer}/confirm`, { status });
+      await axios.post(`/api/transfers/${confirmingTransfer}/confirm`, { status });
       addToast(status === 'Missing' ? 'Shipment reported as missing.' : 'Delivery confirmed and inventory updated!', 'success');
       setFetchTrigger(prev => prev + 1);
       setConfirmingTransfer(null);

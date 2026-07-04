@@ -26,7 +26,7 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:3001/api/users');
+      const res = await axios.get('/api/users');
       setUsers(res.data);
     } catch (err) {
       console.error(err);
@@ -38,7 +38,7 @@ export default function Users() {
 
   const fetchStocks = async () => {
     try {
-      const res = await axios.get('http://localhost:3001/api/stocks');
+      const res = await axios.get('/api/stocks');
       setStocks(res.data);
     } catch (err) {
       console.error(err);
@@ -55,10 +55,10 @@ export default function Users() {
     setSubmitting(true);
     try {
       if (editingId) {
-        await axios.put(`http://localhost:3001/api/users/${editingId}`, formData);
+        await axios.put(`/api/users/${editingId}`, formData);
         addToast('User updated successfully', 'success');
       } else {
-        await axios.post('http://localhost:3001/api/users', formData);
+        await axios.post('/api/users', formData);
         addToast('User created successfully. Credentials sent to email.', 'success');
       }
       closeModal();
@@ -93,7 +93,7 @@ export default function Users() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
-      await axios.delete(`http://localhost:3001/api/users/${id}`);
+      await axios.delete(`/api/users/${id}`);
       addToast('User deleted successfully', 'success');
       fetchUsers();
     } catch (err) {

@@ -20,7 +20,7 @@ export default function Settings() {
 
   const fetchRates = async () => {
     try {
-      const res = await axios.get('http://localhost:3001/api/settings/exchange-rates');
+      const res = await axios.get('/api/settings/exchange-rates');
       const ratesMap = {};
       res.data.forEach(rate => {
         ratesMap[rate.currency] = rate.rate_to_rwf;
@@ -38,7 +38,7 @@ export default function Settings() {
     if (!rate || isNaN(rate)) return;
     setSaving(true);
     try {
-      await axios.put(`http://localhost:3001/api/settings/exchange-rates/${currency}`, {
+      await axios.put(`/api/settings/exchange-rates/${currency}`, {
         rate_to_rwf: parseFloat(rate)
       });
       addToast(`${currency} rate updated successfully`, 'success');

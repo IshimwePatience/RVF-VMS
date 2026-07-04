@@ -33,8 +33,8 @@ export default function Requests() {
     setLoading(true);
     try {
       const [reqRes, invRes] = await Promise.all([
-        axios.get(`http://localhost:3001/api/requests?type=${activeTab}`),
-        axios.get('http://localhost:3001/api/inventory')
+        axios.get(`/api/requests?type=${activeTab}`),
+        axios.get('/api/inventory')
       ]);
       setRequests(reqRes.data);
       setInventory(invRes.data);
@@ -49,7 +49,7 @@ export default function Requests() {
   const handleApprove = async () => {
     if (!approvingRequest || !approvedQuantity) return;
     try {
-      await axios.post(`http://localhost:3001/api/requests/${approvingRequest.id}/approve`, {
+      await axios.post(`/api/requests/${approvingRequest.id}/approve`, {
         approved_quantity: parseInt(approvedQuantity, 10),
         note: approvalNote
       });
@@ -64,7 +64,7 @@ export default function Requests() {
   const handleReject = async () => {
     if (!rejectingRequest || !rejectNote.trim()) return;
     try {
-      await axios.post(`http://localhost:3001/api/requests/${rejectingRequest.id}/reject`, {
+      await axios.post(`/api/requests/${rejectingRequest.id}/reject`, {
         note: rejectNote
       });
       addToast('Request rejected successfully!', 'success');

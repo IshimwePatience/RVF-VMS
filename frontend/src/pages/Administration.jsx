@@ -30,9 +30,9 @@ export default function Administration() {
     try {
       setLoading(true);
       const [adminRes, invRes, vetRes] = await Promise.all([
-        axios.get(`http://localhost:3001/api/administrations?stock_id=${user?.stock?.id || ''}`),
-        axios.get(`http://localhost:3001/api/inventory?stock_id=${user?.stock?.id || ''}`),
-        axios.get(`http://localhost:3001/api/veterinaries`)
+        axios.get(`/api/administrations?stock_id=${user?.stock?.id || ''}`),
+        axios.get(`/api/inventory?stock_id=${user?.stock?.id || ''}`),
+        axios.get(`/api/veterinaries`)
       ]);
       setAdministrations(adminRes.data);
       // Only include inventory that has available quantity
@@ -94,10 +94,10 @@ export default function Administration() {
       };
 
       if (selectedRecord) {
-        await axios.put(`http://localhost:3001/api/administrations/${selectedRecord.id}`, payload);
+        await axios.put(`/api/administrations/${selectedRecord.id}`, payload);
         addToast('Administration updated successfully', 'success');
       } else {
-        await axios.post('http://localhost:3001/api/administrations', {
+        await axios.post('/api/administrations', {
           ...payload,
           stock_id: user.stock?.id
         });
@@ -120,7 +120,7 @@ export default function Administration() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this record? The stock will be returned to inventory.')) return;
     try {
-      await axios.delete(`http://localhost:3001/api/administrations/${id}`);
+      await axios.delete(`/api/administrations/${id}`);
       addToast('Administration deleted successfully', 'success');
       fetchData();
     } catch (err) {

@@ -36,7 +36,7 @@ export default function Veterinaries() {
     if (!user) return;
     try {
       setLoading(true);
-      let url = 'http://localhost:3001/api/veterinaries?';
+      let url = '/api/veterinaries?';
       if (user?.role === 'Admin') {
         if (provinceFilter !== 'All') url += `province=${provinceFilter}&`;
         if (districtFilter !== 'All') url += `district=${districtFilter}&`;
@@ -64,10 +64,10 @@ export default function Veterinaries() {
     setSubmitting(true);
     try {
       if (editingId) {
-        await axios.put(`http://localhost:3001/api/veterinaries/${editingId}`, formData);
+        await axios.put(`/api/veterinaries/${editingId}`, formData);
         addToast('Veterinary updated successfully', 'success');
       } else {
-        await axios.post('http://localhost:3001/api/veterinaries', formData);
+        await axios.post('/api/veterinaries', formData);
         addToast('Veterinary recorded successfully', 'success');
       }
       closeModal();
@@ -105,7 +105,7 @@ export default function Veterinaries() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this veterinary record?')) return;
     try {
-      await axios.delete(`http://localhost:3001/api/veterinaries/${id}`);
+      await axios.delete(`/api/veterinaries/${id}`);
       addToast('Veterinary deleted successfully', 'success');
       fetchVeterinaries();
     } catch (err) {
