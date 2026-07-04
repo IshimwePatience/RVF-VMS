@@ -98,6 +98,9 @@ export default function Administration() {
     return <div className="p-8 text-center text-slate-500">Loading administrations...</div>;
   }
 
+  const selectedBatchItem = inventory.find(i => i.batch_id === formData.batch_id);
+  const maxAvailable = selectedBatchItem ? selectedBatchItem.quantity_available : '';
+
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
       <div className="flex justify-between items-center mb-8">
@@ -142,7 +145,6 @@ export default function Administration() {
               <tr>
                 <th className="py-3 font-semibold text-slate-800">Date</th>
                 <th className="py-3 font-semibold text-slate-800">Veterinary</th>
-                <th className="py-3 font-semibold text-slate-800">Location</th>
                 <th className="py-3 font-semibold text-slate-800">Vaccine</th>
                 <th className="py-3 font-semibold text-slate-800">Doses</th>
               </tr>
@@ -154,20 +156,7 @@ export default function Administration() {
                     {new Date(record.date_administered).toLocaleDateString()}
                   </td>
                   <td className="py-4 pr-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
-                        {record.veterinary_name.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="font-medium text-slate-900 text-base">{record.veterinary_name}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 text-slate-600">
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="truncate max-w-[200px]" title={`${record.village}, ${record.cell}, ${record.sector}, ${record.district}, ${record.province}`}>
-                        {record.village}, {record.cell}
-                      </span>
-                    </div>
+                    <span className="font-medium text-slate-900 text-base">{record.veterinary_name}</span>
                   </td>
                   <td className="py-4 text-slate-600">
                     <div className="flex flex-col">
@@ -220,7 +209,7 @@ export default function Administration() {
                       <select 
                         required
                         value={formData.batch_id}
-                        onChange={(e) => setFormData({...formData, batch_id: e.target.value})}
+                        onChange={(e) => setFormData({...formData, batch_id: e.target.value, quantity: ''})}
                         className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium appearance-none"
                       >
                         <option value="" disabled>Select a batch</option>
@@ -237,13 +226,22 @@ export default function Administration() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Doses Administered *</label>
+                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">
+                      Doses Administered * {maxAvailable !== '' && <span className="text-blue-500 ml-1">(Max Available: {maxAvailable})</span>}
+                    </label>
                     <input 
                       type="number" 
-                      required min="1"
-                      placeholder="e.g. 50"
+                      disabled={!formData.batch_id}
+                      required min="1" max={maxAvailable}
+                      placeholder={formData.batch_id ? "e.g. 50" : "Select batch first"}
                       value={formData.quantity}
-                      onChange={(e) => setFormData({...formData, quantity: e.target.value})}
+                      onChange={(e) => {
+                        let val = e.target.value;
+                        if (val !== '' && maxAvailable !== '' && parseInt(val) > maxAvailable) {
+                          val = maxAvailable.toString();
+                        }
+                        setFormData({...formData, quantity: val});
+                      }}
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>
@@ -292,10 +290,13 @@ export default function Administration() {
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">National ID *</label>
                     <input 
-                      type="text" required
+                      type="text" required maxLength="16"
                       placeholder="1 1990 8..."
                       value={formData.national_id}
-                      onChange={(e) => setFormData({...formData, national_id: e.target.value})}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 16);
+                        setFormData({...formData, national_id: val});
+                      }}
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>

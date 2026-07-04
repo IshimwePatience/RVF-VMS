@@ -90,11 +90,6 @@ export default function Requests() {
     <div className="max-w-[1200px] mx-auto pb-12">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Requests</h1>
-        {!(user?.role === 'Admin' || user?.stock?.is_central || user?.is_central) && (
-          <Link to="/requests/new" className="px-5 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors">
-            New Request
-          </Link>
-        )}
       </div>
 
       <div className="flex border-b border-slate-200 mb-6">
