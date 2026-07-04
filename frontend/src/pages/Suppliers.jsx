@@ -23,7 +23,7 @@ export default function Suppliers() {
 
   const fetchSuppliers = async () => {
     try {
-      const res = await axios.get('/api/suppliers');
+      const res = await axios.get('/rvf-api/suppliers');
       setSuppliers(res.data);
     } catch (err) {
       console.error(err);
@@ -38,10 +38,10 @@ export default function Suppliers() {
     setSubmitting(true);
     try {
       if (editingId) {
-        await axios.put(`/api/suppliers/${editingId}`, formData);
+        await axios.put(`/rvf-api/suppliers/${editingId}`, formData);
         addToast('Supplier updated successfully', 'success');
       } else {
-        await axios.post('/api/suppliers', formData);
+        await axios.post('/rvf-api/suppliers', formData);
         addToast('Supplier created successfully', 'success');
       }
       closeModal();
@@ -69,7 +69,7 @@ export default function Suppliers() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this supplier?')) return;
     try {
-      await axios.delete(`/api/suppliers/${id}`);
+      await axios.delete(`/rvf-api/suppliers/${id}`);
       addToast('Supplier deleted successfully', 'success');
       fetchSuppliers();
     } catch (err) {

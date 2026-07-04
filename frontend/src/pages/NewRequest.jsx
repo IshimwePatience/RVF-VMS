@@ -21,8 +21,8 @@ export default function NewRequest() {
     const fetchData = async () => {
       try {
         const [invRes, reqRes] = await Promise.all([
-          axios.get('/api/inventory?view_parent=true'),
-          axios.get('/api/requests?type=outgoing')
+          axios.get('/rvf-api/inventory?view_parent=true'),
+          axios.get('/rvf-api/requests?type=outgoing')
         ]);
         setParentInventory(invRes.data);
         setMyRequests(reqRes.data);
@@ -58,7 +58,7 @@ export default function NewRequest() {
 
     setSubmitting(item.batch_id);
     try {
-      await axios.post('/api/requests', {
+      await axios.post('/rvf-api/requests', {
         vaccine_id: item.Batch.vaccine_id,
         batch_id: item.batch_id,
         requested_quantity
@@ -66,7 +66,7 @@ export default function NewRequest() {
       addToast('Request sent successfully!', 'success');
       setQuantities(prev => ({ ...prev, [item.batch_id]: '' }));
       
-      const reqRes = await axios.get('/api/requests?type=outgoing');
+      const reqRes = await axios.get('/rvf-api/requests?type=outgoing');
       setMyRequests(reqRes.data);
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to send request', 'error');
@@ -78,10 +78,10 @@ export default function NewRequest() {
   const handleCancel = async (id) => {
     if (!window.confirm('Are you sure you want to stop this request?')) return;
     try {
-      await axios.delete(`/api/requests/${id}`);
+      await axios.delete(`/rvf-api/requests/${id}`);
       addToast('Request stopped successfully!', 'success');
       
-      const reqRes = await axios.get('/api/requests?type=outgoing');
+      const reqRes = await axios.get('/rvf-api/requests?type=outgoing');
       setMyRequests(reqRes.data);
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to stop request', 'error');

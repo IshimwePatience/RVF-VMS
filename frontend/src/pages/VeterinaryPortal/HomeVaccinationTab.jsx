@@ -26,7 +26,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
   useEffect(() => {
     const fetchVaccines = async () => {
       try {
-        const res = await axios.get(`/api/veterinary-portal/available-vaccines?email=${encodeURIComponent(email)}`);
+        const res = await axios.get(`/rvf-api/veterinary-portal/available-vaccines?email=${encodeURIComponent(email)}`);
         setAvailableVaccines(res.data);
       } catch (err) {
         console.error(err);
@@ -144,7 +144,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
           });
         });
 
-        return axios.post('/api/veterinary-portal/vaccination', {
+        return axios.post('/rvf-api/veterinary-portal/vaccination', {
           email,
           owner_name: home.owner_name,
           owner_phone: home.owner_phone,

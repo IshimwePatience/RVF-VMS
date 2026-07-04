@@ -45,7 +45,7 @@ export default function GlobalSearch() {
       }
       setIsLoading(true);
       try {
-        const res = await axios.get(`/api/search?q=${encodeURIComponent(query)}`);
+        const res = await axios.get(`/rvf-api/search?q=${encodeURIComponent(query)}`);
         setResults(res.data);
       } catch (err) {
         console.error('Search error', err);

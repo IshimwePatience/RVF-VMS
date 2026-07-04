@@ -7,7 +7,7 @@ export default defineConfig({
   base: '/rift-valley/',
   server: {
     proxy: {
-      '/api': 'http://localhost:3001'
+      '/rvf-api': 'http://localhost:3001'
     }
   }
 })

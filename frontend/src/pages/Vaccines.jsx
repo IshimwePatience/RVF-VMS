@@ -20,7 +20,7 @@ export default function Vaccines() {
 
   const fetchVaccines = async () => {
     try {
-      const res = await axios.get('/api/vaccines');
+      const res = await axios.get('/rvf-api/vaccines');
       setVaccines(res.data);
     } catch (err) {
       console.error(err);
@@ -35,10 +35,10 @@ export default function Vaccines() {
     setSubmitting(true);
     try {
       if (editingId) {
-        await axios.put(`/api/vaccines/${editingId}`, formData);
+        await axios.put(`/rvf-api/vaccines/${editingId}`, formData);
         addToast('Vaccine updated successfully', 'success');
       } else {
-        await axios.post('/api/vaccines', formData);
+        await axios.post('/rvf-api/vaccines', formData);
         addToast('Vaccine created successfully', 'success');
       }
       closeModal();
@@ -66,7 +66,7 @@ export default function Vaccines() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this vaccine?')) return;
     try {
-      await axios.delete(`/api/vaccines/${id}`);
+      await axios.delete(`/rvf-api/vaccines/${id}`);
       addToast('Vaccine deleted successfully', 'success');
       fetchVaccines();
     } catch (err) {

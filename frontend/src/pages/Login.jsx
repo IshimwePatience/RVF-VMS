@@ -33,7 +33,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('/api/auth/login', { username, password });
+      const res = await axios.post('/rvf-api/auth/login', { username, password });
       if (res.data.requires_otp) {
         setTempToken(res.data.tempToken);
         setRequiresOtp(true);
@@ -51,7 +51,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      const res = await axios.post('/api/auth/verify-otp', { tempToken, otp });
+      const res = await axios.post('/rvf-api/auth/verify-otp', { tempToken, otp });
       if (res.data.user.must_change_password) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
         setPendingAuth({ token: res.data.token, user: res.data.user });
@@ -77,7 +77,7 @@ export default function Login() {
     }
     setError('');
     try {
-      await axios.post('/api/auth/change-password', { newPassword: newPin });
+      await axios.post('/rvf-api/auth/change-password', { newPassword: newPin });
       const updatedUser = { ...pendingAuth.user, must_change_password: false };
       login(pendingAuth.token, updatedUser);
       navigate('/');
@@ -89,7 +89,7 @@ export default function Login() {
   const handleForgotPasswordSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('/api/auth/request-reset', { username });
+      const res = await axios.post('/rvf-api/auth/request-reset', { username });
       addToast(res.data.message);
       setShowForgotPassword(false);
       setUsername('');

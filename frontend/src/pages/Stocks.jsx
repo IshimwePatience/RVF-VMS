@@ -30,7 +30,7 @@ export default function Stocks() {
 
   const fetchStocks = async () => {
     try {
-      const res = await axios.get('/api/stocks');
+      const res = await axios.get('/rvf-api/stocks');
       setStocks(res.data);
     } catch (err) {
       console.error(err);
@@ -49,10 +49,10 @@ export default function Stocks() {
     setSubmitting(true);
     try {
       if (editingId) {
-        await axios.put(`/api/stocks/${editingId}`, formData);
+        await axios.put(`/rvf-api/stocks/${editingId}`, formData);
         addToast('Stock point updated successfully', 'success');
       } else {
-        await axios.post('/api/stocks', formData);
+        await axios.post('/rvf-api/stocks', formData);
         addToast('Stock point created successfully', 'success');
       }
       closeModal();
@@ -88,7 +88,7 @@ export default function Stocks() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this stock point?')) return;
     try {
-      await axios.delete(`/api/stocks/${id}`);
+      await axios.delete(`/rvf-api/stocks/${id}`);
       addToast('Stock point deleted successfully', 'success');
       fetchStocks();
     } catch (err) {

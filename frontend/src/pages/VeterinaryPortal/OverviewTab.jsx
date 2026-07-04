@@ -10,7 +10,7 @@ export default function OverviewTab({ email }) {
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get(`/api/veterinary-portal/overview?email=${encodeURIComponent(email)}`);
+      const res = await axios.get(`/rvf-api/veterinary-portal/overview?email=${encodeURIComponent(email)}`);
       setData(res.data);
     } catch (err) {
       console.error(err);

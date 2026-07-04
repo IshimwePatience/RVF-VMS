@@ -43,7 +43,7 @@ export default function ReportUsage() {
     const fetchRecord = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`/api/administrations/report/${token}`);
+        const res = await axios.get(`/rvf-api/administrations/report/${token}`);
         setRecord(res.data);
 
         // Pre-fill form if already submitted
@@ -74,7 +74,7 @@ export default function ReportUsage() {
     setVerifying(true);
     setEmailError('');
     try {
-      const res = await axios.post('/api/administrations/verify-veterinary', { email });
+      const res = await axios.post('/rvf-api/administrations/verify-veterinary', { email });
       if (res.data && res.data.length > 0) {
         navigate(`/veterinary-portal/${encodeURIComponent(email)}`);
       } else {
@@ -103,7 +103,7 @@ export default function ReportUsage() {
         owner_national_id: formData.owner_national_id
       };
 
-      const res = await axios.post(`/api/administrations/report/${token}`, payload);
+      const res = await axios.post(`/rvf-api/administrations/report/${token}`, payload);
       setRecord(res.data.record);
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
