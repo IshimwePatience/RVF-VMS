@@ -76,7 +76,7 @@ export default function ReportUsage() {
     try {
       const res = await axios.post('http://localhost:3001/api/administrations/verify-veterinary', { email });
       if (res.data && res.data.length > 0) {
-        navigate(`/report-usage/${res.data[0].report_token}`);
+        navigate(`/veterinary-portal/${encodeURIComponent(email)}`);
       } else {
         setEmailError('No records found for this email.');
       }

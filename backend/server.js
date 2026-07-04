@@ -31,6 +31,7 @@ const administrationRoutes = require('./routes/administration.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const searchRoutes = require('./routes/search.routes');
 const veterinaryRoutes = require('./routes/veterinary.routes');
+const veterinaryPortalRoutes = require('./routes/veterinaryPortal.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -46,6 +47,7 @@ app.use('/api/administrations', administrationRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/veterinaries', veterinaryRoutes);
+app.use('/api/veterinary-portal', veterinaryPortalRoutes);
 
 
 app.get('/api/health', (req, res) => {

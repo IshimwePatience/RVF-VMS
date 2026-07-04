@@ -16,6 +16,7 @@ import NewRequest from './pages/NewRequest';
 import Transfers from './pages/Transfers';
 import Administration from './pages/Administration';
 import ReportUsage from './pages/ReportUsage';
+import VeterinaryPortal from './pages/VeterinaryPortal/VeterinaryPortal';
 import Veterinaries from './pages/Veterinaries';
 import { AuthContext } from './context/AuthContext';
 
@@ -67,6 +68,7 @@ function App() {
             </Route>
             <Route path="/report-usage" element={<ReportUsage />} />
             <Route path="/report-usage/:token" element={<ReportUsage />} />
+            <Route path="/veterinary-portal/:email" element={<VeterinaryPortal />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

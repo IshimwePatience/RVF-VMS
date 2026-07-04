@@ -20,7 +20,7 @@ fs
     db[model.name] = model;
   });
 
-const { Stock, User, Batch, Vaccine, Supplier, StockInventory, Request, Transfer, AdministrationRecord, Notification, Veterinary } = db;
+const { Stock, User, Batch, Vaccine, Supplier, StockInventory, Request, Transfer, AdministrationRecord, Notification, Veterinary, HomeVaccinationRecord } = db;
 
 Stock.belongsTo(Stock, { as: 'ParentStock', foreignKey: 'parent_stock_id' });
 Stock.hasMany(Stock, { as: 'ChildStocks', foreignKey: 'parent_stock_id' });

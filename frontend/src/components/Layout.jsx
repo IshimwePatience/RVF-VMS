@@ -38,7 +38,7 @@ export default function Layout() {
       try {
         const res = await axios.get('http://localhost:3001/api/notifications/reminders');
         const { pendingRequests, unconfirmedDeliveries, unreceivedShipments, pendingFollowUps } = res.data;
-        
+
         if (pendingRequests > 0) {
           addToast(`Reminder: You have ${pendingRequests} pending request(s) to review.`, 'info');
         }
@@ -59,7 +59,7 @@ export default function Layout() {
     if (remindersEnabled && token) {
       // Run immediately on load or setting change
       triggerReminders();
-      
+
       // Setup interval based on user setting
       const ms = Math.max(1, reminderTime) * 60 * 1000;
       intervalId = setInterval(triggerReminders, ms);
@@ -115,16 +115,16 @@ export default function Layout() {
           <img src={minisanteLogo} alt="MINISANTE" className="h-10 object-contain" />
           <span className="text-[22px] text-[#5f6368] font-medium tracking-tight">rvf vaccine hub</span>
         </div>
-        
+
         <div className="flex-1 flex justify-center max-w-3xl px-4">
           <GlobalSearch />
         </div>
 
         <div className="flex items-center gap-4 w-64 justify-end shrink-0">
-          
+
           {/* Reminders Dropdown */}
           <div className="relative">
-            <button 
+            <button
               onClick={() => {
                 setShowReminderDropdown(!showReminderDropdown);
                 setShowNotifDropdown(false);
@@ -144,9 +144,9 @@ export default function Layout() {
                   <label className="flex items-center justify-between cursor-pointer">
                     <span className="text-sm font-semibold text-slate-700">Enable Reminders</span>
                     <div className="relative">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only" 
+                      <input
+                        type="checkbox"
+                        className="sr-only"
                         checked={remindersEnabled}
                         onChange={(e) => setRemindersEnabled(e.target.checked)}
                       />
@@ -154,10 +154,10 @@ export default function Layout() {
                       <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${remindersEnabled ? 'translate-x-4' : ''}`}></div>
                     </div>
                   </label>
-                  
+
                   <div className={`flex flex-col gap-2 transition-opacity ${!remindersEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
                     <label className="text-sm font-semibold text-slate-700">Reminder Interval (minutes)</label>
-                    <input 
+                    <input
                       type="number"
                       min="1"
                       className="border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#12aeec] transition-colors"
@@ -172,7 +172,7 @@ export default function Layout() {
 
           {/* Notifications Dropdown */}
           <div className="relative">
-            <button 
+            <button
               onClick={() => {
                 setShowNotifDropdown(!showNotifDropdown);
                 setShowReminderDropdown(false);
@@ -198,8 +198,8 @@ export default function Layout() {
                     </div>
                   ) : (
                     notifications.map(notif => (
-                      <div 
-                        key={notif.id} 
+                      <div
+                        key={notif.id}
                         onClick={() => !notif.is_read && markAsRead(notif.id)}
                         className={`px-4 py-3 border-b border-slate-50 last:border-0 cursor-pointer transition-colors ${notif.is_read ? 'opacity-60' : 'bg-blue-50/50 hover:bg-blue-50'}`}
                       >
@@ -225,7 +225,7 @@ export default function Layout() {
           </div>
 
           <div className="relative">
-            <button 
+            <button
               onClick={() => {
                 setShowDropdown(!showDropdown);
                 setShowNotifDropdown(false);
@@ -235,14 +235,14 @@ export default function Layout() {
             >
               {user?.username?.charAt(0).toUpperCase() || 'A'}
             </button>
-            
+
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-50">
                 <div className="px-4 py-2 border-b border-slate-100 mb-1">
                   <p className="text-sm font-medium text-slate-800">{user?.username}</p>
                 </div>
-                <button 
-                  onClick={logout} 
+                <button
+                  onClick={logout}
                   className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                 >
                   Sign out
@@ -263,7 +263,7 @@ export default function Layout() {
             <NavLink to="/inventory" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Inventory</NavLink>
             <NavLink to="/requests" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Requests</NavLink>
           </div>
-          
+
           <div className="py-4">
             <div className="px-6 mb-2">
               <h3 className="text-sm font-medium text-slate-900 mb-2">Management</h3>
@@ -299,7 +299,7 @@ export default function Layout() {
                 <NavLink to="/reports" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Reports</NavLink>
               </nav>
             </div>
-            
+
             {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
               <>
                 <div className="mx-6 my-3 border-t border-slate-200"></div>
