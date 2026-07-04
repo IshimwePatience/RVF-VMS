@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import minisanteLogo from '../assets/images/MINISANTE.png';
 
 export default function ReportUsage() {
   const { token } = useParams();
@@ -70,12 +71,12 @@ export default function ReportUsage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-[#f0ebf8] flex items-center justify-center text-slate-600">Loading form...</div>;
+    return <div className="min-h-screen bg-blue-50 flex items-center justify-center text-slate-600">Loading form...</div>;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f0ebf8] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-sm p-8 max-w-2xl w-full border-t-8 border-red-500 text-center">
           <h2 className="text-2xl font-normal text-slate-800 mb-2">Error</h2>
           <p className="text-slate-600">{error}</p>
@@ -85,7 +86,7 @@ export default function ReportUsage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0ebf8] py-8 px-4 sm:px-6">
+    <div className="min-h-screen bg-blue-50 py-8 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto space-y-4">
         
         {success && (
@@ -97,8 +98,9 @@ export default function ReportUsage() {
 
         {/* Header Form Card */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="h-3 bg-[#673ab7]"></div>
+          <div className="h-3 bg-blue-600"></div>
           <div className="p-8">
+            <img src={minisanteLogo} alt="MINISANTE" className="h-12 object-contain mb-6" />
             <h1 className="text-3xl font-normal text-[#202124] mb-3">Vaccine Usage Report</h1>
             <p className="text-sm text-slate-600 mb-6">
               Please fill out this form to report the usage of the vaccines distributed to you. 
@@ -121,9 +123,15 @@ export default function ReportUsage() {
             <input 
               type="number" required min="0" max={record.quantity}
               value={formData.doses_used}
-              onChange={(e) => setFormData({...formData, doses_used: e.target.value})}
+              onChange={(e) => {
+                let val = e.target.value;
+                if (val !== '' && parseInt(val) > record.quantity) {
+                  val = record.quantity.toString();
+                }
+                setFormData({...formData, doses_used: val});
+              }}
               placeholder="Your answer"
-              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-[#673ab7] focus:border-b-2 transition-all pb-1 text-[15px]"
+              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
             />
           </div>
 
@@ -134,9 +142,15 @@ export default function ReportUsage() {
             <input 
               type="number" required min="0" max={record.quantity}
               value={formData.doses_wasted}
-              onChange={(e) => setFormData({...formData, doses_wasted: e.target.value})}
+              onChange={(e) => {
+                let val = e.target.value;
+                if (val !== '' && parseInt(val) > record.quantity) {
+                  val = record.quantity.toString();
+                }
+                setFormData({...formData, doses_wasted: val});
+              }}
               placeholder="Your answer"
-              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-[#673ab7] focus:border-b-2 transition-all pb-1 text-[15px]"
+              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
             />
             {parseInt(formData.doses_wasted) > 0 && (
               <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded text-orange-800 text-[14px]">
@@ -154,7 +168,7 @@ export default function ReportUsage() {
               value={formData.domestic_animals_vaccinated}
               onChange={(e) => setFormData({...formData, domestic_animals_vaccinated: e.target.value})}
               placeholder="Your answer"
-              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-[#673ab7] focus:border-b-2 transition-all pb-1 text-[15px]"
+              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
             />
           </div>
 
@@ -167,7 +181,7 @@ export default function ReportUsage() {
               value={formData.animals_affected}
               onChange={(e) => setFormData({...formData, animals_affected: e.target.value})}
               placeholder="Your answer"
-              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-[#673ab7] focus:border-b-2 transition-all pb-1 text-[15px]"
+              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
             />
           </div>
 
@@ -180,7 +194,7 @@ export default function ReportUsage() {
               value={formData.animals_healed}
               onChange={(e) => setFormData({...formData, animals_healed: e.target.value})}
               placeholder="Your answer"
-              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-[#673ab7] focus:border-b-2 transition-all pb-1 text-[15px]"
+              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
             />
           </div>
 
@@ -193,7 +207,7 @@ export default function ReportUsage() {
               value={formData.animals_died}
               onChange={(e) => setFormData({...formData, animals_died: e.target.value})}
               placeholder="Your answer"
-              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-[#673ab7] focus:border-b-2 transition-all pb-1 text-[15px]"
+              className="w-full sm:w-1/2 outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
             />
           </div>
 
@@ -201,7 +215,7 @@ export default function ReportUsage() {
             <button 
               type="submit" 
               disabled={submitting}
-              className="bg-[#673ab7] hover:bg-[#5e35b1] text-white px-6 py-2 rounded text-[14px] font-medium transition-colors disabled:opacity-70"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded text-[14px] font-medium transition-colors disabled:opacity-70"
             >
               {submitting ? 'Submitting...' : 'Submit'}
             </button>
@@ -214,7 +228,7 @@ export default function ReportUsage() {
                 });
                 setSuccess(false);
               }}
-              className="text-[#673ab7] hover:bg-slate-100 px-4 py-2 rounded text-[14px] font-medium transition-colors"
+              className="text-blue-600 hover:bg-blue-50 px-4 py-2 rounded text-[14px] font-medium transition-colors"
             >
               Clear form
             </button>
