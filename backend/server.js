@@ -28,6 +28,7 @@ const transferRoutes = require('./routes/transfer.routes');
 const reportRoutes = require('./routes/report.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const administrationRoutes = require('./routes/administration.routes');
+const notificationRoutes = require('./routes/notification.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -40,6 +41,7 @@ app.use('/api/transfers', transferRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/administrations', administrationRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 
 app.get('/api/health', (req, res) => {
@@ -63,6 +65,9 @@ io.use((socket, next) => {
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.user.username}`);
   
+  // Join a room specific to this user for direct notifications
+  socket.join(`user_${socket.user.id}`);
+
   // Join a room specific to their stock_id to receive targeted notifications
   if (socket.user.stock_id) {
     socket.join(`stock_${socket.user.stock_id}`);

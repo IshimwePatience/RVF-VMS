@@ -7,29 +7,31 @@ exports.getTransfers = async (user, type) => {
   return await Transfer.findAll({ where });
 };
 
-exports.confirmDelivery = async (id, user) => {
+exports.confirmDelivery = async (id, user, status = 'Completed') => {
   return await sequelize.transaction(async (t) => {
     const transfer = await Transfer.findByPk(id, { transaction: t });
     if (!transfer || transfer.to_stock_id !== user.stock_id) throw new Error('Unauthorized or not found');
     if (transfer.status !== 'In Transit') throw new Error('Transfer is already processed');
 
-    let inventory = await StockInventory.findOne({
-      where: { stock_id: user.stock_id, batch_id: transfer.batch_id },
-      transaction: t
-    });
+    if (status === 'Completed') {
+      let inventory = await StockInventory.findOne({
+        where: { stock_id: user.stock_id, batch_id: transfer.batch_id },
+        transaction: t
+      });
 
-    if (inventory) {
-      inventory.quantity_available += transfer.quantity;
-      await inventory.save({ transaction: t });
-    } else {
-      await StockInventory.create({
-        stock_id: user.stock_id,
-        batch_id: transfer.batch_id,
-        quantity_available: transfer.quantity
-      }, { transaction: t });
+      if (inventory) {
+        inventory.quantity_available += transfer.quantity;
+        await inventory.save({ transaction: t });
+      } else {
+        await StockInventory.create({
+          stock_id: user.stock_id,
+          batch_id: transfer.batch_id,
+          quantity_available: transfer.quantity
+        }, { transaction: t });
+      }
     }
 
-    transfer.status = 'Completed';
+    transfer.status = status; // either 'Completed' or 'Missing'
     transfer.received_by = user.id;
     transfer.received_at = new Date();
     await transfer.save({ transaction: t });

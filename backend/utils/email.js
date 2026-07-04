@@ -48,4 +48,24 @@ const sendReportLinkEmail = async (to, token, veterinaryName) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendOTP, sendReportLinkEmail };
+const sendMissingShipmentAlert = async (to, endpointName, quantity) => {
+  const mailOptions = {
+    from: process.env.SMTP_USER,
+    to,
+    subject: 'URGENT: Missing Shipment Alert - RVF VMS',
+    text: `URGENT ALERT\n\nThe shipment of ${quantity} doses to ${endpointName} has been reported as MISSING.\nPlease investigate immediately.`,
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; border: 1px solid #f87171; padding: 20px; border-radius: 8px;">
+        <h2 style="color: #dc2626;">URGENT: Missing Shipment Alert</h2>
+        <p>The shipment of <b>${quantity} doses</b> to <b>${endpointName}</b> has been reported as <b>MISSING</b> by the receiving facility.</p>
+        <p>Please investigate this discrepancy immediately via the RVF Vaccine Management System.</p>
+        <br/>
+        <p>RVF VMS System</p>
+      </div>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendOTP, sendReportLinkEmail, sendMissingShipmentAlert };

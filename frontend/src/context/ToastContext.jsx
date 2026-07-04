@@ -19,20 +19,20 @@ export const ToastProvider = ({ children }) => {
     <ToastContext.Provider value={{ addToast }}>
       {children}
       {toasts.length > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-none">
           <div className="relative w-[400px] flex justify-center">
             {toasts.map((toast, index) => {
               // Calculate stacked offset styles
-              const translateY = index * 8; // 8px down per index
+              const translateY = index * -8; // 8px UP per index because they stack under the top one
               const scale = 1 - index * 0.05; // Slightly shrink background cards
               const opacity = 1 - index * 0.2; // Fade background cards
               
               return (
                 <div
                   key={toast.id}
-                  className="absolute bottom-0 w-full rounded-[6px] shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex p-4 transition-all duration-300 pointer-events-auto"
+                  className="absolute top-0 w-full rounded-[6px] shadow-[0_4px_12px_rgba(0,0,0,0.15)] flex p-4 transition-all duration-300 pointer-events-auto"
                   style={{
-                    backgroundColor: '#3b7bb5', // Exact blue from the image
+                    backgroundColor: '#12aeec', // Matching the theme color
                     transform: `translateY(${translateY}px) scale(${scale})`,
                     zIndex: 50 - index,
                     opacity: opacity,

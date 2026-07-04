@@ -12,6 +12,7 @@ export default function Transfers() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(isCentral ? 'outgoing' : 'incoming');
   const [fetchTrigger, setFetchTrigger] = useState(0);
+  const [confirmingTransfer, setConfirmingTransfer] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -48,14 +49,19 @@ export default function Transfers() {
     return () => { ignore = true; };
   }, [activeTab, user, addToast, fetchTrigger]);
 
-  const handleConfirmReceipt = async (id) => {
-    if (!window.confirm('Are you sure you have received this shipment? This will add the vaccines to your inventory.')) return;
+  const handleConfirmClick = (id) => {
+    setConfirmingTransfer(id);
+  };
+
+  const submitConfirmReceipt = async (status) => {
+    if (!confirmingTransfer) return;
     try {
-      await axios.post(`http://localhost:3001/api/transfers/${id}/confirm`);
-      addToast('Delivery confirmed and inventory updated!', 'success');
+      await axios.post(`http://localhost:3001/api/transfers/${confirmingTransfer}/confirm`, { status });
+      addToast(status === 'Missing' ? 'Shipment reported as missing.' : 'Delivery confirmed and inventory updated!', 'success');
       setFetchTrigger(prev => prev + 1);
+      setConfirmingTransfer(null);
     } catch (err) {
-      addToast(err.response?.data?.message || 'Failed to confirm delivery', 'error');
+      addToast(err.response?.data?.message || 'Failed to update delivery status', 'error');
     }
   };
 
@@ -64,6 +70,7 @@ export default function Transfers() {
     switch (status) {
       case 'In Transit': return 'bg-amber-100 text-amber-700';
       case 'Completed': return 'bg-emerald-100 text-emerald-700';
+      case 'Missing': return 'bg-red-100 text-red-700';
       default: return 'bg-slate-100 text-slate-700';
     }
   };
@@ -140,7 +147,7 @@ export default function Transfers() {
                     <td className="py-4 text-right">
                       {t.status === 'In Transit' && (
                         <button 
-                          onClick={() => handleConfirmReceipt(t.id)}
+                          onClick={() => handleConfirmClick(t.id)}
                           className="px-4 py-1.5 rounded-full text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                         >
                           Confirm Receipt
@@ -154,6 +161,45 @@ export default function Transfers() {
           </table>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmingTransfer && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-lg font-bold text-slate-800">Confirm Delivery</h3>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-sm text-slate-600 mb-6 font-medium">
+                Are you sure you have received this shipment? If the shipment did not arrive, please report it as missing.
+              </p>
+              
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setConfirmingTransfer(null)}
+                  className="px-4 py-2 font-bold text-sm text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => submitConfirmReceipt('Missing')}
+                  className="px-4 py-2 font-bold text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-full transition-colors"
+                >
+                  Report Missing
+                </button>
+                <button 
+                  onClick={() => submitConfirmReceipt('Completed')}
+                  className="px-4 py-2 font-bold text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-colors shadow-sm"
+                >
+                  Yes, I Received It
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
