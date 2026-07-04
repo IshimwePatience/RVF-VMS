@@ -228,7 +228,7 @@ export default function Veterinaries() {
           <div className="min-h-full flex items-start justify-center p-4 sm:p-6">
             <div className="bg-white rounded-sm w-full max-w-[1100px] my-4 sm:my-8 shadow-xl flex flex-col" onClick={e => e.stopPropagation()}>
 
-              <div className="px-10 pt-10 pb-6 shrink-0 relative">
+              <div className="px-6 pt-6 pb-4 shrink-0 relative">
                 <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">{editingId ? 'Edit Veterinary' : 'Add New Veterinary'}</h2>
                 <p className="text-[15px] text-slate-500 mt-1">{editingId ? 'Update veterinary personnel details' : 'Register a new veterinary personnel'}</p>
 
@@ -242,7 +242,7 @@ export default function Veterinaries() {
                 </button>
               </div>
 
-              <div className="px-10 pb-10">
+              <div className="px-6 pb-6">
                 <form onSubmit={handleSubmit} className="space-y-8">
 
                   <div className="space-y-8">
@@ -370,3 +370,4 @@ export default function Veterinaries() {
     </div>
   );
 }
+

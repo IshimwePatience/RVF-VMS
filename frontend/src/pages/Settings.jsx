@@ -138,3 +138,4 @@ function RateInput({ currency, value, onSave, saving }) {
     </div>
   );
 }
+
