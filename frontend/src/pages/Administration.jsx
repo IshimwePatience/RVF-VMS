@@ -196,7 +196,7 @@ export default function Administration() {
           <div className="py-16 flex flex-col items-center justify-center text-center">
             <div className="relative w-48 h-48 mb-2">
               <img 
-                src="/empty_mascot.png" 
+                src={`${import.meta.env.BASE_URL}empty_mascot.png`} 
                 alt="Empty Records Mascot" 
                 className="w-full h-full object-contain mix-blend-multiply"
               />

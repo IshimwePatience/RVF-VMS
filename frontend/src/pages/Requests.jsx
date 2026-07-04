@@ -127,7 +127,7 @@ export default function Requests() {
         ) : requests.length === 0 ? (
           <div className="py-16 flex flex-col items-center justify-center text-center">
             <div className="relative w-48 h-48 mb-2">
-              <img src="/empty_mascot.png" alt="Empty Mascot" className="w-full h-full object-contain mix-blend-multiply" />
+              <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="Empty Mascot" className="w-full h-full object-contain mix-blend-multiply" />
             </div>
             <h3 className="text-lg font-bold text-slate-800">No {activeTab} requests found</h3>
             <p className="text-slate-500 mt-1">When requests are made, they will appear here.</p>
