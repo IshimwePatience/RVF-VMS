@@ -36,7 +36,7 @@ export default function Layout() {
     let intervalId;
     const triggerReminders = async () => {
       try {
-        const res = await axios.get('http://localhost:3001/api/notifications/reminders');
+        const res = await axios.get('/api/notifications/reminders');
         const { pendingRequests, unconfirmedDeliveries, unreceivedShipments, pendingFollowUps } = res.data;
 
         if (pendingRequests > 0) {
@@ -87,7 +87,7 @@ export default function Layout() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await axios.get('http://localhost:3001/api/notifications');
+      const res = await axios.get('/api/notifications');
       setNotifications(res.data);
     } catch (err) {
       console.error('Failed to fetch notifications:', err);
@@ -96,7 +96,7 @@ export default function Layout() {
 
   const markAsRead = async (id) => {
     try {
-      await axios.put(`http://localhost:3001/api/notifications/${id}/read`);
+      await axios.put(`/api/notifications/${id}/read`);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     } catch (err) {
       console.error('Failed to mark read', err);

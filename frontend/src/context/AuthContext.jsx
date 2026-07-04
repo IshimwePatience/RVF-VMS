@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('user');
       if (storedUser) setUser(JSON.parse(storedUser));
       
-      const newSocket = io('http://localhost:3001', {
+      const newSocket = io('/', {
         auth: { token }
       });
       setSocket(newSocket);
