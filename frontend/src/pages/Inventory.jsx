@@ -389,7 +389,7 @@ export default function Inventory() {
           <div className="relative w-full max-w-[480px] bg-white h-full shadow-2xl flex flex-col animate-[slideIn_0.3s_ease-out]">
 
             {/* Header (No bottom border, spacious) */}
-            <div className="px-5 pt-4 pb-2 shrink-0 relative">
+            <div className="px-6 pt-6 pb-4 shrink-0 relative">
               <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">{editingId ? 'Edit Inventory' : 'Receive Vaccines'}</h2>
               <p className="text-[15px] text-slate-500 mt-1">{editingId ? 'Update details for this inventory batch' : 'Add a new batch to your central stock'}</p>
 
@@ -408,10 +408,10 @@ export default function Inventory() {
 
             {/* Form Content */}
             <form onSubmit={handleReceiveStock} className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-3">
+              <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-5">
 
                 {/* VACCINE INFO SECTION */}
-                <div className="space-y-3">
+                <div className="space-y-6">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Vaccine *</label>
                     <div className="relative">
@@ -541,7 +541,7 @@ export default function Inventory() {
               </div>
 
               {/* Footer Buttons */}
-              <div className="px-5 py-4 flex items-center justify-end gap-4 shrink-0 border-t border-slate-100">
+              <div className="p-8 pb-10 flex items-center justify-end gap-6 shrink-0">
                 <button
                   type="button"
                   onClick={closeModal}

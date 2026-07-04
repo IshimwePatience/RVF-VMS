@@ -203,7 +203,7 @@ export default function Users() {
           ></div>
 
           <div className="relative w-full max-w-[480px] bg-white h-full shadow-2xl flex flex-col animate-[slideIn_0.3s_ease-out]">
-            <div className="px-5 pt-4 pb-2 shrink-0 relative">
+            <div className="px-6 pt-6 pb-4 shrink-0 relative">
               <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">{editingId ? 'Edit User' : 'Add New User'}</h2>
               <p className="text-[15px] text-slate-500 mt-1">{editingId ? 'Update user roles and permissions' : 'Create an account and set permissions'}</p>
 
@@ -218,9 +218,9 @@ export default function Users() {
             </div>
 
             <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto px-5 pb-4 space-y-3">
+              <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-5">
 
-                <div className="space-y-3 mt-2">
+                <div className="space-y-6 mt-6">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Username *</label>
                     <input
@@ -306,7 +306,7 @@ export default function Users() {
                 </div>
               </div>
 
-              <div className="px-5 py-4 flex items-center justify-end gap-4 shrink-0 bg-slate-50 border-t border-slate-100">
+              <div className="p-8 pb-10 flex items-center justify-end gap-6 shrink-0 bg-slate-50 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
