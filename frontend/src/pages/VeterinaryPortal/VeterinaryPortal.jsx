@@ -14,7 +14,7 @@ export default function VeterinaryPortal() {
   };
 
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,8 +22,7 @@ export default function VeterinaryPortal() {
             <div className="flex items-center">
               <img src={minisanteLogo} alt="MINISANTE" className="h-10 object-contain mr-4" />
               <div>
-                <h1 className="text-xl font-bold text-slate-800 tracking-tight">Veterinary Management Module</h1>
-                <p className="text-xs text-slate-500">{email}</p>
+                <h1 className="text-[26px] text-[#4b5563] font-normal tracking-wide">rvf vaccine hub</h1>
               </div>
             </div>
             <button 

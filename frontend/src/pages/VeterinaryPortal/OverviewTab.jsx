@@ -36,7 +36,7 @@ export default function OverviewTab({ email }) {
 
   if (vaccineKeys.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+      <div className="bg-white shadow-sm border border-slate-200 p-12 text-center">
         <h3 className="text-lg font-medium text-slate-900">No vaccines found</h3>
         <p className="text-slate-500 mt-2">It looks like you haven't received any vaccines yet.</p>
       </div>
@@ -44,7 +44,7 @@ export default function OverviewTab({ email }) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="bg-white shadow-sm border border-slate-200 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-700">
           <thead className="bg-slate-50 border-b border-slate-200">

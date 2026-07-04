@@ -9,6 +9,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [expandedAnimals, setExpandedAnimals] = useState({});
 
   const [homes, setHomes] = useState([
     {
@@ -16,9 +17,8 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
       owner_name: '',
       owner_phone: '',
       owner_national_id: '',
-      home_identifier: '',
       animals: [
-        { id: Date.now() + 1, animal_type: '', animal_identification: '', vaccine_selection: '', dose_given: 1, damages: 0 }
+        { id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }
       ]
     }
   ]);
@@ -46,9 +46,8 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
         owner_name: '',
         owner_phone: '',
         owner_national_id: '',
-        home_identifier: '',
         animals: [
-          { id: Date.now() + 1, animal_type: '', animal_identification: '', vaccine_selection: '', dose_given: 1, damages: 0 }
+          { id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }
         ]
       }
     ]);
@@ -68,7 +67,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
       if (h.id === homeId) {
         return {
           ...h,
-          animals: [...h.animals, { id: Date.now(), animal_type: '', animal_identification: '', vaccine_selection: '', dose_given: 1, damages: 0 }]
+          animals: [...h.animals, { id: Date.now(), animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }]
         };
       }
       return h;
@@ -114,9 +113,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
             owner_name: home.owner_name,
             owner_phone: home.owner_phone,
             owner_national_id: home.owner_national_id,
-            home_identifier: home.home_identifier,
             animal_type: animal.animal_type,
-            animal_identification: animal.animal_identification,
             vaccine_name: selectedVaccine ? selectedVaccine.vaccine_name : '',
             batch_number: selectedVaccine ? selectedVaccine.batch_number : '',
             dose_given: parseInt(animal.dose_given) || 0,
@@ -132,16 +129,19 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
       // Or we can just fire multiple requests, one per home. Let's do one request per home to be safe without changing backend right now.
       
       const promises = homes.map(home => {
-        const formattedAnimals = home.animals.map(a => {
-          const selectedVaccine = availableVaccines.find(v => v.display_name === a.vaccine_selection);
-          return {
-            animal_type: a.animal_type,
-            animal_identification: a.animal_identification,
-            vaccine_name: selectedVaccine ? selectedVaccine.vaccine_name : '',
-            batch_number: selectedVaccine ? selectedVaccine.batch_number : '',
-            dose_given: parseInt(a.dose_given) || 0,
-            damages: parseInt(a.damages) || 0,
-          };
+        const formattedAnimals = [];
+        home.animals.forEach(a => {
+          const selections = Array.isArray(a.vaccine_selection) ? a.vaccine_selection : [a.vaccine_selection].filter(Boolean);
+          selections.forEach(sel => {
+            const selectedVaccine = availableVaccines.find(v => v.display_name === sel);
+            formattedAnimals.push({
+              animal_type: a.animal_type,
+              vaccine_name: selectedVaccine ? selectedVaccine.vaccine_name : '',
+              batch_number: selectedVaccine ? selectedVaccine.batch_number : '',
+              dose_given: parseInt(a.dose_given) || 0,
+              damages: parseInt(a.damages) || 0,
+            });
+          });
         });
 
         return axios.post('http://localhost:3001/api/veterinary-portal/vaccination', {
@@ -149,7 +149,6 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
           owner_name: home.owner_name,
           owner_phone: home.owner_phone,
           owner_national_id: home.owner_national_id,
-          home_identifier: home.home_identifier,
           animals: formattedAnimals
         });
       });
@@ -159,8 +158,8 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
       // Clear form
       setHomes([{
         id: Date.now(),
-        owner_name: '', owner_phone: '', owner_national_id: '', home_identifier: '',
-        animals: [{ id: Date.now() + 1, animal_type: '', animal_identification: '', vaccine_selection: '', dose_given: 1, damages: 0 }]
+        owner_name: '', owner_phone: '', owner_national_id: '',
+        animals: [{ id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }]
       }]);
       
       setSuccess(true);
@@ -267,18 +266,6 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
                       className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[15px] font-medium text-[#202124] mb-4">
-                      Home Identifier <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text" required
-                      value={home.home_identifier}
-                      onChange={e => updateHome(home.id, 'home_identifier', e.target.value)}
-                      placeholder="e.g. H-102"
-                      className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -311,28 +298,37 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
                           />
                         </div>
                         <div>
-                          <label className="block text-[15px] font-medium text-[#202124] mb-4">Identification <span className="text-red-500">*</span></label>
-                          <input
-                            type="text" required
-                            value={animal.animal_identification}
-                            onChange={e => updateAnimal(home.id, animal.id, 'animal_identification', e.target.value)}
-                            className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
-                            placeholder="Your answer"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[15px] font-medium text-[#202124] mb-4">Vaccine <span className="text-red-500">*</span></label>
-                          <select
-                            required
-                            value={animal.vaccine_selection}
-                            onChange={e => updateAnimal(home.id, animal.id, 'vaccine_selection', e.target.value)}
-                            className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
-                          >
-                            <option value="">Select Vaccine</option>
-                            {availableVaccines.map(v => (
-                              <option key={v.display_name} value={v.display_name}>{v.display_name}</option>
+                          <label className="block text-[15px] font-medium text-[#202124] mb-4">Vaccines <span className="text-red-500">*</span></label>
+                          <div className="space-y-3">
+                            {(expandedAnimals[animal.id] ? availableVaccines : availableVaccines.slice(0, 5)).map(v => (
+                              <label key={v.display_name} className="flex items-center gap-3 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  value={v.display_name}
+                                  checked={Array.isArray(animal.vaccine_selection) && animal.vaccine_selection.includes(v.display_name)}
+                                  onChange={e => {
+                                    const currentSelection = Array.isArray(animal.vaccine_selection) ? animal.vaccine_selection : [];
+                                    if (e.target.checked) {
+                                      updateAnimal(home.id, animal.id, 'vaccine_selection', [...currentSelection, v.display_name]);
+                                    } else {
+                                      updateAnimal(home.id, animal.id, 'vaccine_selection', currentSelection.filter(name => name !== v.display_name));
+                                    }
+                                  }}
+                                  className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-600 cursor-pointer"
+                                />
+                                <span className="text-[15px] text-[#202124]">{v.display_name}</span>
+                              </label>
                             ))}
-                          </select>
+                            {availableVaccines.length > 5 && (
+                              <button
+                                type="button"
+                                onClick={() => setExpandedAnimals(prev => ({ ...prev, [animal.id]: !prev[animal.id] }))}
+                                className="text-blue-600 font-medium text-[14px] hover:underline mt-2 block"
+                              >
+                                {expandedAnimals[animal.id] ? 'See less' : 'See more'}
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <label className="block text-[15px] font-medium text-[#202124] mb-4">Dose Given <span className="text-red-500">*</span></label>
@@ -345,7 +341,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
                           />
                         </div>
                         <div>
-                          <label className="block text-[15px] font-medium text-[#202124] mb-4">Damages</label>
+                          <label className="block text-[15px] font-medium text-[#202124] mb-4">Damaged Dose</label>
                           <input
                             type="number" min="0"
                             value={animal.damages}
@@ -377,7 +373,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
             onClick={addHome}
             className="w-full sm:w-auto px-6 py-3 bg-white border border-blue-600 text-blue-600 font-medium rounded hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
           >
-            <Plus className="w-5 h-5" /> Add
+            <Plus className="w-5 h-5" /> Add Home
           </button>
           
           <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
@@ -386,8 +382,8 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
               onClick={() => {
                 setHomes([{
                   id: Date.now(),
-                  owner_name: '', owner_phone: '', owner_national_id: '', home_identifier: '',
-                  animals: [{ id: Date.now() + 1, animal_type: '', animal_identification: '', vaccine_selection: '', dose_given: 1, damages: 0 }]
+                  owner_name: '', owner_phone: '', owner_national_id: '',
+                  animals: [{ id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }]
                 }]);
                 setSuccess(false);
                 setError(null);
