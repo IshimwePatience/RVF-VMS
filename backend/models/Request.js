@@ -9,6 +9,7 @@ module.exports = (sequelize) => {
     requested_quantity: { type: DataTypes.INTEGER, allowNull: false },
     status: { type: DataTypes.ENUM('Pending', 'Approved', 'Rejected'), defaultValue: 'Pending' },
     rejection_reason: { type: DataTypes.TEXT, allowNull: true },
+    notes: { type: DataTypes.TEXT, allowNull: true },
     requested_by: { type: DataTypes.UUID, allowNull: true },
     reviewed_by: { type: DataTypes.UUID, allowNull: true }
   });

@@ -317,7 +317,7 @@ export default function Users() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-6 py-3 bg-[#4285f4] hover:bg-[#3367d6] text-white font-semibold text-[13px] tracking-wide rounded transition-colors uppercase disabled:opacity-70"
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[13px] tracking-wide rounded transition-colors uppercase disabled:opacity-70"
                 >
                   {submitting ? 'Saving...' : editingId ? 'Update User' : 'Create User'}
                 </button>

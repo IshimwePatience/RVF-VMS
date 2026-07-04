@@ -30,33 +30,37 @@ exports.getRequests = async (user, type) => {
   });
 };
 
-exports.approveRequest = async (id, user) => {
+exports.approveRequest = async (id, user, approved_quantity, note) => {
   return await sequelize.transaction(async (t) => {
     const request = await Request.findByPk(id, { transaction: t });
     if (!request || request.parent_stock_id !== user.stock_id) throw new Error('Unauthorized or not found');
     if (request.status !== 'Pending') throw new Error('Request is already processed');
+
+    const final_quantity = approved_quantity !== undefined ? parseInt(approved_quantity, 10) : request.requested_quantity;
 
     const inventory = await StockInventory.findOne({
       where: { stock_id: user.stock_id, batch_id: request.batch_id },
       transaction: t
     });
 
-    if (!inventory || inventory.quantity_available < request.requested_quantity) {
+    if (!inventory || inventory.quantity_available < final_quantity) {
       throw new Error('Insufficient stock available');
     }
 
-    inventory.quantity_available -= request.requested_quantity;
+    inventory.quantity_available -= final_quantity;
     await inventory.save({ transaction: t });
 
+    request.requested_quantity = final_quantity; // Update to actual approved amount
     request.status = 'Approved';
     request.reviewed_by = user.id;
+    if (note) request.notes = note;
     await request.save({ transaction: t });
 
     const transfer = await Transfer.create({
       from_stock_id: user.stock_id,
       to_stock_id: request.requesting_stock_id,
       batch_id: request.batch_id,
-      quantity: request.requested_quantity,
+      quantity: final_quantity,
       request_id: request.id,
       shipped_by: user.id
     }, { transaction: t });
@@ -65,13 +69,15 @@ exports.approveRequest = async (id, user) => {
   });
 };
 
-exports.rejectRequest = async (id, user) => {
+exports.rejectRequest = async (id, user, note) => {
   const request = await Request.findByPk(id);
   if (!request || request.parent_stock_id !== user.stock_id) throw new Error('Unauthorized or not found');
   if (request.status !== 'Pending') throw new Error('Request is already processed');
+  if (!note || note.trim() === '') throw new Error('Rejection note is required');
 
   request.status = 'Rejected';
   request.reviewed_by = user.id;
+  request.notes = note;
   await request.save();
 
   return request;

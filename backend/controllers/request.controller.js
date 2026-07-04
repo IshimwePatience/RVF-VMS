@@ -21,7 +21,7 @@ exports.getRequests = async (req, res) => {
 
 exports.approveRequest = async (req, res) => {
   try {
-    const result = await requestService.approveRequest(req.params.id, req.user);
+    const result = await requestService.approveRequest(req.params.id, req.user, req.body.approved_quantity, req.body.note);
     if (req.io) req.io.to(`stock_${result.transfer.to_stock_id}`).emit('delivery_shipped', result.transfer);
     res.json({ message: 'Request approved and Transfer initiated', transfer: result.transfer });
   } catch (error) {
@@ -31,7 +31,7 @@ exports.approveRequest = async (req, res) => {
 
 exports.rejectRequest = async (req, res) => {
   try {
-    const request = await requestService.rejectRequest(req.params.id, req.user);
+    const request = await requestService.rejectRequest(req.params.id, req.user, req.body.note);
     res.json({ message: 'Request rejected successfully', request });
   } catch (error) {
     res.status(400).json({ message: error.message || 'Server error' });

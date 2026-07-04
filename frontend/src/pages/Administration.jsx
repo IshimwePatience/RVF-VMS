@@ -502,7 +502,7 @@ export default function Administration() {
                   <button 
                     type="submit" 
                     disabled={submitting}
-                    className="px-6 py-3 bg-[#4384F5] text-white font-bold text-[13px] tracking-wider rounded transition-colors hover:bg-blue-600 disabled:opacity-70"
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[13px] tracking-wider rounded transition-colors disabled:opacity-70"
                   >
                     {submitting ? 'RECORDING...' : 'RECORD'}
                   </button>

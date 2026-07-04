@@ -7,45 +7,58 @@ import { Package, CheckCircle, Truck } from 'lucide-react';
 export default function Transfers() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
+  const isCentral = user?.role === 'Admin' || user?.stock?.is_central || user?.is_central;
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('incoming');
-
-  const isCentral = user?.role === 'Admin' || user?.stock?.is_central || user?.is_central;
-
-  useEffect(() => {
-    if (isCentral) {
-      setActiveTab('outgoing');
-    }
-  }, [user]);
+  const [activeTab, setActiveTab] = useState(isCentral ? 'outgoing' : 'incoming');
+  const [fetchTrigger, setFetchTrigger] = useState(0);
 
   useEffect(() => {
-    fetchTransfers();
-  }, [activeTab]);
-
-  const fetchTransfers = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`http://localhost:3001/api/transfers?type=${activeTab}`);
-      setTransfers(res.data);
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to load transfers', 'error');
-    } finally {
-      setLoading(false);
+    if (user) {
+      setActiveTab(isCentral ? 'outgoing' : 'incoming');
     }
-  };
+  }, [user, isCentral]);
+
+  useEffect(() => {
+    let ignore = false;
+    
+    const fetchTransfers = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`http://localhost:3001/api/transfers?type=${activeTab}`);
+        if (!ignore) {
+          setTransfers(res.data);
+        }
+      } catch (err) {
+        if (!ignore) {
+          console.error(err);
+          addToast('Failed to load transfers', 'error');
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (user) {
+      fetchTransfers();
+    }
+
+    return () => { ignore = true; };
+  }, [activeTab, user, addToast, fetchTrigger]);
 
   const handleConfirmReceipt = async (id) => {
     if (!window.confirm('Are you sure you have received this shipment? This will add the vaccines to your inventory.')) return;
     try {
       await axios.post(`http://localhost:3001/api/transfers/${id}/confirm`);
       addToast('Delivery confirmed and inventory updated!', 'success');
-      fetchTransfers();
+      setFetchTrigger(prev => prev + 1);
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to confirm delivery', 'error');
     }
   };
+
 
   const getStatusStyle = (status) => {
     switch (status) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
-import { Send, ChevronDown } from 'lucide-react';
+import { Send, ChevronDown, X, Clock } from 'lucide-react';
 
 export default function NewRequest() {
   const { user } = useContext(AuthContext);
@@ -12,6 +12,7 @@ export default function NewRequest() {
   const [submitting, setSubmitting] = useState(null);
   const [quantities, setQuantities] = useState({});
   const [myRequests, setMyRequests] = useState([]);
+  const [viewApprovals, setViewApprovals] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,8 +36,12 @@ export default function NewRequest() {
     }
   }, [addToast, user]);
 
-  const handleQuantityChange = (batchId, value) => {
-    setQuantities(prev => ({ ...prev, [batchId]: value }));
+  const handleQuantityChange = (batchId, value, maxAmount) => {
+    let val = value;
+    if (val !== '' && parseInt(val, 10) > maxAmount) {
+      val = maxAmount.toString();
+    }
+    setQuantities(prev => ({ ...prev, [batchId]: val }));
   };
 
   const handleRequest = async (item) => {
@@ -130,12 +135,14 @@ export default function NewRequest() {
                 <th className="py-3 font-semibold text-slate-800">Batch</th>
                 <th className="py-3 font-semibold text-slate-800">Available Stock</th>
                 <th className="py-3 font-semibold text-slate-800">Expiration Date</th>
+                <th className="py-3 font-semibold text-slate-800">Previous Approvals</th>
                 <th className="py-3 font-semibold text-slate-800 w-64 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {parentInventory.map(item => {
-                const latestRequest = myRequests.find(r => r.batch_id === item.batch_id);
+                const activeRequest = myRequests.find(r => r.batch_id === item.batch_id && r.status === 'Pending');
+                const approvedRequests = myRequests.filter(r => r.batch_id === item.batch_id && r.status === 'Approved').sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
                 
                 return (
                 <tr key={item.id} className="group hover:bg-slate-50/50 transition-colors">
@@ -155,32 +162,35 @@ export default function NewRequest() {
                     {item.Batch?.expiration_date ? new Date(item.Batch.expiration_date).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="py-4">
-                    {latestRequest ? (
+                    {approvedRequests.length > 0 ? (
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className="text-sm font-semibold text-emerald-600">
+                          {approvedRequests.length} Time{approvedRequests.length !== 1 ? 's' : ''}
+                        </span>
+                        <button 
+                          onClick={() => setViewApprovals({ batch: item.Batch, requests: approvedRequests })}
+                          className="text-[11px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider underline decoration-transparent hover:decoration-blue-600 transition-colors"
+                        >
+                          Check Approved
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-slate-400 italic">None</span>
+                    )}
+                  </td>
+                  <td className="py-4">
+                    {activeRequest ? (
                       <div className="flex items-center justify-end gap-3">
-                        {latestRequest.status === 'Pending' && (
-                          <>
-                            <span className="text-sm font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                              Pending
-                            </span>
-                            <button 
-                              onClick={() => handleCancel(latestRequest.id)}
-                              className="text-sm font-semibold text-slate-500 hover:text-red-600 transition-colors underline decoration-transparent hover:decoration-red-600"
-                            >
-                              Stop Request
-                            </button>
-                          </>
-                        )}
-                        {latestRequest.status === 'Approved' && (
-                          <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                            Approved
-                          </span>
-                        )}
-                        {latestRequest.status === 'Rejected' && (
-                          <span className="text-sm font-medium text-red-600 bg-red-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                            Rejected
-                          </span>
-                        )}
+                        <span className="text-sm font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                          Pending
+                        </span>
+                        <button 
+                          onClick={() => handleCancel(activeRequest.id)}
+                          className="text-sm font-semibold text-slate-500 hover:text-red-600 transition-colors underline decoration-transparent hover:decoration-red-600"
+                        >
+                          Stop Request
+                        </button>
                       </div>
                     ) : (
                       <div className="flex items-center justify-end gap-2">
@@ -190,7 +200,7 @@ export default function NewRequest() {
                           min="1"
                           max={item.quantity_available}
                           value={quantities[item.batch_id] || ''}
-                          onChange={(e) => handleQuantityChange(item.batch_id, e.target.value)}
+                          onChange={(e) => handleQuantityChange(item.batch_id, e.target.value, item.quantity_available)}
                           className="w-24 px-3 py-1.5 text-sm border border-slate-200 rounded outline-none focus:border-blue-500 transition-colors"
                         />
                         <button 
@@ -211,6 +221,52 @@ export default function NewRequest() {
           </table>
         )}
       </div>
+
+      {viewApprovals && (
+        <div className="fixed inset-0 bg-slate-900/20 z-50 overflow-y-auto transition-opacity" onClick={() => setViewApprovals(null)}>
+          <div className="min-h-full flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative" onClick={e => e.stopPropagation()}>
+              <button 
+                onClick={() => setViewApprovals(null)}
+                className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-slate-900">Approval History</h3>
+                <p className="text-sm text-slate-500">Batch {viewApprovals.batch.batch_number}</p>
+              </div>
+
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                {viewApprovals.requests.map((req, idx) => (
+                  <div key={req.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                        #{viewApprovals.requests.length - idx}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900">{req.requested_quantity} doses</p>
+                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                          <Clock className="w-3 h-3" />
+                          {new Date(req.updatedAt).toLocaleString()}
+                        </p>
+                        {req.notes && (
+                          <div className="mt-2 bg-amber-50 border border-amber-100 rounded p-2 text-xs text-amber-800">
+                            <span className="font-bold">Note: </span>
+                            {req.notes}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider bg-emerald-100/50 px-2 py-1 rounded">Approved</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
