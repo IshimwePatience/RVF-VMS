@@ -115,11 +115,11 @@ export default function Dashboard() {
     enabled: !!user,
   });
 
-  if (loading) return <div className="p-8">Loading...</div>;
-  if (!data) return <div className="p-8">No data available</div>;
-
   const isEndpoint = user?.stock?.is_endpoint === true;
   const reportsPagination = usePagination(data?.reports || [], 12);
+
+  if (loading) return <div className="p-8">Loading...</div>;
+  if (!data) return <div className="p-8">No data available</div>;
 
   // Helper to pad categorical data with 0s so it always draws a curved "hill" even with 1 item
   const makeHills = (chartData, keyX, ...keyYs) => {

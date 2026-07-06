@@ -14,6 +14,9 @@ export default function OverviewTab({ email }) {
     enabled: !!email,
   });
 
+  const vaccineKeys = data ? Object.keys(data) : [];
+  const pagination = usePagination(vaccineKeys, 12);
+
   if (loading) {
     return <div className="py-12 flex justify-center text-slate-500">Loading overview...</div>;
   }
@@ -21,9 +24,6 @@ export default function OverviewTab({ email }) {
   if (error) {
     return <div className="p-4 bg-red-50 text-red-600 rounded-lg">Failed to fetch overview data.</div>;
   }
-
-  const vaccineKeys = data ? Object.keys(data) : [];
-  const pagination = usePagination(vaccineKeys, 12);
 
   if (vaccineKeys.length === 0) {
     return (
