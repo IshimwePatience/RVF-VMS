@@ -63,7 +63,16 @@ exports.getEndpointDashboard = async (req, res) => {
       limit: 20
     });
 
-    res.json({ reports });
+    const usedRaw = await AdministrationRecord.sum('doses_used', { where: { stock_id } });
+    const damagedRaw = await AdministrationRecord.sum('doses_wasted', { where: { stock_id } });
+    const stockRaw = await StockInventory.sum('quantity_available', { where: { stock_id } });
+
+    res.json({ 
+      reports,
+      vaccinesUsed: usedRaw || 0,
+      vaccinesDamaged: damagedRaw || 0,
+      stockLevel: stockRaw || 0
+    });
   } catch (error) {
     console.error('Error fetching endpoint dashboard:', error);
     res.status(500).json({ message: 'Failed to fetch dashboard data' });
@@ -75,6 +84,7 @@ exports.getInventoryDashboard = async (req, res) => {
     // Zipline/Operations view - just aggregate supply levels
     const suppliesRaw = await StockInventory.findAll({
       include: [
+        { model: Stock },
         {
           model: Batch,
           include: [{ model: Vaccine }]
@@ -90,10 +100,18 @@ exports.getInventoryDashboard = async (req, res) => {
           supplyMap[vId] = {
             vaccine_id: vId,
             vaccine_name: inv.Batch.Vaccine.name,
-            total_quantity: 0
+            total_quantity: 0,
+            current_supply: 0,
+            distributed_level: 0
           };
         }
         supplyMap[vId].total_quantity += inv.quantity_available;
+        
+        if (inv.Stock && inv.Stock.is_central) {
+          supplyMap[vId].current_supply += inv.quantity_available;
+        } else {
+          supplyMap[vId].distributed_level += inv.quantity_available;
+        }
       }
     });
 
