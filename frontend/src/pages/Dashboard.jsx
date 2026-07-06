@@ -9,38 +9,65 @@ const COLORS = ['#8b5cf6', '#10b981', '#f43f5e', '#3b82f6', '#f59e0b', '#06b6d4'
 const AnalyticDonut = ({ data }) => {
   const total = data.reduce((sum, item) => sum + parseInt(item.total_quantity || 0), 0);
   
+  // To match the beautiful two-ring inspiration design, we ensure there's a second empty ring if they only have 1 vaccine
+  let renderData = [...data];
+  if (renderData.length === 1) {
+    renderData.push({ total_quantity: 0, vaccine_name: 'Capacity', isEmpty: true });
+  }
+
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center">
       <div className="relative w-full max-w-[220px] aspect-square">
-        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md overflow-visible">
-          {data.map((item, index) => {
-            const radius = 42 - (index * 11);
-            if (radius < 10) return null; // Max 4 rings
-            const percentage = total > 0 ? (item.total_quantity / total) * 100 : 0;
-            const color = COLORS[index % COLORS.length];
+        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm overflow-visible">
+          {renderData.map((item, index) => {
+            if (index > 2) return null; // Max 3 rings
+            const radius = 42 - (index * 13);
+            const percentage = total > 0 && !item.isEmpty ? (item.total_quantity / total) * 100 : 0;
+            const color = item.isEmpty ? '#94a3b8' : COLORS[index % COLORS.length];
             const circumference = 2 * Math.PI * radius;
+            
+            const segments = index === 0 ? 44 : index === 1 ? 32 : 20;
+            const segmentLength = circumference / segments;
+            const dash = segmentLength * 0.65; // 65% solid block
+            const gap = segmentLength * 0.35;  // 35% empty gap
             
             return (
               <g key={index} transform="rotate(-90 50 50)">
-                {/* Track */}
+                <defs>
+                  <mask id={`ring-mask-${index}`}>
+                    <circle
+                      cx="50" cy="50" r={radius}
+                      fill="none"
+                      stroke="white"
+                      strokeWidth={14}
+                      strokeDasharray={`${circumference} ${circumference}`}
+                      strokeDashoffset={circumference - (percentage / 100) * circumference}
+                      strokeLinecap="butt"
+                      style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
+                    />
+                  </mask>
+                </defs>
+
+                {/* Background dashed track */}
                 <circle
                   cx="50" cy="50" r={radius}
                   fill="none"
-                  stroke={`${color}22`}
-                  strokeWidth={7}
-                  strokeDasharray="4 2"
+                  stroke={item.isEmpty ? `${color}22` : `${color}33`}
+                  strokeWidth={9}
+                  strokeDasharray={`${dash} ${gap}`}
                 />
-                {/* Progress */}
-                <circle
-                  cx="50" cy="50" r={radius}
-                  fill="none"
-                  stroke={color}
-                  strokeWidth={7}
-                  strokeDasharray="4 2"
-                  strokeDashoffset={circumference - (percentage / 100) * circumference}
-                  strokeLinecap="round"
-                  style={{ transition: 'stroke-dashoffset 1.5s ease-in-out' }}
-                />
+                
+                {/* Foreground dashed track, revealed by the mask */}
+                {!item.isEmpty && (
+                  <circle
+                    cx="50" cy="50" r={radius}
+                    fill="none"
+                    stroke={color}
+                    strokeWidth={9}
+                    strokeDasharray={`${dash} ${gap}`}
+                    mask={`url(#ring-mask-${index})`}
+                  />
+                )}
               </g>
             );
           })}
@@ -91,8 +118,18 @@ export default function Dashboard() {
 
   const isEndpoint = user.stock_id !== null && user.stock_id !== undefined && user.role !== 'Admin';
 
+  // Helper to pad categorical data with 0s so it always draws a curved "hill" even with 1 item
+  const makeHills = (chartData, keyX, keyY) => {
+    if (!chartData || chartData.length === 0) return [];
+    return [
+      { [keyX]: '', [keyY]: 0, isPadding: true },
+      ...chartData,
+      { [keyX]: ' ', [keyY]: 0, isPadding: true }
+    ];
+  };
+
   const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && !payload[0].payload.isPadding) {
       return (
         <div className="bg-white border border-slate-100 p-3 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] min-w-[120px]">
           <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label || payload[0].name}</p>
@@ -130,19 +167,19 @@ export default function Dashboard() {
               ) : (
                 <div className="h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data.highRvfSectors} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={makeHills(data.highRvfSectors, 'sector', 'total_affected')} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorAffected" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={1}/>
-                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.2}/>
+                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.6}/>
+                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="sector" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dy={10} />
                       <YAxis tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dx={-10} />
-                      <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
-                      <Bar dataKey="total_affected" fill="url(#colorAffected)" radius={[4, 4, 0, 0]} barSize={24} />
-                    </BarChart>
+                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                      <Area type="monotone" dataKey="total_affected" stroke="#8b5cf6" strokeWidth={4} fillOpacity={1} fill="url(#colorAffected)" activeDot={{ r: 6, strokeWidth: 0, fill: '#8b5cf6', style: { filter: 'drop-shadow(0px 0px 4px rgba(139,92,246,0.8))' } }} />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
               )}
@@ -157,7 +194,7 @@ export default function Dashboard() {
               ) : (
                 <div className="h-[250px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data.vaccineUsageSectors} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={makeHills(data.vaccineUsageSectors, 'sector', 'total_doses')} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorDoses" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#10b981" stopOpacity={0.5}/>
@@ -193,7 +230,7 @@ export default function Dashboard() {
                   <h3 className="text-base font-bold text-gray-800 mb-6">Supply Overview</h3>
                   <div className="h-[250px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={data.supplies} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <AreaChart data={makeHills(data.supplies, 'vaccine_name', 'total_quantity')} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorSupply" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.6}/>
