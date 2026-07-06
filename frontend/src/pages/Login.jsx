@@ -19,10 +19,10 @@ export default function Login() {
   const [tempToken, setTempToken] = useState('');
   const [otp, setOtp] = useState('');
 
-  // Set PIN State
-  const [requiresPinSet, setRequiresPinSet] = useState(false);
-  const [newPin, setNewPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
+  // Set Password State
+  const [requiresPasswordSet, setRequiresPasswordSet] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [pendingAuth, setPendingAuth] = useState(null);
 
   const { login } = useContext(AuthContext);
@@ -56,7 +56,7 @@ export default function Login() {
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
         setPendingAuth({ token: res.data.token, user: res.data.user });
         setRequiresOtp(false);
-        setRequiresPinSet(true);
+        setRequiresPasswordSet(true);
       } else {
         login(res.data.token, res.data.user);
         navigate('/');
@@ -65,25 +65,25 @@ export default function Login() {
       addToast(err.response?.data?.message || 'OTP verification failed');
     }
   };
-  const handleSetPinSubmit = async (e) => {
+  const handleSetPasswordSubmit = async (e) => {
     e.preventDefault();
-    if (newPin !== confirmPin) {
-      setError('PINs do not match');
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
-    if (newPin.length < 6) {
-      setError('PIN must be at least 6 characters');
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters');
       return;
     }
     setError('');
     try {
-      await axios.post('/rvf-api/auth/change-password', { newPassword: newPin });
+      await axios.post('/rvf-api/auth/change-password', { newPassword: newPassword });
       const updatedUser = { ...pendingAuth.user, must_change_password: false };
       login(pendingAuth.token, updatedUser);
       navigate('/');
-      addToast('PIN set successfully!', 'success');
+      addToast('Password set successfully!', 'success');
     } catch (err) {
-      addToast(err.response?.data?.message || 'Failed to set PIN', 'error');
+      addToast(err.response?.data?.message || 'Failed to set password', 'error');
     }
   };
   const handleForgotPasswordSubmit = async (e) => {
@@ -104,13 +104,13 @@ export default function Login() {
         {/* Top brand header */}
         <div className="mb-6">
           <h2 className="text-[22px] font-medium text-[#5f6368] tracking-tight leading-tight mb-2">
-            {showForgotPassword ? 'Reset Password' : requiresPinSet ? 'Set New PIN' : requiresOtp ? 'Two-Factor Authentication' : 'Welcome to rvf vaccine hub'}
+            {showForgotPassword ? 'Reset Password' : requiresPasswordSet ? 'Set New Password' : requiresOtp ? 'Two-Factor Authentication' : 'Welcome to rvf vaccine hub'}
           </h2>
           <p className="text-[16px] text-[#373A3C] leading-normal">
             {showForgotPassword 
               ? 'Enter your username or email and we will send an approval request to the system administrator.'
-              : requiresPinSet
-                ? 'Please set a secure new PIN for your account. You will use this to log in moving forward.'
+              : requiresPasswordSet
+                ? 'Please set a secure new password for your account. You will use this to log in moving forward.'
                 : requiresOtp 
                   ? 'Please enter the 6-digit security code we just sent to your email to verify your identity.' 
                   : 'Securely manage and track national Rift Valley Fever vaccine distribution, real-time inventory, and dispatch.'}
@@ -149,41 +149,41 @@ export default function Login() {
               </button>
             </div>
           </form>
-        ) : requiresPinSet ? (
-          <form onSubmit={handleSetPinSubmit}>
+        ) : requiresPasswordSet ? (
+          <form onSubmit={handleSetPasswordSubmit}>
             <div className="mb-4">
               <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
-                New PIN <span className="text-[#C02B0A]">*</span>
+                New Password <span className="text-[#C02B0A]">*</span>
               </label>
               <input
                 type="password"
-                value={newPin}
-                onChange={e => setNewPin(e.target.value)}
-                className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-center tracking-[0.5em] text-[20px] font-mono text-[#1F2432]"
-                placeholder="••••••"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] text-[#1F2432]"
+                placeholder="••••••••"
                 minLength={6}
                 required
               />
             </div>
             <div className="mb-6">
               <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
-                Confirm PIN <span className="text-[#C02B0A]">*</span>
+                Confirm Password <span className="text-[#C02B0A]">*</span>
               </label>
               <input
                 type="password"
-                value={confirmPin}
-                onChange={e => setConfirmPin(e.target.value)}
-                className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-center tracking-[0.5em] text-[20px] font-mono text-[#1F2432]"
-                placeholder="••••••"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] text-[#1F2432]"
+                placeholder="••••••••"
                 minLength={6}
                 required
               />
             </div>
-            <button
+              <button
               type="submit"
               className="w-full bg-[#0056D2] hover:bg-[#004BB8] text-white font-bold text-[16px] py-3 rounded transition-colors"
             >
-              Save PIN & Login
+              Save Password & Login
             </button>
           </form>
         ) : !requiresOtp ? (
@@ -255,7 +255,7 @@ export default function Login() {
           </form>
         )}
 
-        {!requiresOtp && !requiresPinSet && !showForgotPassword && (
+        {!requiresOtp && !requiresPasswordSet && !showForgotPassword && (
           <div className="mt-6">
             <a 
               href="#" 
