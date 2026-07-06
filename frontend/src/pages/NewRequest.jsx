@@ -5,6 +5,8 @@ import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
 import { Send, ChevronDown, X, Clock } from 'lucide-react';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 export default function NewRequest() {
   const { user } = useContext(AuthContext);
@@ -113,6 +115,7 @@ export default function NewRequest() {
   };
 
   const processedInventory = getProcessedInventory();
+  const pagination = usePagination(processedInventory, 12);
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
@@ -150,22 +153,23 @@ export default function NewRequest() {
             <h3 className="text-lg font-bold text-slate-800">No inventory found</h3>
           </div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200">
-              <tr>
-                <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
-                  Vaccine Name <ChevronDown className="w-4 h-4 text-slate-400" />
-                </th>
-                <th className="py-3 font-semibold text-slate-800">Batch</th>
-                <th className="py-3 font-semibold text-slate-800">Available Stock</th>
-                <th className="py-3 font-semibold text-slate-800">Expiration Date</th>
-                <th className="py-3 font-semibold text-slate-800">Previous Approvals</th>
-                <th className="py-3 font-semibold text-slate-800 w-64 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {processedInventory.map(item => {
-                const activeRequest = myRequests.find(r => r.batch_id === item.batch_id && r.status === 'Pending');
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200">
+                <tr>
+                  <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
+                    Vaccine Name <ChevronDown className="w-4 h-4 text-slate-400" />
+                  </th>
+                  <th className="py-3 font-semibold text-slate-800">Batch</th>
+                  <th className="py-3 font-semibold text-slate-800">Available Stock</th>
+                  <th className="py-3 font-semibold text-slate-800">Expiration Date</th>
+                  <th className="py-3 font-semibold text-slate-800">Previous Approvals</th>
+                  <th className="py-3 font-semibold text-slate-800 w-64 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pagination.currentData.map(item => {
+                  const activeRequest = myRequests.find(r => r.batch_id === item.batch_id && r.status === 'Pending');
                 const approvedRequests = myRequests.filter(r => r.batch_id === item.batch_id && r.status === 'Approved').sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
                 
                 return (
@@ -241,8 +245,10 @@ export default function NewRequest() {
                 </tr>
                 );
               })}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+            <Pagination {...pagination} onPageChange={pagination.jump} />
+          </>
         )}
       </div>
 

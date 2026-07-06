@@ -1,6 +1,8 @@
 import React from 'react';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
+import { usePagination } from '../../hooks/usePagination';
+import Pagination from '../../components/Pagination';
 
 export default function OverviewTab({ email }) {
   const { data, isLoading: loading, error } = useQuery({
@@ -21,6 +23,7 @@ export default function OverviewTab({ email }) {
   }
 
   const vaccineKeys = data ? Object.keys(data) : [];
+  const pagination = usePagination(vaccineKeys, 12);
 
   if (vaccineKeys.length === 0) {
     return (
@@ -38,7 +41,7 @@ export default function OverviewTab({ email }) {
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200 bg-slate-100/50">Summary</th>
-              {vaccineKeys.map(key => (
+              {pagination.currentData.map(key => (
                 <th key={key} className="py-4 px-6 font-semibold text-slate-800 border-r border-slate-200 whitespace-nowrap">
                   {key}
                 </th>
@@ -48,37 +51,37 @@ export default function OverviewTab({ email }) {
           <tbody className="divide-y divide-slate-100">
             <tr className="hover:bg-slate-50/50">
               <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Starting Balance</td>
-              {vaccineKeys.map(key => (
+              {pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center">{data[key].startingBalance}</td>
               ))}
             </tr>
             <tr className="hover:bg-slate-50/50">
               <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">New Received</td>
-              {vaccineKeys.map(key => (
+              {pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center text-blue-600 font-medium">+{data[key].newReceived}</td>
               ))}
             </tr>
             <tr className="hover:bg-slate-50/50 bg-slate-50/50">
               <td className="py-3 px-6 font-bold text-slate-900 border-r border-slate-200">Total</td>
-              {vaccineKeys.map(key => (
+              {pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center font-bold">{data[key].total}</td>
               ))}
             </tr>
             <tr className="hover:bg-slate-50/50">
               <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Used Vaccines</td>
-              {vaccineKeys.map(key => (
+              {pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center text-green-600 font-medium">-{data[key].usedVaccines}</td>
               ))}
             </tr>
             <tr className="hover:bg-slate-50/50">
               <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Damages</td>
-              {vaccineKeys.map(key => (
+              {pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center text-red-600 font-medium">-{data[key].damages}</td>
               ))}
             </tr>
             <tr className="bg-slate-100 hover:bg-slate-200 transition-colors">
               <td className="py-4 px-6 font-bold text-slate-900 border-r border-slate-300">Total Balance</td>
-              {vaccineKeys.map(key => (
+              {pagination.currentData.map(key => (
                 <td key={key} className="py-4 px-6 border-r border-slate-300 text-center font-bold text-lg text-slate-900">
                   {data[key].totalBalance}
                 </td>
@@ -87,6 +90,7 @@ export default function OverviewTab({ email }) {
           </tbody>
         </table>
       </div>
+      <Pagination {...pagination} onPageChange={pagination.jump} />
     </div>
   );
 }

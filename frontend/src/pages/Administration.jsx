@@ -5,6 +5,8 @@ import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
 import { Search, Plus, Filter, MapPin, Syringe, ChevronDown, MoreVertical, Eye, Pencil, Trash2 } from 'lucide-react';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 export default function Administration() {
   const { user } = useContext(AuthContext);
@@ -158,6 +160,7 @@ export default function Administration() {
   };
 
   const processedAdministrations = getProcessedAdministrations();
+  const pagination = usePagination(processedAdministrations, 12);
 
   const selectedItem = inventory.find(i => i.batch_id === formData.batch_id);
   const maxAvailable = selectedItem ? selectedItem.quantity_available + (selectedRecord ? selectedRecord.quantity : 0) : '';
@@ -198,7 +201,8 @@ export default function Administration() {
             <h3 className="text-lg font-bold text-slate-800">No administration records found</h3>
           </div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-700">
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
             <thead className="border-b border-slate-200">
               <tr>
                 <th className="py-3 font-semibold text-slate-800">Date</th>
@@ -210,7 +214,7 @@ export default function Administration() {
               </tr>
             </thead>
               <tbody className="divide-y divide-slate-100">
-                {processedAdministrations.map(record => (
+                {pagination.currentData.map(record => (
                   <tr key={record.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-4 text-slate-600">
                     {new Date(record.date_administered).toLocaleDateString()}
@@ -274,7 +278,9 @@ export default function Administration() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+            <Pagination {...pagination} onPageChange={pagination.jump} />
+          </>
         )}
       </div>
 

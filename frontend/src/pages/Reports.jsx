@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 export default function Reports() {
   const { user } = useContext(AuthContext);
@@ -19,6 +21,8 @@ export default function Reports() {
     },
     enabled: !!user
   });
+
+  const pagination = usePagination(reports, 12);
 
   return (
     <div className="pb-12">
@@ -60,7 +64,7 @@ export default function Reports() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {reports.map((r) => (
+                {pagination.currentData.map((r) => (
                   <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="py-4 text-slate-600">
                       {new Date(r.date_administered).toLocaleDateString()}
@@ -103,6 +107,7 @@ export default function Reports() {
                 ))}
               </tbody>
             </table>
+            <Pagination {...pagination} onPageChange={pagination.jump} />
           </div>
         )}
       </div>

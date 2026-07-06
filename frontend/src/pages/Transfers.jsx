@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import { Package, CheckCircle, Truck } from 'lucide-react';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 export default function Transfers() {
   const { user } = useContext(AuthContext);
@@ -31,6 +33,8 @@ export default function Transfers() {
     },
     enabled: !!user,
   });
+
+  const pagination = usePagination(transfers, 12);
 
   const handleConfirmClick = (id) => {
     setConfirmingTransfer(id);
@@ -106,19 +110,20 @@ export default function Transfers() {
             <p className="text-slate-500 mt-1">When shipments are dispatched, they will appear here.</p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200">
-              <tr>
-                <th className="py-3 pr-6 font-semibold text-slate-800">Date Shipped</th>
-                <th className="py-3 font-semibold text-slate-800">Batch ID</th>
-                <th className="py-3 font-semibold text-slate-800">Quantity</th>
-                <th className="py-3 font-semibold text-slate-800">Status</th>
-                {activeTab === 'incoming' && <th className="py-3 font-semibold text-slate-800 text-right">Actions</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {transfers.map(t => (
-                <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200">
+                <tr>
+                  <th className="py-3 pr-6 font-semibold text-slate-800">Date Shipped</th>
+                  <th className="py-3 font-semibold text-slate-800">Batch ID</th>
+                  <th className="py-3 font-semibold text-slate-800">Quantity</th>
+                  <th className="py-3 font-semibold text-slate-800">Status</th>
+                  {activeTab === 'incoming' && <th className="py-3 font-semibold text-slate-800 text-right">Actions</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pagination.currentData.map(t => (
+                  <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-4 pr-6">{new Date(t.createdAt).toLocaleDateString()}</td>
                   <td className="py-4 font-medium text-slate-900">{t.batch_id}</td>
                   <td className="py-4">
@@ -145,8 +150,10 @@ export default function Transfers() {
                   )}
                 </tr>
               ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+            <Pagination {...pagination} onPageChange={pagination.jump} />
+          </>
         )}
       </div>
 

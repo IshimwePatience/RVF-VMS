@@ -5,6 +5,8 @@ import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import { CheckCircle, XCircle, Clock, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 export default function Requests() {
   const { user } = useContext(AuthContext);
@@ -25,6 +27,7 @@ export default function Requests() {
 
   const requests = data?.requests || [];
   const inventory = data?.inventory || [];
+  const pagination = usePagination(requests, 12);
 
   useEffect(() => {
     localStorage.setItem('requestsActiveTab', activeTab);
@@ -132,23 +135,24 @@ export default function Requests() {
             <p className="text-slate-500 mt-1">When requests are made, they will appear here.</p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200">
-              <tr>
-                <th className="py-3 pr-6 font-semibold text-slate-800">Date</th>
-                {activeTab === 'incoming' && <th className="py-3 font-semibold text-slate-800">Requested By</th>}
-                <th className="py-3 font-semibold text-slate-800">Vaccine & Batch</th>
-                <th className="py-3 font-semibold text-slate-800">Amount Requested</th>
-                {activeTab === 'incoming' && <th className="py-3 font-semibold text-slate-800">Your Remaining Stock</th>}
-                <th className="py-3 font-semibold text-slate-800">Status</th>
-                <th className="py-3 font-semibold text-slate-800 text-right">
-                  {activeTab === 'incoming' ? 'Action / Note' : 'Note'}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {requests.map(req => {
-                const remaining = getRemainingAmount(req.batch_id);
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200">
+                <tr>
+                  <th className="py-3 pr-6 font-semibold text-slate-800">Date</th>
+                  {activeTab === 'incoming' && <th className="py-3 font-semibold text-slate-800">Requested By</th>}
+                  <th className="py-3 font-semibold text-slate-800">Vaccine & Batch</th>
+                  <th className="py-3 font-semibold text-slate-800">Amount Requested</th>
+                  {activeTab === 'incoming' && <th className="py-3 font-semibold text-slate-800">Your Remaining Stock</th>}
+                  <th className="py-3 font-semibold text-slate-800">Status</th>
+                  <th className="py-3 font-semibold text-slate-800 text-right">
+                    {activeTab === 'incoming' ? 'Action / Note' : 'Note'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pagination.currentData.map(req => {
+                  const remaining = getRemainingAmount(req.batch_id);
                 const hasEnough = remaining >= req.requested_quantity;
                 
                 return (
@@ -220,8 +224,10 @@ export default function Requests() {
                   </tr>
                 );
               })}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+            <Pagination {...pagination} onPageChange={pagination.jump} />
+          </>
         )}
       </div>
 

@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 export default function Vaccines() {
   const { user } = useContext(AuthContext);
@@ -20,6 +22,8 @@ export default function Vaccines() {
       return res.data;
     }
   });
+
+  const pagination = usePagination(vaccines, 12);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -110,19 +114,20 @@ export default function Vaccines() {
             No vaccines found. Click "New Vaccine" to add one.
           </div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200">
-              <tr>
-                <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
-                  Vaccine Name <ChevronDown className="w-4 h-4 text-slate-400" />
-                </th>
-                <th className="py-3 font-semibold text-slate-800">Description</th>
-                <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {vaccines.map(vaccine => (
-                <tr key={vaccine.id} className="group">
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200">
+                <tr>
+                  <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
+                    Vaccine Name <ChevronDown className="w-4 h-4 text-slate-400" />
+                  </th>
+                  <th className="py-3 font-semibold text-slate-800">Description</th>
+                  <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pagination.currentData.map(vaccine => (
+                  <tr key={vaccine.id} className="group">
                   <td className="py-4 pr-6">
                     <div className="flex items-center gap-3">
                       <span className="font-medium text-slate-900 text-base">{vaccine.name}</span>
@@ -144,8 +149,10 @@ export default function Vaccines() {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+            <Pagination {...pagination} onPageChange={pagination.jump} />
+          </>
         )}
       </div>
 

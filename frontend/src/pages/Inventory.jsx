@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { LayoutGrid, List, Plus, ChevronDown, Check, X, Search, Pencil, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 export default function Inventory() {
   const { user } = useContext(AuthContext);
@@ -166,6 +168,24 @@ export default function Inventory() {
 
   const processedInventory = getProcessedInventory();
 
+  const balancesArray = useMemo(() => {
+    const balances = {};
+    processedInventory.forEach(item => {
+      const vid = item.Batch?.Vaccine?.id;
+      if (!vid) return;
+      if (!balances[vid]) {
+        balances[vid] = { vaccine: item.Batch.Vaccine, received: 0, issued: 0, balance: 0 };
+      }
+      balances[vid].received += item.quantity_available + (item.issued_quantity || 0);
+      balances[vid].issued += (item.issued_quantity || 0);
+      balances[vid].balance += item.quantity_available;
+    });
+    return Object.values(balances);
+  }, [processedInventory]);
+
+  const inventoryPagination = usePagination(processedInventory, 12);
+  const balancesPagination = usePagination(balancesArray, 12);
+
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
       <div className="flex items-center justify-between mb-8">
@@ -248,36 +268,6 @@ export default function Inventory() {
             <h3 className="text-lg font-bold text-slate-800">No inventory found</h3>
           </div>
         ) : activeTab === 'balances' ? (
-          <table className="w-full text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200">
-              <tr>
-                <th className="py-3 font-semibold text-slate-800">Vaccine Name</th>
-                <th className="py-3 font-semibold text-slate-800">Total Received</th>
-                <th className="py-3 font-semibold text-slate-800">Total Issued</th>
-                <th className="py-3 font-semibold text-slate-800">Overall Balance</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(() => {
-                const balances = {};
-                processedInventory.forEach(item => {
-                  const vid = item.Batch.Vaccine.id;
-                  if (!balances[vid]) {
-                    balances[vid] = { vaccine: item.Batch.Vaccine, received: 0, issued: 0, balance: 0 };
-                  }
-                  balances[vid].received += item.quantity_available + (item.issued_quantity || 0);
-                  balances[vid].issued += (item.issued_quantity || 0);
-                  balances[vid].balance += item.quantity_available;
-                });
-                return Object.values(balances);
-              })().map(b => (
-                <tr key={b.vaccine.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-4 pr-6">
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-slate-900 text-base">{b.vaccine.name}</span>
-                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">VACCINE</span>
-                    </div>
-                  </td>
                   <td className="py-4 text-slate-600">
                     <span className="font-medium text-slate-700">{b.received.toLocaleString()}</span> doses
                   </td>
@@ -293,20 +283,17 @@ export default function Inventory() {
           </table>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {processedInventory.map((item) => (
-              <div key={item.id} className="group bg-white rounded-2xl p-4 transition-all duration-300 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] cursor-pointer border border-transparent hover:border-slate-100 flex flex-col h-full">
-                <div className={`h-36 rounded-xl w-full mb-4 flex items-center justify-center text-white font-bold text-xl relative overflow-hidden ${item.quantity_available < 5000 ? 'bg-gradient-to-br from-red-500 to-rose-600' :
-                  item.quantity_available < 15000 ? 'bg-gradient-to-br from-orange-400 to-amber-500' :
-                    'bg-gradient-to-br from-blue-500 to-indigo-600'
-                  }`}>
-                  <div className="absolute inset-0 bg-black/10"></div>
-                  <span className="relative z-10 text-center px-4 drop-shadow-md">{item.Batch.Vaccine.name}</span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-slate-900 mb-1">{item.Batch.Vaccine.name}</h3>
-                  <div className="flex items-center gap-1 text-sm text-slate-600 mb-2">
-                    <span>Batch: {item.Batch.batch_number}</span>
-                    {item.Batch.Supplier && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {inventoryPagination.currentData.map(item => (
+                <div key={item.id} className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow relative group">
+                  <div className="absolute top-4 right-4 bg-slate-50 text-slate-500 text-xs px-2 py-1 rounded font-medium border border-slate-100">
+                    Batch {item.Batch.batch_number}
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-1 pr-16">{item.Batch.Vaccine.name}</h3>
+                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-6 pb-4 border-b border-slate-100 flex items-center">
+                    {item.Stock ? item.Stock.name : 'Central Stock'}
+                    {item.Batch?.Supplier && (
                       <>
                         <span className="text-slate-300 mx-1">|</span>
                         <span className="text-blue-600 hover:underline">{item.Batch.Supplier.name}</span>
@@ -323,66 +310,70 @@ export default function Inventory() {
                     Expires: {new Date(item.Batch.expiration_date).toLocaleDateString()}
                   </p>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            <Pagination {...inventoryPagination} onPageChange={inventoryPagination.jump} />
+          </>
         ) : (
-          <table className="w-full text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200">
-              <tr>
-                <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
-                  Vaccine Name <ChevronDown className="w-4 h-4 text-slate-400" />
-                </th>
-                <th className="py-3 font-semibold text-slate-800">Batch</th>
-                <th className="py-3 font-semibold text-slate-800">Received</th>
-                <th className="py-3 font-semibold text-slate-800">Issued</th>
-                <th className="py-3 font-semibold text-slate-800">Balance</th>
-                <th className="py-3 font-semibold text-slate-800">Expiration Date</th>
-                {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
-                  <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {processedInventory.map(item => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-4 pr-6">
-                    <div className="flex items-center gap-3">
-                      <span className="font-medium text-slate-900 text-base">{item.Batch?.Vaccine?.name}</span>
-                      <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
-                        VACCINE
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-4 text-slate-600 font-medium">{item.Batch?.batch_number}</td>
-                  <td className="py-4 text-slate-600">
-                    <span className="font-medium text-slate-700">{(item.quantity_available + (item.issued_quantity || 0)).toLocaleString()}</span> doses
-                  </td>
-                  <td className="py-4 text-slate-600">
-                    <span className="font-medium text-slate-700">{(item.issued_quantity || 0).toLocaleString()}</span> doses
-                  </td>
-                  <td className="py-4 text-slate-600">
-                    <span className="font-bold text-slate-900">{item.quantity_available.toLocaleString()}</span> doses
-                  </td>
-                  <td className="py-4 text-slate-600">
-                    {item.Batch?.expiration_date ? new Date(item.Batch.expiration_date).toLocaleDateString() : 'N/A'}
-                  </td>
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200">
+                <tr>
+                  <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
+                    Vaccine Name <ChevronDown className="w-4 h-4 text-slate-400" />
+                  </th>
+                  <th className="py-3 font-semibold text-slate-800">Batch</th>
+                  <th className="py-3 font-semibold text-slate-800">Received</th>
+                  <th className="py-3 font-semibold text-slate-800">Issued</th>
+                  <th className="py-3 font-semibold text-slate-800">Balance</th>
+                  <th className="py-3 font-semibold text-slate-800">Expiration Date</th>
                   {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
-                    <td className="py-4">
-                      <div className="flex items-center gap-3">
-                        <button onClick={() => handleEdit(item)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => handleDelete(item.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+                    <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
                   )}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {inventoryPagination.currentData.map(item => (
+                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-4 pr-6">
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium text-slate-900 text-base">{item.Batch?.Vaccine?.name}</span>
+                        <span className="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold uppercase tracking-wider">
+                          VACCINE
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 text-slate-600 font-medium">{item.Batch?.batch_number}</td>
+                    <td className="py-4 text-slate-600">
+                      <span className="font-medium text-slate-700">{(item.quantity_available + (item.issued_quantity || 0)).toLocaleString()}</span> doses
+                    </td>
+                    <td className="py-4 text-slate-600">
+                      <span className="font-medium text-slate-700">{(item.issued_quantity || 0).toLocaleString()}</span> doses
+                    </td>
+                    <td className="py-4 text-slate-600">
+                      <span className="font-bold text-slate-900">{item.quantity_available.toLocaleString()}</span> doses
+                    </td>
+                    <td className="py-4 text-slate-600">
+                      {item.Batch?.expiration_date ? new Date(item.Batch.expiration_date).toLocaleDateString() : 'N/A'}
+                    </td>
+                    {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
+                      <td className="py-4">
+                        <div className="flex items-center gap-3">
+                          <button onClick={() => handleEdit(item)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDelete(item.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Pagination {...inventoryPagination} onPageChange={inventoryPagination.jump} />
+          </>
         )}
       </div>
 

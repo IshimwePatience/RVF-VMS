@@ -5,6 +5,8 @@ import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 export default function Suppliers() {
   const { user } = useContext(AuthContext);
@@ -104,6 +106,7 @@ export default function Suppliers() {
   };
 
   const processedSuppliers = getProcessedSuppliers();
+  const pagination = usePagination(processedSuppliers, 12);
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
@@ -147,19 +150,20 @@ export default function Suppliers() {
             No suppliers found. Click "New Supplier" to add one.
           </div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200">
-              <tr>
-                <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
-                  Supplier Name <ChevronDown className="w-4 h-4 text-slate-400" />
-                </th>
-                <th className="py-3 font-semibold text-slate-800">Contact Information</th>
-                <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {processedSuppliers.map(supplier => (
-                <tr key={supplier.id} className="group">
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200">
+                <tr>
+                  <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
+                    Supplier Name <ChevronDown className="w-4 h-4 text-slate-400" />
+                  </th>
+                  <th className="py-3 font-semibold text-slate-800">Contact Information</th>
+                  <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pagination.currentData.map(supplier => (
+                  <tr key={supplier.id} className="group">
                   <td className="py-4 pr-6">
                     <div className="flex items-center gap-3">
                       <span className="font-medium text-slate-900 text-base">{supplier.name}</span>
@@ -181,8 +185,10 @@ export default function Suppliers() {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+            <Pagination {...pagination} onPageChange={pagination.jump} />
+          </>
         )}
       </div>
 

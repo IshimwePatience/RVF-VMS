@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid } from 'recharts';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 const COLORS = ['#8b5cf6', '#10b981', '#f43f5e', '#3b82f6', '#f59e0b', '#06b6d4'];
 
@@ -117,6 +119,7 @@ export default function Dashboard() {
   if (!data) return <div className="p-8">No data available</div>;
 
   const isEndpoint = user?.stock?.is_endpoint === true;
+  const reportsPagination = usePagination(data?.reports || [], 12);
 
   // Helper to pad categorical data with 0s so it always draws a curved "hill" even with 1 item
   const makeHills = (chartData, keyX, ...keyYs) => {
@@ -386,7 +389,7 @@ export default function Dashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {data.reports?.map((r) => (
+                        {reportsPagination.currentData.map((r) => (
                           <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                             <td className="py-4 px-2 text-slate-600">{new Date(r.date_administered).toLocaleDateString()}</td>
                             <td className="py-4 px-2 font-semibold text-slate-800">{r.veterinary_name}</td>
@@ -398,6 +401,7 @@ export default function Dashboard() {
                       </tbody>
                     </table>
                   </div>
+                  <Pagination {...reportsPagination} onPageChange={reportsPagination.jump} />
                 </div>
               </>
             )}

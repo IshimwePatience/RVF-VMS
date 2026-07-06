@@ -5,6 +5,9 @@ import { Plus, ChevronDown, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
+
 export default function Veterinaries() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
@@ -113,6 +116,7 @@ export default function Veterinaries() {
   const provinces = ['All', ...new Set(veterinaries.map(v => v.province))].filter(Boolean);
   const districts = ['All', ...new Set(veterinaries.map(v => v.district))].filter(Boolean);
   const sectors = ['All', ...new Set(veterinaries.map(v => v.sector))].filter(Boolean);
+  const pagination = usePagination(veterinaries, 12);
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12 pt-4">
@@ -166,18 +170,19 @@ export default function Veterinaries() {
             <p className="text-slate-500 mt-1">When veterinaries are added, they will appear here.</p>
           </div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-700">
-            <thead className="border-b border-slate-200">
-              <tr>
-                <th className="py-3 font-semibold text-slate-800">Veterinary Name</th>
-                <th className="py-3 font-semibold text-slate-800">Contact Info</th>
-                <th className="py-3 font-semibold text-slate-800">National ID</th>
-                <th className="py-3 font-semibold text-slate-800">Location</th>
-                {user?.stock?.is_endpoint && <th className="py-3 font-semibold text-slate-800 w-24 text-right pr-4">Actions</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {veterinaries.map((v) => (
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200">
+                <tr>
+                  <th className="py-3 font-semibold text-slate-800">Veterinary Name</th>
+                  <th className="py-3 font-semibold text-slate-800">Contact Info</th>
+                  <th className="py-3 font-semibold text-slate-800">National ID</th>
+                  <th className="py-3 font-semibold text-slate-800">Location</th>
+                  {user?.stock?.is_endpoint && <th className="py-3 font-semibold text-slate-800 w-24 text-right pr-4">Actions</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pagination.currentData.map((v) => (
                 <tr key={v.id} className="group hover:bg-slate-50/50 transition-colors">
                   <td className="py-4 pr-6">
                     <span className="font-medium text-slate-900 text-base">{v.name}</span>
@@ -211,8 +216,10 @@ export default function Veterinaries() {
                   )}
                 </tr>
               ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+            <Pagination {...pagination} onPageChange={pagination.jump} />
+          </>
         )}
       </div>
 

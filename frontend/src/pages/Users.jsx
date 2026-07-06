@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, ChevronDown, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
+import { usePagination } from '../hooks/usePagination';
+import Pagination from '../components/Pagination';
 
 export default function Users() {
   const { user } = useContext(AuthContext);
@@ -35,6 +37,8 @@ export default function Users() {
       return res.data;
     }
   });
+
+  const pagination = usePagination(users, 12);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -119,7 +123,8 @@ export default function Users() {
             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <table className="w-full text-left text-sm text-slate-700">
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
             <thead className="border-b border-slate-200">
               <tr>
                 <th className="py-3 font-semibold text-slate-800 flex items-center gap-1">
@@ -133,7 +138,7 @@ export default function Users() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {users.map((u) => (
+              {pagination.currentData.map((u) => (
                 <tr key={u.id} className="group">
                   <td className="py-4 pr-6">
                     <div className="flex items-center gap-3">
@@ -181,11 +186,13 @@ export default function Users() {
               ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="py-12 text-center text-slate-500">No users found</td>
+                  <td colSpan="6" className="py-12 text-center text-slate-500">No users found</td>
                 </tr>
               )}
             </tbody>
           </table>
+          <Pagination {...pagination} onPageChange={pagination.jump} />
+        </>
         )}
       </div>
 
