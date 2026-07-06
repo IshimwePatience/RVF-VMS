@@ -268,21 +268,38 @@ export default function Inventory() {
             <h3 className="text-lg font-bold text-slate-800">No inventory found</h3>
           </div>
         ) : activeTab === 'balances' ? (
-                  <td className="py-4 text-slate-600">
-                    <span className="font-medium text-slate-700">{b.received.toLocaleString()}</span> doses
-                  </td>
-                  <td className="py-4 text-slate-600">
-                    <span className="font-medium text-slate-700">{b.issued.toLocaleString()}</span> doses
-                  </td>
-                  <td className="py-4 text-slate-600">
-                    <span className="font-bold text-slate-900">{b.balance.toLocaleString()}</span> doses
-                  </td>
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200 bg-slate-50">
+                <tr>
+                  <th className="py-3 px-4 font-semibold text-slate-800">Vaccine</th>
+                  <th className="py-3 px-4 font-semibold text-slate-800">Total Received</th>
+                  <th className="py-3 px-4 font-semibold text-slate-800">Total Issued</th>
+                  <th className="py-3 px-4 font-semibold text-slate-800">Current Balance</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {balancesPagination.currentData.map((b, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-4 px-4">
+                      <div className="font-medium text-slate-900">{b.vaccine_name}</div>
+                    </td>
+                    <td className="py-4 px-4 text-slate-600">
+                      <span className="font-medium text-slate-700">{b.received.toLocaleString()}</span> doses
+                    </td>
+                    <td className="py-4 px-4 text-slate-600">
+                      <span className="font-medium text-slate-700">{b.issued.toLocaleString()}</span> doses
+                    </td>
+                    <td className="py-4 px-4 text-slate-600">
+                      <span className="font-bold text-slate-900">{b.balance.toLocaleString()}</span> doses
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Pagination {...balancesPagination} onPageChange={balancesPagination.jump} />
+          </>
         ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {inventoryPagination.currentData.map(item => (
