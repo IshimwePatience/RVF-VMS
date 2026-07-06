@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { LayoutGrid, List, Plus, ChevronDown, Check, X, Search, Pencil, Trash2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
@@ -8,8 +9,15 @@ import Dropdown from '../components/Dropdown';
 export default function Inventory() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [inventoryItems, setInventoryItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  
+  const { data: inventoryItems = [], isLoading: loading } = useQuery({
+    queryKey: ['inventory'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/inventory');
+      return res.data;
+    }
+  });
 
   // Receive Stock Modal State
   const [showReceiveModal, setShowReceiveModal] = useState(false);
@@ -44,20 +52,7 @@ export default function Inventory() {
     currency: 'USD'
   });
 
-  const fetchInventory = async () => {
-    try {
-      const res = await axios.get('/rvf-api/inventory');
-      setInventoryItems(res.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchInventory();
-  }, []);
+  // removed manual fetchInventory
 
   const fetchOptions = async () => {
     try {
@@ -78,25 +73,28 @@ export default function Inventory() {
     setShowReceiveModal(true);
   };
 
-  const handleReceiveStock = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
+  const receiveMutation = useMutation({
+    mutationFn: async (data) => {
       if (editingId) {
-        await axios.put(`/rvf-api/inventory/${editingId}`, formData);
-        addToast('Stock updated successfully', 'success');
+        return axios.put(`/rvf-api/inventory/${editingId}`, data);
       } else {
-        await axios.post('/rvf-api/inventory/receive', formData);
-        addToast('Stock received successfully', 'success');
+        return axios.post('/rvf-api/inventory/receive', data);
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      addToast(editingId ? 'Stock updated successfully' : 'Stock received successfully', 'success');
       closeModal();
-      fetchInventory();
-    } catch (err) {
+    },
+    onError: (err) => {
       console.error(err);
       addToast(err.response?.data?.message || 'Failed to save stock', 'error');
-    } finally {
-      setSubmitting(false);
     }
+  });
+
+  const handleReceiveStock = (e) => {
+    e.preventDefault();
+    receiveMutation.mutate(formData);
   };
 
   const closeModal = () => {
@@ -125,16 +123,21 @@ export default function Inventory() {
     setShowReceiveModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this inventory record? This will also delete the associated batch if it exists.')) return;
-    try {
-      await axios.delete(`/rvf-api/inventory/${id}`);
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => axios.delete(`/rvf-api/inventory/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
       addToast('Inventory deleted successfully', 'success');
-      fetchInventory();
-    } catch (err) {
+    },
+    onError: (err) => {
       console.error(err);
       addToast('Failed to delete inventory', 'error');
     }
+  });
+
+  const handleDelete = (id) => {
+    if (!window.confirm('Are you sure you want to delete this inventory record? This will also delete the associated batch if it exists.')) return;
+    deleteMutation.mutate(id);
   };
 
   // Filtering and Sorting
@@ -557,10 +560,10 @@ export default function Inventory() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={receiveMutation.isPending}
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[13px] tracking-wide rounded transition-colors uppercase disabled:opacity-70"
                 >
-                  {submitting ? 'Saving...' : editingId ? 'Update Inventory' : 'Confirm Receipt'}
+                  {receiveMutation.isPending ? 'Saving...' : editingId ? 'Update Inventory' : 'Confirm Receipt'}
                 </button>
               </div>
             </form>

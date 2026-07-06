@@ -1,38 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 
 export default function OverviewTab({ email }) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [data, setData] = useState({});
-
-  const fetchOverview = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const { data, isLoading: loading, error } = useQuery({
+    queryKey: ['veterinary-overview', email],
+    queryFn: async () => {
       const res = await axios.get(`/rvf-api/veterinary-portal/overview?email=${encodeURIComponent(email)}`);
-      setData(res.data);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch overview data.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (email) fetchOverview();
-  }, [email]);
+      return res.data;
+    },
+    enabled: !!email,
+  });
 
   if (loading) {
     return <div className="py-12 flex justify-center text-slate-500">Loading overview...</div>;
   }
 
   if (error) {
-    return <div className="p-4 bg-red-50 text-red-600 rounded-lg">{error}</div>;
+    return <div className="p-4 bg-red-50 text-red-600 rounded-lg">Failed to fetch overview data.</div>;
   }
 
-  const vaccineKeys = Object.keys(data);
+  const vaccineKeys = data ? Object.keys(data) : [];
 
   if (vaccineKeys.length === 0) {
     return (

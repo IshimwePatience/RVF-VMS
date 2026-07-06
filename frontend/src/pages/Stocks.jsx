@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
@@ -8,8 +9,7 @@ import Dropdown from '../components/Dropdown';
 export default function Stocks() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [stocks, setStocks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   // Create Stock Modal State
   const [showModal, setShowModal] = useState(false);
@@ -33,41 +33,36 @@ export default function Stocks() {
     localStorage.setItem('stocksSortBy', sortBy);
   }, [filterBy, sortBy]);
 
-  const fetchStocks = async () => {
-    try {
+  const { data: stocks = [], isLoading: loading } = useQuery({
+    queryKey: ['stocks'],
+    queryFn: async () => {
       const res = await axios.get('/rvf-api/stocks');
-      setStocks(res.data);
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to fetch stocks', 'error');
-    } finally {
-      setLoading(false);
+      return res.data;
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchStocks();
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
+  const saveMutation = useMutation({
+    mutationFn: async () => {
       if (editingId) {
-        await axios.put(`/rvf-api/stocks/${editingId}`, formData);
-        addToast('Stock point updated successfully', 'success');
+        return axios.put(`/rvf-api/stocks/${editingId}`, formData);
       } else {
-        await axios.post('/rvf-api/stocks', formData);
-        addToast('Stock point created successfully', 'success');
+        return axios.post('/rvf-api/stocks', formData);
       }
+    },
+    onSuccess: () => {
+      addToast(editingId ? 'Stock point updated successfully' : 'Stock point created successfully', 'success');
       closeModal();
-      fetchStocks();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast(err.response?.data?.message || 'Failed to save stock point', 'error');
-    } finally {
-      setSubmitting(false);
     }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate();
   };
 
   const closeModal = () => {
@@ -90,16 +85,21 @@ export default function Stocks() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this stock point?')) return;
-    try {
-      await axios.delete(`/rvf-api/stocks/${id}`);
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => axios.delete(`/rvf-api/stocks/${id}`),
+    onSuccess: () => {
       addToast('Stock point deleted successfully', 'success');
-      fetchStocks();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['stocks'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast('Failed to delete stock point', 'error');
     }
+  });
+
+  const handleDelete = (id) => {
+    if (!window.confirm('Are you sure you want to delete this stock point?')) return;
+    deleteMutation.mutate(id);
   };
 
   const centralStocks = stocks.filter(s => s.is_central);
@@ -333,10 +333,10 @@ export default function Stocks() {
                 </button>
                 <button 
                   type="submit" 
-                  disabled={submitting}
+                  disabled={saveMutation.isPending}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-70"
                 >
-                  {submitting ? 'Saving...' : editingId ? 'Update Stock' : 'Create Stock'}
+                  {saveMutation.isPending ? 'Saving...' : editingId ? 'Update Stock' : 'Create Stock'}
                 </button>
               </div>
             </form>

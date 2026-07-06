@@ -1,54 +1,48 @@
 import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 
 export default function Settings() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  
-  const [rates, setRates] = useState({
-    USD: 1300,
-    EUR: 1400
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchRates();
-  }, []);
-
-  const fetchRates = async () => {
-    try {
+  const { data: fetchedRates, isLoading: loading } = useQuery({
+    queryKey: ['exchange-rates'],
+    queryFn: async () => {
       const res = await axios.get('/rvf-api/settings/exchange-rates');
-      const ratesMap = {};
-      res.data.forEach(rate => {
-        ratesMap[rate.currency] = rate.rate_to_rwf;
-      });
-      setRates(prev => ({ ...prev, ...ratesMap }));
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to load exchange rates', 'error');
-    } finally {
-      setLoading(false);
+      return res.data;
     }
-  };
+  });
 
-  const handleUpdateRate = async (currency, rate) => {
-    if (!rate || isNaN(rate)) return;
-    setSaving(true);
-    try {
-      await axios.put(`/rvf-api/settings/exchange-rates/${currency}`, {
+  const rates = { USD: 1300, EUR: 1400 };
+  if (fetchedRates) {
+    fetchedRates.forEach(rate => {
+      rates[rate.currency] = rate.rate_to_rwf;
+    });
+  }
+
+  const updateRateMutation = useMutation({
+    mutationFn: async ({ currency, rate }) => {
+      return axios.put(`/rvf-api/settings/exchange-rates/${currency}`, {
         rate_to_rwf: parseFloat(rate)
       });
-      addToast(`${currency} rate updated successfully`, 'success');
-      fetchRates();
-    } catch (err) {
+    },
+    onSuccess: (_, variables) => {
+      addToast(`${variables.currency} rate updated successfully`, 'success');
+      queryClient.invalidateQueries({ queryKey: ['exchange-rates'] });
+    },
+    onError: (err, variables) => {
       console.error(err);
-      addToast(`Failed to update ${currency} rate`, 'error');
-    } finally {
-      setSaving(false);
+      addToast(`Failed to update ${variables.currency} rate`, 'error');
     }
+  });
+
+  const handleUpdateRate = (currency, rate) => {
+    if (!rate || isNaN(rate)) return;
+    updateRateMutation.mutate({ currency, rate });
   };
 
   if (!user || user.role !== 'Admin') {
@@ -88,13 +82,13 @@ export default function Settings() {
                     currency="USD" 
                     value={rates.USD} 
                     onSave={(val) => handleUpdateRate('USD', val)} 
-                    saving={saving} 
+                    saving={updateRateMutation.isPending && updateRateMutation.variables?.currency === 'USD'} 
                   />
                   <RateInput 
                     currency="EUR" 
                     value={rates.EUR} 
                     onSave={(val) => handleUpdateRate('EUR', val)} 
-                    saving={saving} 
+                    saving={updateRateMutation.isPending && updateRateMutation.variables?.currency === 'EUR'} 
                   />
                 </>
               )}

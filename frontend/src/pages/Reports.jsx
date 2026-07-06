@@ -1,36 +1,24 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 
 export default function Reports() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        let url = '/rvf-api/administrations';
-        if (user.role !== 'Admin' && user.stock_id) {
-          url += `?stock_id=${user.stock_id}`;
-        }
-        
-        const res = await axios.get(url);
-        setReports(res.data);
-      } catch (err) {
-        console.error(err);
-        addToast('Failed to load reports', 'error');
-      } finally {
-        setLoading(false);
+  const { data: reports = [], isLoading: loading } = useQuery({
+    queryKey: ['reports', user?.stock_id],
+    queryFn: async () => {
+      let url = '/rvf-api/administrations';
+      if (user.role !== 'Admin' && user.stock_id) {
+        url += `?stock_id=${user.stock_id}`;
       }
-    };
-    
-    if (user) {
-      fetchReports();
-    }
-  }, [user]);
+      const res = await axios.get(url);
+      return res.data;
+    },
+    enabled: !!user
+  });
 
   return (
     <div className="pb-12">

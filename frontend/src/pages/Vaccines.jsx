@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
@@ -7,48 +8,41 @@ import { ToastContext } from '../context/ToastContext';
 export default function Vaccines() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [vaccines, setVaccines] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '' });
-  const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  useEffect(() => {
-    fetchVaccines();
-  }, []);
-
-  const fetchVaccines = async () => {
-    try {
+  const { data: vaccines = [], isLoading: loading } = useQuery({
+    queryKey: ['vaccines'],
+    queryFn: async () => {
       const res = await axios.get('/rvf-api/vaccines');
-      setVaccines(res.data);
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to fetch vaccines', 'error');
-    } finally {
-      setLoading(false);
+      return res.data;
     }
-  };
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
+  const saveMutation = useMutation({
+    mutationFn: async () => {
       if (editingId) {
-        await axios.put(`/rvf-api/vaccines/${editingId}`, formData);
-        addToast('Vaccine updated successfully', 'success');
+        return axios.put(`/rvf-api/vaccines/${editingId}`, formData);
       } else {
-        await axios.post('/rvf-api/vaccines', formData);
-        addToast('Vaccine created successfully', 'success');
+        return axios.post('/rvf-api/vaccines', formData);
       }
+    },
+    onSuccess: () => {
+      addToast(editingId ? 'Vaccine updated successfully' : 'Vaccine created successfully', 'success');
       closeModal();
-      fetchVaccines();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['vaccines'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast(err.response?.data?.message || 'Failed to save vaccine', 'error');
-    } finally {
-      setSubmitting(false);
     }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate();
   };
 
   const closeModal = () => {
@@ -63,16 +57,21 @@ export default function Vaccines() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this vaccine?')) return;
-    try {
-      await axios.delete(`/rvf-api/vaccines/${id}`);
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => axios.delete(`/rvf-api/vaccines/${id}`),
+    onSuccess: () => {
       addToast('Vaccine deleted successfully', 'success');
-      fetchVaccines();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['vaccines'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast('Failed to delete vaccine', 'error');
     }
+  });
+
+  const handleDelete = (id) => {
+    if (!window.confirm('Are you sure you want to delete this vaccine?')) return;
+    deleteMutation.mutate(id);
   };
 
   const hasAccess = user?.is_central || user?.stock?.is_central || user?.role?.toLowerCase() === 'admin';
@@ -190,10 +189,10 @@ export default function Vaccines() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={saveMutation.isPending}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-70"
                 >
-                  {submitting ? 'Saving...' : editingId ? 'Update Vaccine' : 'Create Vaccine'}
+                  {saveMutation.isPending ? 'Saving...' : editingId ? 'Update Vaccine' : 'Create Vaccine'}
                 </button>
               </div>
             </form>

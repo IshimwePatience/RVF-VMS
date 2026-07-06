@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import minisanteLogo from '../assets/images/MINISANTE.png';
 import { ChevronRight, Syringe } from 'lucide-react';
 import LoginSkeleton from '../components/LoginSkeleton';
@@ -9,16 +10,9 @@ export default function ReportUsage() {
   const { token } = useParams();
   const navigate = useNavigate();
 
-  // State for email verification flow
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
-  const [verifying, setVerifying] = useState(false);
   const [emailError, setEmailError] = useState('');
-
-  // State for report form
-  const [loading, setLoading] = useState(!!token);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [record, setRecord] = useState(null);
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -33,85 +27,80 @@ export default function ReportUsage() {
     owner_national_id: ''
   });
 
-  // Fetch record if token is present
+  const { data: record, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['report', token],
+    queryFn: async () => {
+      const res = await axios.get(`/rvf-api/administrations/report/${token}`);
+      return res.data;
+    },
+    enabled: !!token,
+    retry: false
+  });
+
+  const error = queryError ? (queryError.response?.data?.message || 'Failed to load report details.') : null;
+
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
+    if (record && record.report_status === 'submitted') {
+      setFormData({
+        doses_used: record.doses_used ?? '',
+        doses_wasted: record.doses_wasted ?? '',
+        domestic_animals_vaccinated: record.domestic_animals_vaccinated ?? '',
+        animals_affected: record.animals_affected ?? '',
+        animals_healed: record.animals_healed ?? '',
+        animals_died: record.animals_died ?? '',
+        owner_name: record.owner_name ?? '',
+        owner_phone: record.owner_phone ?? '',
+        owner_national_id: record.owner_national_id ?? ''
+      });
     }
+  }, [record]);
 
-    const fetchRecord = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(`/rvf-api/administrations/report/${token}`);
-        setRecord(res.data);
-
-        // Pre-fill form if already submitted
-        if (res.data.report_status === 'submitted') {
-          setFormData({
-            doses_used: res.data.doses_used ?? '',
-            doses_wasted: res.data.doses_wasted ?? '',
-            domestic_animals_vaccinated: res.data.domestic_animals_vaccinated ?? '',
-            animals_affected: res.data.animals_affected ?? '',
-            animals_healed: res.data.animals_healed ?? '',
-            animals_died: res.data.animals_died ?? '',
-            owner_name: res.data.owner_name ?? '',
-            owner_phone: res.data.owner_phone ?? '',
-            owner_national_id: res.data.owner_national_id ?? ''
-          });
-        }
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load report details.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRecord();
-  }, [token]);
-
-  const handleVerifyEmail = async (e) => {
-    e.preventDefault();
-    setVerifying(true);
-    setEmailError('');
-    try {
-      const res = await axios.post('/rvf-api/administrations/verify-veterinary', { email });
+  const verifyMutation = useMutation({
+    mutationFn: async (email) => axios.post('/rvf-api/administrations/verify-veterinary', { email }),
+    onSuccess: (res) => {
       if (res.data && res.data.length > 0) {
         navigate(`/veterinary-portal/${encodeURIComponent(email)}`);
       } else {
         setEmailError('No records found for this email.');
       }
-    } catch (err) {
+    },
+    onError: (err) => {
       setEmailError(err.response?.data?.message || 'Verification failed. Please try again.');
-    } finally {
-      setVerifying(false);
     }
+  });
+
+  const handleVerifyEmail = (e) => {
+    e.preventDefault();
+    setEmailError('');
+    verifyMutation.mutate(email);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const payload = {
-        doses_used: parseInt(formData.doses_used) || 0,
-        doses_wasted: parseInt(formData.doses_wasted) || 0,
-        domestic_animals_vaccinated: parseInt(formData.domestic_animals_vaccinated) || 0,
-        animals_affected: parseInt(formData.animals_affected) || 0,
-        animals_healed: parseInt(formData.animals_healed) || 0,
-        animals_died: parseInt(formData.animals_died) || 0,
-        owner_name: formData.owner_name,
-        owner_phone: formData.owner_phone,
-        owner_national_id: formData.owner_national_id
-      };
-
-      const res = await axios.post(`/rvf-api/administrations/report/${token}`, payload);
-      setRecord(res.data.record);
+  const submitMutation = useMutation({
+    mutationFn: async (payload) => axios.post(`/rvf-api/administrations/report/${token}`, payload),
+    onSuccess: (res) => {
+      queryClient.setQueryData(['report', token], res.data.record);
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (err) {
+    },
+    onError: (err) => {
       alert(err.response?.data?.message || 'Failed to submit report');
-    } finally {
-      setSubmitting(false);
     }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const payload = {
+      doses_used: parseInt(formData.doses_used) || 0,
+      doses_wasted: parseInt(formData.doses_wasted) || 0,
+      domestic_animals_vaccinated: parseInt(formData.domestic_animals_vaccinated) || 0,
+      animals_affected: parseInt(formData.animals_affected) || 0,
+      animals_healed: parseInt(formData.animals_healed) || 0,
+      animals_died: parseInt(formData.animals_died) || 0,
+      owner_name: formData.owner_name,
+      owner_phone: formData.owner_phone,
+      owner_national_id: formData.owner_national_id
+    };
+    submitMutation.mutate(payload);
   };
 
   if (loading) {
@@ -161,10 +150,10 @@ export default function ReportUsage() {
             </div>
             <button
               type="submit"
-              disabled={verifying}
+              disabled={verifyMutation.isPending}
               className="w-full bg-[#0056D2] hover:bg-[#004BB8] text-white font-bold text-[16px] py-3 rounded transition-colors disabled:opacity-50"
             >
-              {verifying ? 'Verifying...' : 'Continue'}
+              {verifyMutation.isPending ? 'Verifying...' : 'Continue'}
             </button>
           </form>
 
@@ -368,10 +357,10 @@ export default function ReportUsage() {
           <div className="flex justify-between items-center py-4">
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded text-[14px] font-medium transition-colors disabled:opacity-70"
             >
-              {submitting ? 'Submitting...' : 'Submit'}
+              {submitMutation.isPending ? 'Submitting...' : 'Submit'}
             </button>
             <button
               type="button"

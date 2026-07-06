@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Search, Clock, ChevronRight } from 'lucide-react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
@@ -9,10 +10,9 @@ export default function GlobalSearch() {
   const navigate = useNavigate();
 
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [history, setHistory] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const searchRef = useRef(null);
 
@@ -38,25 +38,20 @@ export default function GlobalSearch() {
   }, []);
 
   useEffect(() => {
-    const fetchResults = async () => {
-      if (!query.trim()) {
-        setResults([]);
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const res = await axios.get(`/rvf-api/search?q=${encodeURIComponent(query)}`);
-        setResults(res.data);
-      } catch (err) {
-        console.error('Search error', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const debounce = setTimeout(fetchResults, 300);
-    return () => clearTimeout(debounce);
+    const handler = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+    return () => clearTimeout(handler);
   }, [query]);
+
+  const { data: results = [], isLoading } = useQuery({
+    queryKey: ['search', debouncedQuery],
+    queryFn: async () => {
+      const res = await axios.get(`/rvf-api/search?q=${encodeURIComponent(debouncedQuery)}`);
+      return res.data;
+    },
+    enabled: !!debouncedQuery.trim()
+  });
 
   const handleSelect = (item) => {
     // Save to history

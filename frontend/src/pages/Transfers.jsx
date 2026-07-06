@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import { Package, CheckCircle, Truck } from 'lucide-react';
@@ -8,10 +9,8 @@ export default function Transfers() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const isCentral = user?.role === 'Admin' || user?.stock?.is_central || user?.is_central;
-  const [transfers, setTransfers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('transfersActiveTab') || (isCentral ? 'outgoing' : 'incoming'));
-  const [fetchTrigger, setFetchTrigger] = useState(0);
   const [confirmingTransfer, setConfirmingTransfer] = useState(null);
 
   useEffect(() => {
@@ -24,49 +23,34 @@ export default function Transfers() {
     }
   }, [user, isCentral, activeTab]);
 
-  useEffect(() => {
-    let ignore = false;
-    
-    const fetchTransfers = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get(`/rvf-api/transfers?type=${activeTab}`);
-        if (!ignore) {
-          setTransfers(res.data);
-        }
-      } catch (err) {
-        if (!ignore) {
-          console.error(err);
-          addToast('Failed to load transfers', 'error');
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (user) {
-      fetchTransfers();
-    }
-
-    return () => { ignore = true; };
-  }, [activeTab, user, addToast, fetchTrigger]);
+  const { data: transfers = [], isLoading: loading } = useQuery({
+    queryKey: ['transfers', activeTab],
+    queryFn: async () => {
+      const res = await axios.get(`/rvf-api/transfers?type=${activeTab}`);
+      return res.data;
+    },
+    enabled: !!user,
+  });
 
   const handleConfirmClick = (id) => {
     setConfirmingTransfer(id);
   };
 
-  const submitConfirmReceipt = async (status) => {
-    if (!confirmingTransfer) return;
-    try {
-      await axios.post(`/rvf-api/transfers/${confirmingTransfer}/confirm`, { status });
-      addToast(status === 'Missing' ? 'Shipment reported as missing.' : 'Delivery confirmed and inventory updated!', 'success');
-      setFetchTrigger(prev => prev + 1);
+  const confirmMutation = useMutation({
+    mutationFn: async ({ id, status }) => axios.post(`/rvf-api/transfers/${id}/confirm`, { status }),
+    onSuccess: (_, variables) => {
+      addToast(variables.status === 'Missing' ? 'Shipment reported as missing.' : 'Delivery confirmed and inventory updated!', 'success');
+      queryClient.invalidateQueries({ queryKey: ['transfers'] });
       setConfirmingTransfer(null);
-    } catch (err) {
+    },
+    onError: (err) => {
       addToast(err.response?.data?.message || 'Failed to update delivery status', 'error');
     }
+  });
+
+  const submitConfirmReceipt = (status) => {
+    if (!confirmingTransfer) return;
+    confirmMutation.mutate({ id: confirmingTransfer, status });
   };
 
 
@@ -194,9 +178,10 @@ export default function Transfers() {
                 </button>
                 <button 
                   onClick={() => submitConfirmReceipt('Completed')}
-                  className="px-4 py-2 font-bold text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-colors shadow-sm"
+                  disabled={confirmMutation.isPending}
+                  className="px-4 py-2 font-bold text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-colors shadow-sm disabled:opacity-50"
                 >
-                  Yes, I Received It
+                  {confirmMutation.isPending ? 'Confirming...' : 'Yes, I Received It'}
                 </button>
               </div>
             </div>

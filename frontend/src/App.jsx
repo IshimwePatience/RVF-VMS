@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import Layout from './components/Layout';
@@ -45,9 +46,48 @@ const EndpointOnlyRoute = ({ children }) => {
   return children;
 };
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchInterval: 10000, // Auto update every 10 seconds across the entire app
+      refetchOnWindowFocus: true,
+      staleTime: 5000,
+    },
+  },
+});
+
 function App() {
+  React.useEffect(() => {
+    const handleOffline = () => {
+      window.location.reload();
+    };
+
+    const checkConnection = () => {
+      if (navigator.connection) {
+        const { effectiveType } = navigator.connection;
+        if (effectiveType === 'slow-2g' || effectiveType === '2g') {
+          window.location.reload();
+        }
+      }
+    };
+
+    window.addEventListener('offline', handleOffline);
+    if (navigator.connection) {
+      navigator.connection.addEventListener('change', checkConnection);
+      checkConnection(); // Check initial state
+    }
+
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      if (navigator.connection) {
+        navigator.connection.removeEventListener('change', checkConnection);
+      }
+    };
+  }, []);
+
   return (
-    <ToastProvider>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
       <AuthProvider>
         <BrowserRouter basename={import.meta.env.BASE_URL}>
           <Routes>
@@ -75,6 +115,7 @@ function App() {
         </BrowserRouter>
       </AuthProvider>
     </ToastProvider>
+    </QueryClientProvider>
   );
 }
 

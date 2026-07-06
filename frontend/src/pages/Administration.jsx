@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
@@ -8,12 +9,7 @@ import { Search, Plus, Filter, MapPin, Syringe, ChevronDown, MoreVertical, Eye, 
 export default function Administration() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  
-  const [administrations, setAdministrations] = useState([]);
-  const [inventory, setInventory] = useState([]);
-  const [veterinaries, setVeterinaries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const queryClient = useQueryClient();
   const [filterBy, setFilterBy] = useState('All');
   
   const [showModal, setShowModal] = useState(false);
@@ -26,33 +22,52 @@ export default function Administration() {
     veterinary_id: ''
   });
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['administrations', user?.stock?.id],
+    queryFn: async () => {
       const [adminRes, invRes, vetRes] = await Promise.all([
         axios.get(`/rvf-api/administrations?stock_id=${user?.stock?.id || ''}`),
         axios.get(`/rvf-api/inventory?stock_id=${user?.stock?.id || ''}`),
         axios.get(`/rvf-api/veterinaries`)
       ]);
-      setAdministrations(adminRes.data);
-      // Only include inventory that has available quantity
-      setInventory(invRes.data.filter(item => item.quantity_available > 0));
-      setVeterinaries(vetRes.data);
-    } catch (err) {
+      return {
+        administrations: adminRes.data,
+        inventory: invRes.data.filter(item => item.quantity_available > 0),
+        veterinaries: vetRes.data
+      };
+    },
+    enabled: !!user?.stock?.id
+  });
+
+  const administrations = data?.administrations || [];
+  const inventory = data?.inventory || [];
+  const veterinaries = data?.veterinaries || [];
+
+  const saveMutation = useMutation({
+    mutationFn: async (payload) => {
+      if (selectedRecord) {
+        return axios.put(`/rvf-api/administrations/${selectedRecord.id}`, payload);
+      } else {
+        return axios.post('/rvf-api/administrations', {
+          ...payload,
+          stock_id: user.stock?.id
+        });
+      }
+    },
+    onSuccess: () => {
+      addToast(selectedRecord ? 'Administration updated successfully' : 'Administration recorded successfully', 'success');
+      setShowModal(false);
+      setSelectedRecord(null);
+      setFormData({ batch_id: '', quantity: '', veterinary_id: '' });
+      queryClient.invalidateQueries({ queryKey: ['administrations'] });
+    },
+    onError: (err) => {
       console.error(err);
-      addToast('Failed to fetch data', 'error');
-    } finally {
-      setLoading(false);
+      addToast(err.response?.data?.message || 'Failed to save administration', 'error');
     }
-  };
+  });
 
-  useEffect(() => {
-    if (user?.stock?.id) {
-      fetchData();
-    }
-  }, [user]);
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.batch_id || !formData.quantity || !formData.veterinary_id) {
       return addToast('Please fill all fields', 'error');
@@ -60,8 +75,6 @@ export default function Administration() {
     
     const selectedItem = inventory.find(i => i.batch_id === formData.batch_id);
     
-    // For updates, the item might not exist in inventory if quantity_available is 0 now.
-    // We only enforce inventory check strictly if creating new, or if increasing quantity.
     if (!selectedRecord) {
       if (!selectedItem || selectedItem.quantity_available < parseInt(formData.quantity)) {
         return addToast('Insufficient inventory available for this batch', 'error');
@@ -75,57 +88,38 @@ export default function Administration() {
       }
     }
 
-    setSubmitting(true);
-    try {
-      const selectedVet = veterinaries.find(v => v.id === formData.veterinary_id);
-      
-      const payload = {
-        batch_id: formData.batch_id,
-        quantity: parseInt(formData.quantity),
-        veterinary_name: selectedVet.name,
-        email: selectedVet.email,
-        phone_number: selectedVet.phone_number,
-        national_id: selectedVet.national_id,
-        province: selectedVet.province,
-        district: selectedVet.district,
-        sector: selectedVet.sector,
-        cell: selectedVet.cell,
-        village: selectedVet.village
-      };
+    const selectedVet = veterinaries.find(v => v.id === formData.veterinary_id);
+    const payload = {
+      batch_id: formData.batch_id,
+      quantity: parseInt(formData.quantity),
+      veterinary_name: selectedVet.name,
+      email: selectedVet.email,
+      phone_number: selectedVet.phone_number,
+      national_id: selectedVet.national_id,
+      province: selectedVet.province,
+      district: selectedVet.district,
+      sector: selectedVet.sector,
+      cell: selectedVet.cell,
+      village: selectedVet.village
+    };
 
-      if (selectedRecord) {
-        await axios.put(`/rvf-api/administrations/${selectedRecord.id}`, payload);
-        addToast('Administration updated successfully', 'success');
-      } else {
-        await axios.post('/rvf-api/administrations', {
-          ...payload,
-          stock_id: user.stock?.id
-        });
-        addToast('Administration recorded successfully', 'success');
-      }
-      setShowModal(false);
-      setSelectedRecord(null);
-      setFormData({
-        batch_id: '', quantity: '', veterinary_id: ''
-      });
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      addToast(err.response?.data?.message || 'Failed to save administration', 'error');
-    } finally {
-      setSubmitting(false);
-    }
+    saveMutation.mutate(payload);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this record? The stock will be returned to inventory.')) return;
-    try {
-      await axios.delete(`/rvf-api/administrations/${id}`);
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => axios.delete(`/rvf-api/administrations/${id}`),
+    onSuccess: () => {
       addToast('Administration deleted successfully', 'success');
-      fetchData();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['administrations'] });
+    },
+    onError: () => {
       addToast('Failed to delete administration', 'error');
     }
+  });
+
+  const handleDelete = (id) => {
+    if (!window.confirm('Are you sure you want to delete this record? The stock will be returned to inventory.')) return;
+    deleteMutation.mutate(id);
   };
 
   const openUpdateModal = (record) => {
@@ -418,10 +412,10 @@ export default function Administration() {
                   </button>
                   <button 
                     type="submit" 
-                    disabled={submitting}
+                    disabled={saveMutation.isPending}
                     className="flex-1 py-2.5 bg-[#12aeec] hover:bg-[#12aeec]/90 text-white rounded-lg font-bold text-sm transition-colors shadow-sm disabled:opacity-50"
                   >
-                    {submitting ? 'Recording...' : 'Record'}
+                    {saveMutation.isPending ? 'Recording...' : 'Record'}
                   </button>
                 </div>
               </form>

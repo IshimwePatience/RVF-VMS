@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import { CheckCircle, XCircle, Clock, X } from 'lucide-react';
@@ -8,10 +9,22 @@ import { Link } from 'react-router-dom';
 export default function Requests() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [requests, setRequests] = useState([]);
-  const [inventory, setInventory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('requestsActiveTab') || 'incoming');
+
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['requests', activeTab],
+    queryFn: async () => {
+      const [reqRes, invRes] = await Promise.all([
+        axios.get(`/rvf-api/requests?type=${activeTab}`),
+        axios.get('/rvf-api/inventory')
+      ]);
+      return { requests: reqRes.data, inventory: invRes.data };
+    }
+  });
+
+  const requests = data?.requests || [];
+  const inventory = data?.inventory || [];
 
   useEffect(() => {
     localStorage.setItem('requestsActiveTab', activeTab);
@@ -22,61 +35,43 @@ export default function Requests() {
   const [rejectingRequest, setRejectingRequest] = useState(null);
   const [rejectNote, setRejectNote] = useState('');
   const [viewingNote, setViewingNote] = useState(null);
-  useEffect(() => {
-    fetchRequests();
-    if (user && !(user?.role === 'Admin' || user?.stock?.is_central || user?.is_central)) {
-      setActiveTab('outgoing');
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchRequests();
-  }, [activeTab]);
-
-  const fetchRequests = async () => {
-    setLoading(true);
-    try {
-      const [reqRes, invRes] = await Promise.all([
-        axios.get(`/rvf-api/requests?type=${activeTab}`),
-        axios.get('/rvf-api/inventory')
-      ]);
-      setRequests(reqRes.data);
-      setInventory(invRes.data);
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to load requests', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApprove = async () => {
-    if (!approvingRequest || !approvedQuantity) return;
-    try {
-      await axios.post(`/rvf-api/requests/${approvingRequest.id}/approve`, {
-        approved_quantity: parseInt(approvedQuantity, 10),
-        note: approvalNote
-      });
+  const approveMutation = useMutation({
+    mutationFn: async (payload) => axios.post(`/rvf-api/requests/${approvingRequest.id}/approve`, payload),
+    onSuccess: () => {
       addToast('Request approved and shipped successfully!', 'success');
       setApprovingRequest(null);
-      fetchRequests();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+    },
+    onError: (err) => {
       addToast(err.response?.data?.message || 'Failed to approve request', 'error');
     }
+  });
+
+  const handleApprove = () => {
+    if (!approvingRequest || !approvedQuantity) return;
+    approveMutation.mutate({
+      approved_quantity: parseInt(approvedQuantity, 10),
+      note: approvalNote
+    });
   };
 
-  const handleReject = async () => {
-    if (!rejectingRequest || !rejectNote.trim()) return;
-    try {
-      await axios.post(`/rvf-api/requests/${rejectingRequest.id}/reject`, {
-        note: rejectNote
-      });
+  const rejectMutation = useMutation({
+    mutationFn: async (payload) => axios.post(`/rvf-api/requests/${rejectingRequest.id}/reject`, payload),
+    onSuccess: () => {
       addToast('Request rejected successfully!', 'success');
       setRejectingRequest(null);
-      fetchRequests();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+    },
+    onError: (err) => {
       addToast(err.response?.data?.message || 'Failed to reject request', 'error');
     }
+  });
+
+  const handleReject = () => {
+    if (!rejectingRequest || !rejectNote.trim()) return;
+    rejectMutation.mutate({
+      note: rejectNote
+    });
   };
 
   const getStatusStyle = (status) => {
@@ -297,10 +292,10 @@ export default function Requests() {
                   </button>
                   <button 
                     onClick={handleApprove}
-                    disabled={!approvedQuantity || parseInt(approvedQuantity, 10) < 1 || parseInt(approvedQuantity, 10) > getRemainingAmount(approvingRequest.batch_id)}
+                    disabled={!approvedQuantity || parseInt(approvedQuantity, 10) < 1 || parseInt(approvedQuantity, 10) > getRemainingAmount(approvingRequest.batch_id) || approveMutation.isPending}
                     className="px-6 py-2 bg-[#12aeec] text-white text-sm font-bold rounded-lg hover:bg-[#12aeec]/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Confirm Approval
+                    {approveMutation.isPending ? 'Confirming...' : 'Confirm Approval'}
                   </button>
                 </div>
               </div>
@@ -346,10 +341,10 @@ export default function Requests() {
                   </button>
                   <button 
                     onClick={handleReject}
-                    disabled={!rejectNote.trim()}
+                    disabled={!rejectNote.trim() || rejectMutation.isPending}
                     className="px-6 py-2 bg-[#12aeec] text-white text-sm font-bold rounded-lg hover:bg-[#12aeec]/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Confirm Rejection
+                    {rejectMutation.isPending ? 'Rejecting...' : 'Confirm Rejection'}
                   </button>
                 </div>
               </div>

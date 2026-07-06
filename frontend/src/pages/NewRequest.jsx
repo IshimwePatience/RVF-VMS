@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
@@ -8,36 +9,27 @@ import { Send, ChevronDown, X, Clock } from 'lucide-react';
 export default function NewRequest() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [parentInventory, setParentInventory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState({});
   const [quantities, setQuantities] = useState({});
-  const [myRequests, setMyRequests] = useState([]);
   const [filterBy, setFilterBy] = useState('All');
   const [sortBy, setSortBy] = useState('Name A-Z');
   const [viewApprovals, setViewApprovals] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [invRes, reqRes] = await Promise.all([
-          axios.get('/rvf-api/inventory?view_parent=true'),
-          axios.get('/rvf-api/requests?type=outgoing')
-        ]);
-        setParentInventory(invRes.data);
-        setMyRequests(reqRes.data);
-      } catch (err) {
-        addToast('Failed to load available vaccines', 'error');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (!user?.is_central) {
-      fetchData();
-    } else {
-      setLoading(false);
-    }
-  }, [addToast, user]);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['new-requests'],
+    queryFn: async () => {
+      const [invRes, reqRes] = await Promise.all([
+        axios.get('/rvf-api/inventory?view_parent=true'),
+        axios.get('/rvf-api/requests?type=outgoing')
+      ]);
+      return { parentInventory: invRes.data, myRequests: reqRes.data };
+    },
+    enabled: !!user && !user.is_central,
+  });
+
+  const parentInventory = data?.parentInventory || [];
+  const myRequests = data?.myRequests || [];
 
   const handleQuantityChange = (batchId, value, maxAmount) => {
     let val = value;
@@ -47,7 +39,22 @@ export default function NewRequest() {
     setQuantities(prev => ({ ...prev, [batchId]: val }));
   };
 
-  const handleRequest = async (item) => {
+  const requestMutation = useMutation({
+    mutationFn: async (payload) => axios.post('/rvf-api/requests', payload),
+    onSuccess: (_, variables) => {
+      addToast('Request sent successfully!', 'success');
+      setQuantities(prev => ({ ...prev, [variables.batch_id]: '' }));
+      queryClient.invalidateQueries({ queryKey: ['new-requests'] });
+    },
+    onError: (err) => {
+      addToast(err.response?.data?.message || 'Failed to send request', 'error');
+    },
+    onSettled: (_, __, variables) => {
+      setSubmitting(null);
+    }
+  });
+
+  const handleRequest = (item) => {
     const requested_quantity = parseInt(quantities[item.batch_id]);
     if (!requested_quantity || requested_quantity < 1) {
       return addToast('Please enter a valid quantity to request', 'error');
@@ -57,35 +64,27 @@ export default function NewRequest() {
     }
 
     setSubmitting(item.batch_id);
-    try {
-      await axios.post('/rvf-api/requests', {
-        vaccine_id: item.Batch.vaccine_id,
-        batch_id: item.batch_id,
-        requested_quantity
-      });
-      addToast('Request sent successfully!', 'success');
-      setQuantities(prev => ({ ...prev, [item.batch_id]: '' }));
-      
-      const reqRes = await axios.get('/rvf-api/requests?type=outgoing');
-      setMyRequests(reqRes.data);
-    } catch (err) {
-      addToast(err.response?.data?.message || 'Failed to send request', 'error');
-    } finally {
-      setSubmitting(null);
-    }
+    requestMutation.mutate({
+      vaccine_id: item.Batch.vaccine_id,
+      batch_id: item.batch_id,
+      requested_quantity
+    });
   };
 
-  const handleCancel = async (id) => {
-    if (!window.confirm('Are you sure you want to stop this request?')) return;
-    try {
-      await axios.delete(`/rvf-api/requests/${id}`);
+  const cancelMutation = useMutation({
+    mutationFn: async (id) => axios.delete(`/rvf-api/requests/${id}`),
+    onSuccess: () => {
       addToast('Request stopped successfully!', 'success');
-      
-      const reqRes = await axios.get('/rvf-api/requests?type=outgoing');
-      setMyRequests(reqRes.data);
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['new-requests'] });
+    },
+    onError: (err) => {
       addToast(err.response?.data?.message || 'Failed to stop request', 'error');
     }
+  });
+
+  const handleCancel = (id) => {
+    if (!window.confirm('Are you sure you want to stop this request?')) return;
+    cancelMutation.mutate(id);
   };
 
   if (user?.is_central) {

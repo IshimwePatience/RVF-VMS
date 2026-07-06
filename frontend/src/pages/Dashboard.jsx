@@ -1,37 +1,30 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        let endpoint = '';
-        if (user.role === 'Admin') {
-          endpoint = '/rvf-api/dashboard/admin';
-        } else if (user.role === 'Zipline' || user.role === 'Operations') {
-          endpoint = '/rvf-api/dashboard/inventory';
-        } else if (user.stock_id) {
-          endpoint = '/rvf-api/dashboard/endpoint';
-        }
-
-        if (endpoint) {
-          const res = await axios.get(endpoint);
-          setData(res.data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['dashboard', user?.id],
+    queryFn: async () => {
+      let endpoint = '';
+      if (user.role === 'Admin') {
+        endpoint = '/rvf-api/dashboard/admin';
+      } else if (user.role === 'Zipline' || user.role === 'Operations') {
+        endpoint = '/rvf-api/dashboard/inventory';
+      } else if (user.stock_id) {
+        endpoint = '/rvf-api/dashboard/endpoint';
       }
-    };
-    if (user) fetchData();
-  }, [user]);
+      
+      if (!endpoint) return null;
+      
+      const res = await axios.get(endpoint);
+      return res.data;
+    },
+    enabled: !!user,
+  });
 
   if (loading) return <div className="p-8">Loading...</div>;
   if (!data) return <div className="p-8">No data available</div>;
@@ -54,30 +47,44 @@ export default function Dashboard() {
 
             <div>
               <h2 className="text-lg font-bold mb-4 uppercase tracking-wide text-gray-500">High RVF Sectors</h2>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.highRvfSectors || []}>
-                    <XAxis dataKey="sector" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip cursor={{ fill: '#f3f4f6' }} />
-                    <Bar dataKey="total_affected" fill="#111" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {(!data.highRvfSectors || data.highRvfSectors.length === 0) ? (
+                <div className="h-64 flex flex-col items-center justify-center text-center border border-slate-100 rounded-lg bg-slate-50/50">
+                  <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="Empty" className="w-24 h-24 mix-blend-multiply mb-2 opacity-80" />
+                  <p className="text-sm font-medium text-slate-500">No records found</p>
+                </div>
+              ) : (
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data.highRvfSectors}>
+                      <XAxis dataKey="sector" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip cursor={{ fill: '#f3f4f6' }} />
+                      <Bar dataKey="total_affected" fill="#111" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
 
             <div>
               <h2 className="text-lg font-bold mb-4 uppercase tracking-wide text-gray-500">Vaccine Usage</h2>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.vaccineUsageSectors || []}>
-                    <XAxis dataKey="sector" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip cursor={{ fill: '#f3f4f6' }} />
-                    <Bar dataKey="total_doses" fill="#111" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {(!data.vaccineUsageSectors || data.vaccineUsageSectors.length === 0) ? (
+                <div className="h-64 flex flex-col items-center justify-center text-center border border-slate-100 rounded-lg bg-slate-50/50">
+                  <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="Empty" className="w-24 h-24 mix-blend-multiply mb-2 opacity-80" />
+                  <p className="text-sm font-medium text-slate-500">No records found</p>
+                </div>
+              ) : (
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data.vaccineUsageSectors}>
+                      <XAxis dataKey="sector" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip cursor={{ fill: '#f3f4f6' }} />
+                      <Bar dataKey="total_doses" fill="#111" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -101,7 +108,12 @@ export default function Dashboard() {
                 ))}
                 {(!data.supplies || data.supplies.length === 0) && (
                   <tr>
-                    <td colSpan="2" className="py-6 text-gray-500">No stock available</td>
+                    <td colSpan="2" className="py-8">
+                      <div className="flex flex-col items-center justify-center text-center opacity-80">
+                        <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} className="w-20 h-20 mix-blend-multiply mb-2" alt="Empty" />
+                        <p className="text-sm font-medium text-slate-500">No stock available</p>
+                      </div>
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -134,7 +146,12 @@ export default function Dashboard() {
                 ))}
                 {(!data.reports || data.reports.length === 0) && (
                   <tr>
-                    <td colSpan="5" className="py-6 text-gray-500">No records found</td>
+                    <td colSpan="5" className="py-12">
+                      <div className="flex flex-col items-center justify-center text-center opacity-80">
+                        <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} className="w-20 h-20 mix-blend-multiply mb-2" alt="Empty" />
+                        <p className="text-sm font-medium text-slate-500">No vaccination records found</p>
+                      </div>
+                    </td>
                   </tr>
                 )}
               </tbody>

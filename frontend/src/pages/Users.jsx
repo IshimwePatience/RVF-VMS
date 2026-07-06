@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, ChevronDown, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
@@ -7,13 +8,8 @@ import { ToastContext } from '../context/ToastContext';
 export default function Users() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [users, setUsers] = useState([]);
-  const [stocks, setStocks] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Modal State
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     full_name: '',
@@ -24,51 +20,44 @@ export default function Users() {
   });
   const [editingId, setEditingId] = useState(null);
 
-  const fetchUsers = async () => {
-    try {
+  const { data: users = [], isLoading: loading } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
       const res = await axios.get('/rvf-api/users');
-      setUsers(res.data);
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to load users', 'error');
-    } finally {
-      setLoading(false);
+      return res.data;
     }
-  };
+  });
 
-  const fetchStocks = async () => {
-    try {
+  const { data: stocks = [] } = useQuery({
+    queryKey: ['stocks'],
+    queryFn: async () => {
       const res = await axios.get('/rvf-api/stocks');
-      setStocks(res.data);
-    } catch (err) {
-      console.error(err);
+      return res.data;
     }
-  };
+  });
 
-  useEffect(() => {
-    fetchUsers();
-    fetchStocks();
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
+  const saveMutation = useMutation({
+    mutationFn: async () => {
       if (editingId) {
-        await axios.put(`/rvf-api/users/${editingId}`, formData);
-        addToast('User updated successfully', 'success');
+        return axios.put(`/rvf-api/users/${editingId}`, formData);
       } else {
-        await axios.post('/rvf-api/users', formData);
-        addToast('User created successfully. Credentials sent to email.', 'success');
+        return axios.post('/rvf-api/users', formData);
       }
+    },
+    onSuccess: () => {
+      addToast(editingId ? 'User updated successfully' : 'User created successfully. Credentials sent to email.', 'success');
       closeModal();
-      fetchUsers();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast(err.response?.data?.message || 'Failed to save user', 'error');
-    } finally {
-      setSubmitting(false);
     }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate();
   };
 
   const closeModal = () => {
@@ -90,16 +79,21 @@ export default function Users() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
-    try {
-      await axios.delete(`/rvf-api/users/${id}`);
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => axios.delete(`/rvf-api/users/${id}`),
+    onSuccess: () => {
       addToast('User deleted successfully', 'success');
-      fetchUsers();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast(err.response?.data?.message || 'Failed to delete user', 'error');
     }
+  });
+
+  const handleDelete = (id) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    deleteMutation.mutate(id);
   };
 
   return (
@@ -225,7 +219,6 @@ export default function Users() {
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Username *</label>
                     <input
                       type="text" required
-                      placeholder="e.g. jdoe"
                       value={formData.username}
                       onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
@@ -236,7 +229,6 @@ export default function Users() {
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Full Names</label>
                     <input
                       type="text"
-                      placeholder="e.g. John Doe"
                       value={formData.full_name}
                       onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
@@ -247,25 +239,22 @@ export default function Users() {
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Email *</label>
                     <input
                       type="email" required
-                      placeholder="john.doe@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                     />
                   </div>
 
-                  {!editingId && (
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Password *</label>
-                      <input
-                        type="text" required={!editingId}
-                        placeholder="Assign an initial password"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Password {editingId ? '' : '*'}</label>
+                    <input
+                      type="text" required={!editingId}
+                      placeholder={editingId ? "Leave blank to keep current password" : "Assign an initial password"}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
+                    />
+                  </div>
 
                   <div>
                     <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Role *</label>
@@ -317,10 +306,10 @@ export default function Users() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={saveMutation.isPending}
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[13px] tracking-wide rounded transition-colors uppercase disabled:opacity-70"
                 >
-                  {submitting ? 'Saving...' : editingId ? 'Update User' : 'Create User'}
+                  {saveMutation.isPending ? 'Saving...' : editingId ? 'Update User' : 'Create User'}
                 </button>
               </div>
             </form>

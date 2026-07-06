@@ -79,6 +79,11 @@ exports.updateUser = async (id, data) => {
   if (data.full_name !== undefined) user.full_name = data.full_name || null;
   if (data.role) user.role = data.role;
   if (data.stock_id !== undefined) user.stock_id = data.stock_id || null;
+  
+  if (data.password) {
+    const salt = await bcrypt.genSalt(10);
+    user.password_hash = await bcrypt.hash(data.password, salt);
+  }
 
   await user.save();
 

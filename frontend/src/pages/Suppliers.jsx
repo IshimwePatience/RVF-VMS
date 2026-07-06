@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
@@ -8,50 +9,43 @@ import Dropdown from '../components/Dropdown';
 export default function Suppliers() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', contact_info: '' });
-  const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [filterBy, setFilterBy] = useState('All');
   const [sortBy, setSortBy] = useState('Name A-Z');
 
-  useEffect(() => {
-    fetchSuppliers();
-  }, []);
-
-  const fetchSuppliers = async () => {
-    try {
+  const { data: suppliers = [], isLoading: loading } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: async () => {
       const res = await axios.get('/rvf-api/suppliers');
-      setSuppliers(res.data);
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to fetch suppliers', 'error');
-    } finally {
-      setLoading(false);
+      return res.data;
     }
-  };
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
+  const saveMutation = useMutation({
+    mutationFn: async () => {
       if (editingId) {
-        await axios.put(`/rvf-api/suppliers/${editingId}`, formData);
-        addToast('Supplier updated successfully', 'success');
+        return axios.put(`/rvf-api/suppliers/${editingId}`, formData);
       } else {
-        await axios.post('/rvf-api/suppliers', formData);
-        addToast('Supplier created successfully', 'success');
+        return axios.post('/rvf-api/suppliers', formData);
       }
+    },
+    onSuccess: () => {
+      addToast(editingId ? 'Supplier updated successfully' : 'Supplier created successfully', 'success');
       closeModal();
-      fetchSuppliers();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast(err.response?.data?.message || 'Failed to save supplier', 'error');
-    } finally {
-      setSubmitting(false);
     }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate();
   };
 
   const closeModal = () => {
@@ -66,16 +60,21 @@ export default function Suppliers() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this supplier?')) return;
-    try {
-      await axios.delete(`/rvf-api/suppliers/${id}`);
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => axios.delete(`/rvf-api/suppliers/${id}`),
+    onSuccess: () => {
       addToast('Supplier deleted successfully', 'success');
-      fetchSuppliers();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast('Failed to delete supplier', 'error');
     }
+  });
+
+  const handleDelete = (id) => {
+    if (!window.confirm('Are you sure you want to delete this supplier?')) return;
+    deleteMutation.mutate(id);
   };
 
   const hasAccess = user?.is_central || user?.stock?.is_central || user?.role?.toLowerCase() === 'admin';
@@ -226,10 +225,10 @@ export default function Suppliers() {
                 </button>
                 <button 
                   type="submit" 
-                  disabled={submitting}
+                  disabled={saveMutation.isPending}
                   className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm disabled:opacity-70"
                 >
-                  {submitting ? 'Saving...' : editingId ? 'Update Supplier' : 'Save Supplier'}
+                  {saveMutation.isPending ? 'Saving...' : editingId ? 'Update Supplier' : 'Save Supplier'}
                 </button>
               </div>
             </form>

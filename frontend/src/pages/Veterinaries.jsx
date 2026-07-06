@@ -1,24 +1,21 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, ChevronDown, Pencil, Trash2 } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
-
 export default function Veterinaries() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [veterinaries, setVeterinaries] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   // Filters for Admin
   const [provinceFilter, setProvinceFilter] = useState('All');
   const [districtFilter, setDistrictFilter] = useState('All');
   const [sectorFilter, setSectorFilter] = useState('All');
 
-  // Modal State
   const [showModal, setShowModal] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -32,52 +29,43 @@ export default function Veterinaries() {
   });
   const [editingId, setEditingId] = useState(null);
 
-  const fetchVeterinaries = async () => {
-    if (!user) return;
-    try {
-      setLoading(true);
+  const { data: veterinaries = [], isLoading: loading } = useQuery({
+    queryKey: ['veterinaries', provinceFilter, districtFilter, sectorFilter],
+    queryFn: async () => {
       let url = '/rvf-api/veterinaries?';
       if (user?.role === 'Admin') {
         if (provinceFilter !== 'All') url += `province=${provinceFilter}&`;
         if (districtFilter !== 'All') url += `district=${districtFilter}&`;
         if (sectorFilter !== 'All') url += `sector=${sectorFilter}&`;
       }
-
       const res = await axios.get(url);
-      setVeterinaries(res.data);
-    } catch (err) {
-      console.error(err);
-      addToast('Failed to load veterinaries', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res.data;
+    },
+    enabled: !!user
+  });
 
-  useEffect(() => {
-    if (user) {
-      fetchVeterinaries();
-    }
-  }, [user, provinceFilter, districtFilter, sectorFilter]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
+  const saveMutation = useMutation({
+    mutationFn: async () => {
       if (editingId) {
-        await axios.put(`/rvf-api/veterinaries/${editingId}`, formData);
-        addToast('Veterinary updated successfully', 'success');
+        return axios.put(`/rvf-api/veterinaries/${editingId}`, formData);
       } else {
-        await axios.post('/rvf-api/veterinaries', formData);
-        addToast('Veterinary recorded successfully', 'success');
+        return axios.post('/rvf-api/veterinaries', formData);
       }
+    },
+    onSuccess: () => {
+      addToast(editingId ? 'Veterinary updated successfully' : 'Veterinary recorded successfully', 'success');
       closeModal();
-      fetchVeterinaries();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['veterinaries'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast(err.response?.data?.error || 'Failed to save veterinary', 'error');
-    } finally {
-      setSubmitting(false);
     }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate();
   };
 
   const closeModal = () => {
@@ -102,16 +90,21 @@ export default function Veterinaries() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this veterinary record?')) return;
-    try {
-      await axios.delete(`/rvf-api/veterinaries/${id}`);
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => axios.delete(`/rvf-api/veterinaries/${id}`),
+    onSuccess: () => {
       addToast('Veterinary deleted successfully', 'success');
-      fetchVeterinaries();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ['veterinaries'] });
+    },
+    onError: (err) => {
       console.error(err);
       addToast(err.response?.data?.error || 'Failed to delete veterinary', 'error');
     }
+  });
+
+  const handleDelete = (id) => {
+    if (!window.confirm('Are you sure you want to delete this veterinary record?')) return;
+    deleteMutation.mutate(id);
   };
 
   // Derive unique locations for filters based on the raw data (or hardcode/fetch from API ideally)
@@ -355,10 +348,10 @@ export default function Veterinaries() {
                     </button>
                     <button
                       type="submit"
-                      disabled={submitting}
+                      disabled={saveMutation.isPending}
                       className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[13px] tracking-wider rounded transition-colors disabled:opacity-50"
                     >
-                      {submitting ? 'SAVING...' : (editingId ? 'UPDATE RECORD' : 'SAVE RECORD')}
+                      {saveMutation.isPending ? 'SAVING...' : (editingId ? 'UPDATE RECORD' : 'SAVE RECORD')}
                     </button>
                   </div>
                 </form>

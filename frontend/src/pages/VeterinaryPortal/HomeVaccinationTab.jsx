@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
 
 export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
-  const [availableVaccines, setAvailableVaccines] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [expandedAnimals, setExpandedAnimals] = useState({});
@@ -23,20 +22,18 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
     }
   ]);
 
-  useEffect(() => {
-    const fetchVaccines = async () => {
-      try {
-        const res = await axios.get(`/rvf-api/veterinary-portal/available-vaccines?email=${encodeURIComponent(email)}`);
-        setAvailableVaccines(res.data);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to fetch available vaccines.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (email) fetchVaccines();
-  }, [email]);
+  const { data: availableVaccines = [], isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['available-vaccines', email],
+    queryFn: async () => {
+      const res = await axios.get(`/rvf-api/veterinary-portal/available-vaccines?email=${encodeURIComponent(email)}`);
+      return res.data;
+    },
+    enabled: !!email
+  });
+
+  if (queryError && !error) {
+    setError('Failed to fetch available vaccines.');
+  }
 
   const addHome = () => {
     setHomes([
@@ -96,9 +93,27 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const submitMutation = useMutation({
+    mutationFn: async (promises) => Promise.all(promises),
+    onSuccess: () => {
+      setHomes([{
+        id: Date.now(),
+        owner_name: '', owner_phone: '', owner_national_id: '',
+        animals: [{ id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }]
+      }]);
+      setSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (onSubmissionComplete) onSubmissionComplete();
+      queryClient.invalidateQueries({ queryKey: ['overview-stats'] });
+    },
+    onError: (err) => {
+      console.error(err);
+      setError(err.response?.data?.message || 'Failed to submit records.');
+    }
+  });
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setSubmitting(true);
     setError(null);
     setSuccess(false);
 
@@ -153,24 +168,10 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
         });
       });
 
-      await Promise.all(promises);
-      
-      // Clear form
-      setHomes([{
-        id: Date.now(),
-        owner_name: '', owner_phone: '', owner_national_id: '',
-        animals: [{ id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }]
-      }]);
-      
-      setSuccess(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      if (onSubmissionComplete) onSubmissionComplete();
-      
+      submitMutation.mutate(promises);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || 'Failed to submit records.');
-    } finally {
-      setSubmitting(false);
+      setError('Failed to build records payload.');
     }
   };
 
@@ -394,10 +395,10 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
             </button>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitMutation.isPending}
               className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded text-[15px] font-medium transition-colors disabled:opacity-70"
             >
-              {submitting ? 'Submitting...' : 'Submit'}
+              {submitMutation.isPending ? 'Submitting...' : 'Submit'}
             </button>
           </div>
         </div>

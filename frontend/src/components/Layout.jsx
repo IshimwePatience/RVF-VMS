@@ -4,16 +4,17 @@ import { ToastContext } from '../context/ToastContext';
 import { Search, MoreVertical, Grid, LogOut, Bell, CheckCircle2, Clock } from 'lucide-react';
 import { Outlet, Navigate, NavLink } from 'react-router-dom';
 import axios from 'axios';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import minisanteLogo from '../assets/images/MINISANTE.png';
 import GlobalSearch from './GlobalSearch';
 
 export default function Layout() {
   const { user, logout, token, socket } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
+  const queryClient = useQueryClient();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [showReminderDropdown, setShowReminderDropdown] = useState(false);
-  const [notifications, setNotifications] = useState([]);
   const [remindersEnabled, setRemindersEnabled] = useState(
     localStorage.getItem('remindersEnabled') !== 'false'
   );
@@ -22,58 +23,49 @@ export default function Layout() {
   );
 
   useEffect(() => {
-    if (token) {
-      fetchNotifications();
-    }
-  }, [token]);
-
-  useEffect(() => {
     localStorage.setItem('remindersEnabled', remindersEnabled);
     localStorage.setItem('reminderTime', reminderTime.toString());
   }, [remindersEnabled, reminderTime]);
 
-  useEffect(() => {
-    let intervalId;
-    const triggerReminders = async () => {
-      try {
-        const res = await axios.get('/rvf-api/notifications/reminders');
-        const { pendingRequests, unconfirmedDeliveries, unreceivedShipments, pendingFollowUps } = res.data;
+  useQuery({
+    queryKey: ['reminders'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/notifications/reminders');
+      const { pendingRequests, unconfirmedDeliveries, unreceivedShipments, pendingFollowUps } = res.data;
 
-        if (pendingRequests > 0) {
-          addToast(`Reminder: You have ${pendingRequests} pending request(s) to review.`, 'info');
-        }
-        if (unconfirmedDeliveries > 0) {
-          addToast(`Reminder: You have ${unconfirmedDeliveries} incoming delivery(s) waiting to be confirmed.`, 'info');
-        }
-        if (unreceivedShipments > 0) {
-          addToast(`Reminder: You have ${unreceivedShipments} shipment(s) currently in transit. Please follow up.`, 'info');
-        }
-        if (pendingFollowUps > 0) {
-          addToast(`Reminder: You have ${pendingFollowUps} pending veterinary follow-up(s) to complete.`, 'info');
-        }
-      } catch (err) {
-        console.error('Failed to fetch reminders:', err);
+      if (pendingRequests > 0) {
+        addToast(`Reminder: You have ${pendingRequests} pending request(s) to review.`, 'info');
       }
-    };
+      if (unconfirmedDeliveries > 0) {
+        addToast(`Reminder: You have ${unconfirmedDeliveries} incoming delivery(s) waiting to be confirmed.`, 'info');
+      }
+      if (unreceivedShipments > 0) {
+        addToast(`Reminder: You have ${unreceivedShipments} shipment(s) currently in transit. Please follow up.`, 'info');
+      }
+      if (pendingFollowUps > 0) {
+        addToast(`Reminder: You have ${pendingFollowUps} pending veterinary follow-up(s) to complete.`, 'info');
+      }
+      return res.data;
+    },
+    enabled: remindersEnabled && !!token,
+    refetchInterval: Math.max(1, reminderTime) * 60 * 1000,
+  });
 
-    if (remindersEnabled && token) {
-      // Run immediately on load or setting change
-      triggerReminders();
+  const { data: notificationsData = [] } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/notifications');
+      return res.data;
+    },
+    enabled: !!token,
+  });
 
-      // Setup interval based on user setting
-      const ms = Math.max(1, reminderTime) * 60 * 1000;
-      intervalId = setInterval(triggerReminders, ms);
-    }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [remindersEnabled, reminderTime, token, addToast]);
+  const notifications = notificationsData;
 
   useEffect(() => {
     if (socket) {
       const handleNotification = (notif) => {
-        setNotifications(prev => [notif, ...prev]);
+        queryClient.setQueryData(['notifications'], old => [notif, ...(old || [])]);
         if (remindersEnabled) {
           addToast(notif.message, 'info');
         }
@@ -83,21 +75,14 @@ export default function Layout() {
         socket.off('notification', handleNotification);
       };
     }
-  }, [socket, remindersEnabled]);
-
-  const fetchNotifications = async () => {
-    try {
-      const res = await axios.get('/rvf-api/notifications');
-      setNotifications(res.data);
-    } catch (err) {
-      console.error('Failed to fetch notifications:', err);
-    }
-  };
+  }, [socket, remindersEnabled, queryClient, addToast]);
 
   const markAsRead = async (id) => {
     try {
       await axios.put(`/rvf-api/notifications/${id}/read`);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+      queryClient.setQueryData(['notifications'], old => 
+        (old || []).map(n => n.id === id ? { ...n, is_read: true } : n)
+      );
     } catch (err) {
       console.error('Failed to mark read', err);
     }
