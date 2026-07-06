@@ -48,21 +48,21 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto p-4 md:p-8">
-      <h1 className="text-[26px] font-bold text-[#1F2432] mb-8 tracking-tight">Dashboard</h1>
+    <div className="max-w-[1200px] mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {user.role === 'Admin' && (
           <>
             <div className="col-span-1 md:col-span-2 mb-4">
-              <h2 className="text-[13px] font-bold mb-1 uppercase tracking-wider text-slate-500">Total Stock Value</h2>
-              <p className="text-[42px] font-black tracking-tighter text-[#1F2432]">
+              <h2 className="text-lg font-bold mb-2 uppercase tracking-wide text-gray-500">Total Stock Value</h2>
+              <p className="text-5xl font-black tracking-tight">
                 {data.totalStockValue ? `${data.totalStockValue.toLocaleString()} RWF` : '0 RWF'}
               </p>
             </div>
 
             <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white">
-              <h2 className="text-[15px] font-bold mb-6 text-slate-700">High RVF Sectors</h2>
+              <h2 className="text-lg font-bold mb-4 uppercase tracking-wide text-gray-500">High RVF Sectors</h2>
               {(!data.highRvfSectors || data.highRvfSectors.length === 0) ? (
                 <div className="h-[250px] flex flex-col items-center justify-center text-center">
                   <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="Empty" className="w-20 h-20 mix-blend-multiply mb-2 opacity-80" />
@@ -89,7 +89,7 @@ export default function Dashboard() {
             </div>
 
             <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white">
-              <h2 className="text-[15px] font-bold mb-6 text-slate-700">Vaccine Usage by Sector</h2>
+              <h2 className="text-lg font-bold mb-4 uppercase tracking-wide text-gray-500">Vaccine Usage</h2>
               {(!data.vaccineUsageSectors || data.vaccineUsageSectors.length === 0) ? (
                 <div className="h-[250px] flex flex-col items-center justify-center text-center">
                   <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="Empty" className="w-20 h-20 mix-blend-multiply mb-2 opacity-80" />
@@ -120,7 +120,7 @@ export default function Dashboard() {
         {(user.role === 'Zipline' || user.role === 'Operations') && !isEndpoint && (
           <>
             <div className="col-span-1 md:col-span-2 mb-2 mt-4">
-              <h2 className="text-[13px] font-bold uppercase tracking-wider text-slate-500">Current Supply Levels</h2>
+              <h2 className="text-lg font-bold uppercase tracking-wide text-gray-500">Current Supply Levels</h2>
             </div>
             
             {(!data.supplies || data.supplies.length === 0) ? (
@@ -131,7 +131,7 @@ export default function Dashboard() {
             ) : (
               <>
                 <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white">
-                  <h3 className="text-[16px] font-bold text-slate-800 mb-6">Supply Overview</h3>
+                  <h3 className="text-lg font-bold uppercase tracking-wide text-gray-500 mb-6">Supply Overview</h3>
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={data.supplies} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -149,7 +149,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white flex flex-col">
-                  <h3 className="text-[16px] font-bold text-slate-800 mb-1">Analytic View</h3>
+                  <h3 className="text-lg font-bold uppercase tracking-wide text-gray-500 mb-1">Analytic View</h3>
                   <p className="text-[13px] text-slate-500 mb-6">Total doses proportion</p>
                   <div className="flex-1 min-h-[220px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -191,7 +191,7 @@ export default function Dashboard() {
         {isEndpoint && (
           <>
             <div className="col-span-1 md:col-span-2 mb-2 mt-4">
-              <h2 className="text-[13px] font-bold uppercase tracking-wider text-slate-500">Your Sector Analytics</h2>
+              <h2 className="text-lg font-bold uppercase tracking-wide text-gray-500">Your Sector Analytics</h2>
             </div>
             
             {(!data.reports || data.reports.length === 0) ? (
@@ -202,7 +202,7 @@ export default function Dashboard() {
             ) : (
               <>
                 <div className="col-span-1 md:col-span-2 border border-slate-100 shadow-sm rounded-2xl p-6 bg-white mb-2">
-                  <h3 className="text-[16px] font-bold text-slate-800 mb-6">Vaccination Trend (Doses Used)</h3>
+                  <h3 className="text-lg font-bold uppercase tracking-wide text-gray-500 mb-6">Vaccination Trend (Doses Used)</h3>
                   <div className="h-[250px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={[...data.reports].reverse()} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -229,7 +229,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="col-span-1 md:col-span-2 border border-slate-100 shadow-sm rounded-2xl p-6 bg-white">
-                  <h2 className="text-[15px] font-bold mb-6 text-slate-800">Recent Vaccinations</h2>
+                  <h2 className="text-lg font-bold uppercase tracking-wide text-gray-500 mb-6">Recent Vaccinations</h2>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-[14px]">
                       <thead>
