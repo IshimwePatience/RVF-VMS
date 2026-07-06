@@ -16,6 +16,7 @@ import NewRequest from './pages/NewRequest';
 import Transfers from './pages/Transfers';
 import Administration from './pages/Administration';
 import ReportUsage from './pages/ReportUsage';
+import Reports from './pages/Reports';
 import VeterinaryPortal from './pages/VeterinaryPortal/VeterinaryPortal';
 import Veterinaries from './pages/Veterinaries';
 import { AuthContext } from './context/AuthContext';
@@ -62,7 +63,7 @@ function App() {
               <Route path="stocks" element={<CentralOnlyRoute><Stocks /></CentralOnlyRoute>} />
               <Route path="vaccines" element={<CentralOnlyRoute><Vaccines /></CentralOnlyRoute>} />
               <Route path="suppliers" element={<CentralOnlyRoute><Suppliers /></CentralOnlyRoute>} />
-              <Route path="reports" element={<div className="p-8">Reports Placeholder</div>} />
+              <Route path="reports" element={<Reports />} />
               <Route path="users" element={<AdminOnlyRoute><Users /></AdminOnlyRoute>} />
               <Route path="settings" element={<AdminOnlyRoute><Settings /></AdminOnlyRoute>} />
             </Route>

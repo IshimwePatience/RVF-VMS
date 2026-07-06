@@ -278,6 +278,7 @@ export default function Users() {
                       >
                         <option value="Viewer">Viewer (Read-only)</option>
                         <option value="Operations">Operations (Manage stock)</option>
+                        <option value="Zipline">Zipline (Supply only)</option>
                         <option value="Admin">Admin (Full Access)</option>
                       </select>
                       <div className="absolute right-0 top-1 pointer-events-none text-slate-400">

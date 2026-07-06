@@ -1,72 +1,147 @@
-import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
-import Dropdown from '../components/Dropdown';
+import React, { useState, useEffect, useContext } from 'react';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
-  const inventoryItems = [
-    { id: 1, name: 'RVF Live Attenuated (Smithburn)', supplier: 'BioPharma Inc.', stock: '12,500', status: 'In Stock', rating: '4.8' },
-    { id: 2, name: 'RVF Inactivated Vaccine', supplier: 'GlobalVet Solutions', stock: '8,200', status: 'Low Stock', rating: '4.5' },
-    { id: 3, name: 'Clone 13 (Live Attenuated)', supplier: 'African Vet Labs', stock: '24,000', status: 'In Stock', rating: '4.9' },
-    { id: 4, name: 'Recombinant MP-12', supplier: 'TechVac', stock: '1,500', status: 'Critical', rating: '4.7' },
-    { id: 5, name: 'RVF Adjuvanted Vaccine', supplier: 'BioPharma Inc.', stock: '9,800', status: 'In Stock', rating: '4.6' },
-    { id: 6, name: 'Emergency Stock (Central)', supplier: 'WHO Hub', stock: '50,000', status: 'Reserved', rating: '5.0' },
-  ];
+  const { user } = useContext(AuthContext);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [filterBy, setFilterBy] = useState('All');
-  const [sortBy, setSortBy] = useState('Most relevant');
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        let endpoint = '';
+        if (user.role === 'Admin') {
+          endpoint = '/api/dashboard/admin';
+        } else if (user.role === 'Zipline' || user.role === 'Operations') {
+          endpoint = '/api/dashboard/inventory';
+        } else if (user.stock_id) {
+          endpoint = '/api/dashboard/endpoint';
+        }
+
+        if (endpoint) {
+          const res = await axios.get(endpoint);
+          setData(res.data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) fetchData();
+  }, [user]);
+
+  if (loading) return <div className="p-8">Loading...</div>;
+  if (!data) return <div className="p-8">No data available</div>;
+
+  const isEndpoint = user.stock_id !== null && user.stock_id !== undefined && user.role !== 'Admin';
 
   return (
-    <div className="max-w-[1200px] mx-auto pb-12">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Current Inventory</h1>
-        
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-medium">Filter by</span>
-            <Dropdown 
-              value={filterBy} 
-              options={['All', 'In Stock', 'Critical']} 
-              onChange={setFilterBy} 
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-medium">Sort by</span>
-            <Dropdown 
-              value={sortBy} 
-              options={['Most relevant', 'Name A-Z']} 
-              onChange={setSortBy} 
-            />
-          </div>
-        </div>
-      </div>
+    <div className="max-w-[1200px] mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        {user.role === 'Admin' && (
+          <>
+            <div className="flex flex-col">
+              <h2 className="text-lg font-bold mb-2 uppercase tracking-wide text-gray-500">Total Stock Value</h2>
+              <p className="text-5xl font-black tracking-tight">{data.totalStockValue ? `${data.totalStockValue.toLocaleString()} RWF` : '0 RWF'}</p>
+            </div>
+            
+            <div className="hidden md:block"></div> {/* Spacer for the grid layout */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {inventoryItems.map((item) => (
-          <div key={item.id} className="group bg-white rounded-2xl p-4 transition-all duration-300 hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] cursor-pointer border border-transparent hover:border-slate-100 flex flex-col h-full">
-            <div className={`h-36 rounded-xl w-full mb-4 flex items-center justify-center text-white font-bold text-xl relative overflow-hidden ${
-              item.status === 'Critical' ? 'bg-gradient-to-br from-red-500 to-rose-600' :
-              item.status === 'Low Stock' ? 'bg-gradient-to-br from-orange-400 to-amber-500' :
-              'bg-gradient-to-br from-blue-500 to-indigo-600'
-            }`}>
-              <div className="absolute inset-0 bg-black/10"></div>
-              <span className="relative z-10 text-center px-4 drop-shadow-md">{item.name}</span>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-slate-900 mb-1">{item.name}</h3>
-              <div className="flex items-center gap-1 text-sm text-slate-600 mb-2">
-                <span>{item.rating}</span>
-                <span className="text-slate-400">★</span>
-                <span className="text-slate-300 mx-1">|</span>
-                <span className="text-blue-600 hover:underline">{item.supplier}</span>
+            <div>
+              <h2 className="text-lg font-bold mb-4 uppercase tracking-wide text-gray-500">High RVF Sectors</h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.highRvfSectors || []}>
+                    <XAxis dataKey="sector" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip cursor={{ fill: '#f3f4f6' }} />
+                    <Bar dataKey="total_affected" fill="#111" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                Available stock: <span className="font-medium text-slate-800">{item.stock} doses</span>. Currently marked as {item.status.toLowerCase()}.
-              </p>
             </div>
+
+            <div>
+              <h2 className="text-lg font-bold mb-4 uppercase tracking-wide text-gray-500">Vaccine Usage</h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.vaccineUsageSectors || []}>
+                    <XAxis dataKey="sector" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip cursor={{ fill: '#f3f4f6' }} />
+                    <Bar dataKey="total_doses" fill="#111" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </>
+        )}
+
+        {(user.role === 'Zipline' || user.role === 'Operations') && !isEndpoint && (
+          <div className="col-span-1 md:col-span-2">
+            <h2 className="text-lg font-bold mb-4 uppercase tracking-wide text-gray-500">Current Supply Levels</h2>
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b-2 border-black">
+                  <th className="py-3 font-bold uppercase tracking-wider">Vaccine</th>
+                  <th className="py-3 font-bold uppercase tracking-wider">Total Doses Available</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.supplies?.map((s, i) => (
+                  <tr key={i} className="border-b border-gray-200">
+                    <td className="py-3 font-medium">{s.Vaccine?.name || 'Unknown'}</td>
+                    <td className="py-3">{s.total_quantity}</td>
+                  </tr>
+                ))}
+                {(!data.supplies || data.supplies.length === 0) && (
+                  <tr>
+                    <td colSpan="2" className="py-6 text-gray-500">No stock available</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        ))}
+        )}
+
+        {isEndpoint && (
+          <div className="col-span-1 md:col-span-2">
+            <h2 className="text-lg font-bold mb-4 uppercase tracking-wide text-gray-500">Recent Vaccinations (Your Sector)</h2>
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b-2 border-black">
+                  <th className="py-3 font-bold uppercase tracking-wider">Date</th>
+                  <th className="py-3 font-bold uppercase tracking-wider">Veterinary</th>
+                  <th className="py-3 font-bold uppercase tracking-wider">Sector</th>
+                  <th className="py-3 font-bold uppercase tracking-wider">Doses Used</th>
+                  <th className="py-3 font-bold uppercase tracking-wider">Animals Affected</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.reports?.map((r) => (
+                  <tr key={r.id} className="border-b border-gray-200">
+                    <td className="py-3">{new Date(r.date_administered).toLocaleDateString()}</td>
+                    <td className="py-3">{r.veterinary_name}</td>
+                    <td className="py-3">{r.sector}</td>
+                    <td className="py-3 font-bold">{r.doses_used}</td>
+                    <td className="py-3">{r.animals_affected}</td>
+                  </tr>
+                ))}
+                {(!data.reports || data.reports.length === 0) && (
+                  <tr>
+                    <td colSpan="5" className="py-6 text-gray-500">No records found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
