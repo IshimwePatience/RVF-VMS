@@ -7,7 +7,13 @@ import HomeVaccinationTab from './HomeVaccinationTab';
 export default function VeterinaryPortal() {
   const { email } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem(`vetPortalActiveTab_${email}`) || 'overview');
+
+  React.useEffect(() => {
+    if (email) {
+      localStorage.setItem(`vetPortalActiveTab_${email}`, activeTab);
+    }
+  }, [activeTab, email]);
 
   const handleSignOut = () => {
     navigate('/report-usage');

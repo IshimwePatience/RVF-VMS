@@ -16,16 +16,22 @@ export default function Inventory() {
   const [suppliers, setSuppliers] = useState([]);
   const [vaccines, setVaccines] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [filterBy, setFilterBy] = useState('All');
-  const [sortBy, setSortBy] = useState('Name A-Z');
+  const [filterBy, setFilterBy] = useState(() => localStorage.getItem('inventoryFilterBy') || 'All');
+  const [sortBy, setSortBy] = useState(() => localStorage.getItem('inventorySortBy') || 'Name A-Z');
   const [editingId, setEditingId] = useState(null);
-  const [activeTab, setActiveTab] = useState('batches');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('inventoryActiveTab') || 'batches');
 
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('inventoryViewMode') || 'grid');
 
   useEffect(() => {
     localStorage.setItem('inventoryViewMode', viewMode);
   }, [viewMode]);
+
+  useEffect(() => {
+    localStorage.setItem('inventoryFilterBy', filterBy);
+    localStorage.setItem('inventorySortBy', sortBy);
+    localStorage.setItem('inventoryActiveTab', activeTab);
+  }, [filterBy, sortBy, activeTab]);
   const [formData, setFormData] = useState({
     supplier_id: '',
     vaccine_id: '',

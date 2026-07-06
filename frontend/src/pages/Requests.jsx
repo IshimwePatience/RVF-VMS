@@ -11,7 +11,11 @@ export default function Requests() {
   const [requests, setRequests] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('incoming');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('requestsActiveTab') || 'incoming');
+
+  useEffect(() => {
+    localStorage.setItem('requestsActiveTab', activeTab);
+  }, [activeTab]);
   const [approvingRequest, setApprovingRequest] = useState(null);
   const [approvedQuantity, setApprovedQuantity] = useState('');
   const [approvalNote, setApprovalNote] = useState('');

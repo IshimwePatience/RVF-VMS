@@ -25,8 +25,13 @@ export default function Stocks() {
   });
   const [editingId, setEditingId] = useState(null);
   const [viewStock, setViewStock] = useState(null);
-  const [filterBy, setFilterBy] = useState('All');
-  const [sortBy, setSortBy] = useState('Hierarchy');
+  const [filterBy, setFilterBy] = useState(() => localStorage.getItem('stocksFilterBy') || 'All');
+  const [sortBy, setSortBy] = useState(() => localStorage.getItem('stocksSortBy') || 'Hierarchy');
+
+  useEffect(() => {
+    localStorage.setItem('stocksFilterBy', filterBy);
+    localStorage.setItem('stocksSortBy', sortBy);
+  }, [filterBy, sortBy]);
 
   const fetchStocks = async () => {
     try {

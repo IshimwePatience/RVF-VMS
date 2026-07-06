@@ -13,7 +13,7 @@ exports.getAdminDashboard = async (req, res) => {
     let totalStockValue = 0;
     inventories.forEach(inv => {
       if (inv.Batch && inv.Batch.price_per_dose_rwf) {
-        totalStockValue += inv.quantity * inv.Batch.price_per_dose_rwf;
+        totalStockValue += inv.quantity_available * inv.Batch.price_per_dose_rwf;
       }
     });
 
@@ -75,13 +75,16 @@ exports.getInventoryDashboard = async (req, res) => {
     // Zipline/Operations view - just aggregate supply levels
     const supplies = await StockInventory.findAll({
       attributes: [
-        'vaccine_id',
-        [Sequelize.fn('SUM', Sequelize.col('quantity')), 'total_quantity']
+        [Sequelize.fn('SUM', Sequelize.col('quantity_available')), 'total_quantity']
       ],
       include: [
-        { model: Vaccine, attributes: ['name'] }
+        {
+          model: Batch,
+          attributes: ['vaccine_id'],
+          include: [{ model: Vaccine, attributes: ['name'] }]
+        }
       ],
-      group: ['vaccine_id', 'Vaccine.id', 'Vaccine.name']
+      group: ['Batch.vaccine_id', 'Batch->Vaccine.id', 'Batch->Vaccine.name']
     });
 
     res.json({ supplies });

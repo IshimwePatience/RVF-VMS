@@ -10,15 +10,19 @@ export default function Transfers() {
   const isCentral = user?.role === 'Admin' || user?.stock?.is_central || user?.is_central;
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(isCentral ? 'outgoing' : 'incoming');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('transfersActiveTab') || (isCentral ? 'outgoing' : 'incoming'));
   const [fetchTrigger, setFetchTrigger] = useState(0);
   const [confirmingTransfer, setConfirmingTransfer] = useState(null);
 
   useEffect(() => {
-    if (user) {
-      setActiveTab(isCentral ? 'outgoing' : 'incoming');
+    localStorage.setItem('transfersActiveTab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (user && isCentral && activeTab === 'incoming') {
+      setActiveTab('outgoing');
     }
-  }, [user, isCentral]);
+  }, [user, isCentral, activeTab]);
 
   useEffect(() => {
     let ignore = false;
