@@ -73,21 +73,31 @@ exports.getEndpointDashboard = async (req, res) => {
 exports.getInventoryDashboard = async (req, res) => {
   try {
     // Zipline/Operations view - just aggregate supply levels
-    const supplies = await StockInventory.findAll({
-      attributes: [
-        [Sequelize.fn('SUM', Sequelize.col('quantity_available')), 'total_quantity']
-      ],
+    const suppliesRaw = await StockInventory.findAll({
       include: [
         {
           model: Batch,
-          attributes: ['vaccine_id'],
-          include: [{ model: Vaccine, attributes: ['name'] }]
+          include: [{ model: Vaccine }]
         }
-      ],
-      group: ['Batch.vaccine_id', 'Batch->Vaccine.id', 'Batch->Vaccine.name']
+      ]
     });
 
-    res.json({ supplies });
+    const supplyMap = {};
+    suppliesRaw.forEach(inv => {
+      if (inv.Batch && inv.Batch.Vaccine) {
+        const vId = inv.Batch.vaccine_id;
+        if (!supplyMap[vId]) {
+          supplyMap[vId] = {
+            vaccine_id: vId,
+            vaccine_name: inv.Batch.Vaccine.name,
+            total_quantity: 0
+          };
+        }
+        supplyMap[vId].total_quantity += inv.quantity_available;
+      }
+    });
+
+    res.json({ supplies: Object.values(supplyMap) });
   } catch (error) {
     console.error('Error fetching inventory dashboard:', error);
     res.status(500).json({ message: 'Failed to fetch dashboard data' });

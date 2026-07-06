@@ -26,7 +26,8 @@ export const AuthProvider = ({ children }) => {
       
       const newSocket = io('/', {
         path: '/rvf-api/socket.io',
-        auth: { token }
+        auth: { token },
+        transports: ['polling']
       });
       setSocket(newSocket);
       
