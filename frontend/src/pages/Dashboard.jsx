@@ -325,18 +325,15 @@ export default function Dashboard() {
               <h2 className="text-lg font-bold text-gray-800">Your Sector Analytics</h2>
             </div>
             
-            <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
-              <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                <p className="text-[13px] font-bold text-slate-400 uppercase tracking-wider mb-2">Vaccines Used</p>
-                <p className="text-4xl font-black text-[#10b981]">{data.vaccinesUsed?.toLocaleString() || 0}</p>
-              </div>
-              <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                <p className="text-[13px] font-bold text-slate-400 uppercase tracking-wider mb-2">Vaccines Damaged</p>
-                <p className="text-4xl font-black text-[#f43f5e]">{data.vaccinesDamaged?.toLocaleString() || 0}</p>
-              </div>
-              <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                <p className="text-[13px] font-bold text-slate-400 uppercase tracking-wider mb-2">Current Stock Level</p>
-                <p className="text-4xl font-black text-[#8b5cf6]">{data.stockLevel?.toLocaleString() || 0}</p>
+            <div className="col-span-1 md:col-span-2 border border-slate-100 shadow-sm rounded-2xl p-6 bg-white mb-4 hover:shadow-md transition-shadow">
+              <h3 className="text-base font-bold text-gray-800 mb-1">Inventory Overview</h3>
+              <p className="text-[12px] text-slate-400 font-medium mb-6">Distribution of vaccines at your facility</p>
+              <div className="flex-1 min-h-[300px]">
+                <AnalyticDonut data={[
+                  { total_quantity: data.stockLevel || 0, vaccine_name: 'Current Stock Level' },
+                  { total_quantity: data.vaccinesUsed || 0, vaccine_name: 'Vaccines Used' },
+                  { total_quantity: data.vaccinesDamaged || 0, vaccine_name: 'Vaccines Damaged' }
+                ]} />
               </div>
             </div>
             
