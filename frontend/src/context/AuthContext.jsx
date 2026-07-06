@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
       if (storedUser) setUser(JSON.parse(storedUser));
       
       const newSocket = io('/', {
+        path: '/rvf-api/socket.io',
         auth: { token }
       });
       setSocket(newSocket);

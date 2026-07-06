@@ -60,19 +60,19 @@ export default function Settings() {
   }
 
   return (
-    <div className="max-w-[800px] mx-auto pb-12 pt-4">
+    <div className="pb-12 pt-4">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
         <p className="text-slate-500 mt-1">Manage system-wide configuration and financial settings</p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="border-b border-slate-200">
-          <div className="px-8 py-4 bg-slate-50 border-b border-slate-200">
+      <div>
+        <div>
+          <div className="py-2">
             <h3 className="text-[14px] font-bold text-slate-700 uppercase tracking-wider">Currency Exchange Rates</h3>
           </div>
           
-          <div className="px-8 py-6">
+          <div className="py-4">
             <p className="text-sm text-slate-500 mb-6">
               Set the base conversion rates to Rwandan Francs (RWF). These values will be used across the app to calculate equivalent values in other currencies.
             </p>

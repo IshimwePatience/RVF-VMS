@@ -13,11 +13,11 @@ export default function Dashboard() {
       try {
         let endpoint = '';
         if (user.role === 'Admin') {
-          endpoint = '/api/dashboard/admin';
+          endpoint = '/rvf-api/dashboard/admin';
         } else if (user.role === 'Zipline' || user.role === 'Operations') {
-          endpoint = '/api/dashboard/inventory';
+          endpoint = '/rvf-api/dashboard/inventory';
         } else if (user.stock_id) {
-          endpoint = '/api/dashboard/endpoint';
+          endpoint = '/rvf-api/dashboard/endpoint';
         }
 
         if (endpoint) {

@@ -9,6 +9,7 @@ const { authenticate } = require('./middleware/auth.middleware');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
+  path: '/rvf-api/socket.io',
   cors: { origin: '*' }
 });
 

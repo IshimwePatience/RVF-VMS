@@ -12,7 +12,7 @@ export default function Reports() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        let url = '/api/administrations';
+        let url = '/rvf-api/administrations';
         if (user.role !== 'Admin' && user.stock_id) {
           url += `?stock_id=${user.stock_id}`;
         }
@@ -33,55 +33,91 @@ export default function Reports() {
   }, [user]);
 
   return (
-    <div className="max-w-[1200px] mx-auto p-4">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold uppercase tracking-wide text-gray-800">Veterinary Reports</h1>
-        <p className="text-gray-500 mt-1">All forms submitted by veterinarians in the field.</p>
+    <div className="pb-12">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Veterinary Reports</h1>
+          <p className="text-slate-500 mt-1">All forms submitted by veterinarians in the field.</p>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="py-8">Loading reports...</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead>
-              <tr className="border-b-2 border-black">
-                <th className="py-3 font-bold uppercase tracking-wider">Date</th>
-                <th className="py-3 font-bold uppercase tracking-wider">Veterinary Name</th>
-                <th className="py-3 font-bold uppercase tracking-wider">Location (Prov/Dist/Sect)</th>
-                <th className="py-3 font-bold uppercase tracking-wider">Vaccine</th>
-                <th className="py-3 font-bold uppercase tracking-wider text-right">Doses Used</th>
-                <th className="py-3 font-bold uppercase tracking-wider text-right">Animals Affected</th>
-                <th className="py-3 font-bold uppercase tracking-wider text-right">Animals Died</th>
-                <th className="py-3 font-bold uppercase tracking-wider text-center">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reports.map((r) => (
-                <tr key={r.id} className="border-b border-gray-200">
-                  <td className="py-3">{new Date(r.date_administered).toLocaleDateString()}</td>
-                  <td className="py-3">{r.veterinary_name}</td>
-                  <td className="py-3">{r.province} / {r.district} / {r.sector}</td>
-                  <td className="py-3">{r.Batch?.Vaccine?.name || 'N/A'}</td>
-                  <td className="py-3 text-right font-medium">{r.doses_used || 0}</td>
-                  <td className="py-3 text-right">{r.animals_affected || 0}</td>
-                  <td className="py-3 text-right text-red-600">{r.animals_died || 0}</td>
-                  <td className="py-3 text-center">
-                    <span className={`px-2 py-1 text-xs font-bold uppercase ${r.report_status === 'submitted' ? 'text-green-700' : 'text-orange-600'}`}>
-                      {r.report_status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {reports.length === 0 && (
+      <div className="mt-4">
+        {loading ? (
+          <div className="p-8 text-center text-slate-500">Loading reports...</div>
+        ) : reports.length === 0 ? (
+          <div className="py-16 flex flex-col items-center justify-center text-center">
+            <div className="relative w-48 h-48 mb-2">
+              <img 
+                src={`${import.meta.env.BASE_URL}empty_mascot.png`} 
+                alt="Empty Records Mascot" 
+                className="w-full h-full object-contain mix-blend-multiply"
+              />
+            </div>
+            <h3 className="text-lg font-bold text-slate-800">No reports found</h3>
+            <p className="text-slate-500 text-sm mt-1">When veterinarians submit reports, they will appear here.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200">
                 <tr>
-                  <td colSpan="8" className="py-8 text-center text-gray-500">No reports found</td>
+                  <th className="py-3 font-semibold text-slate-800">Date</th>
+                  <th className="py-3 font-semibold text-slate-800">Veterinary Name</th>
+                  <th className="py-3 font-semibold text-slate-800">Location</th>
+                  <th className="py-3 font-semibold text-slate-800">Vaccine</th>
+                  <th className="py-3 font-semibold text-slate-800">Doses Used</th>
+                  <th className="py-3 font-semibold text-slate-800">Animals Affected</th>
+                  <th className="py-3 font-semibold text-slate-800">Animals Died</th>
+                  <th className="py-3 font-semibold text-slate-800">Status</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {reports.map((r) => (
+                  <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="py-4 text-slate-600">
+                      {new Date(r.date_administered).toLocaleDateString()}
+                    </td>
+                    <td className="py-4 pr-6">
+                      <span className="font-medium text-slate-900">{r.veterinary_name}</span>
+                    </td>
+                    <td className="py-4 text-slate-600">
+                      <div className="flex flex-col">
+                        <span className="text-sm">{r.sector}</span>
+                        <span className="text-xs text-slate-400">{r.province} / {r.district}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 text-slate-600">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-slate-900 text-sm">{r.Batch?.Vaccine?.name || 'N/A'}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 text-slate-600">
+                      <span className="font-medium">{r.doses_used || 0}</span>
+                    </td>
+                    <td className="py-4 text-slate-600">
+                      {r.animals_affected || 0}
+                    </td>
+                    <td className="py-4 text-slate-600">
+                      {r.animals_died > 0 ? (
+                        <span className="text-red-600 font-medium">{r.animals_died}</span>
+                      ) : (
+                        <span>0</span>
+                      )}
+                    </td>
+                    <td className="py-4">
+                      {r.report_status === 'submitted' ? (
+                        <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">Submitted</span>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">Pending</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
