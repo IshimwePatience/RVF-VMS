@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { User, Stock, PasswordResetRequest } = require('../models');
+const { Op } = require('sequelize');
 const { otpCache, sessionCache } = require('../utils/cache');
 const { sendOTP } = require('../utils/email');
 
@@ -12,7 +13,12 @@ exports.login = async (req, res) => {
     const { username, password } = req.body;
     
     const user = await User.findOne({ 
-      where: { username },
+      where: { 
+        [Op.or]: [
+          { username: username },
+          { email: username }
+        ]
+      },
       include: [{ model: Stock, as: 'Stock' }]
     });
 
