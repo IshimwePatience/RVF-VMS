@@ -1,5 +1,5 @@
 const { AdministrationRecord, StockInventory, Stock, Batch, Vaccine, sequelize } = require('../models');
-const { sendReportLinkEmail } = require('../utils/email');
+const { sendVeterinaryPortalLinkEmail } = require('../utils/email');
 const crypto = require('crypto');
 
 exports.createAdministration = async (req, res) => {
@@ -17,6 +17,13 @@ exports.createAdministration = async (req, res) => {
       await t.rollback();
       return res.status(400).json({ message: 'Insufficient inventory for this batch' });
     }
+
+    // Check if this is the first time the veterinary is receiving vaccines
+    const existingRecord = await AdministrationRecord.findOne({
+      where: { email },
+      transaction: t
+    });
+    const isFirstTime = !existingRecord;
 
     // Create record
     const report_token = crypto.randomUUID();
@@ -42,8 +49,8 @@ exports.createAdministration = async (req, res) => {
 
     await t.commit();
 
-    if (email) {
-      sendReportLinkEmail(email, report_token, veterinary_name).catch(err => console.error('Failed to send report email:', err));
+    if (email && isFirstTime) {
+      sendVeterinaryPortalLinkEmail(email, veterinary_name).catch(err => console.error('Failed to send portal email:', err));
     }
 
     res.status(201).json(record);

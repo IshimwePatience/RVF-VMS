@@ -22,20 +22,21 @@ const sendOTP = async (to, otp) => {
   await transporter.sendMail(mailOptions);
 };
 
-const sendReportLinkEmail = async (to, token, veterinaryName) => {
-  const link = `http://localhost:5173/report-usage/${token}`;
+const sendVeterinaryPortalLinkEmail = async (to, veterinaryName) => {
+  const link = `http://localhost:5173/veterinary-portal/${encodeURIComponent(to)}`;
   const mailOptions = {
     from: process.env.SMTP_USER,
     to,
-    subject: 'Vaccine Usage Report Form - RVF VMS',
-    text: `Hello ${veterinaryName},\n\nYou have recently been issued vaccines. Please fill out the usage report form using the following link:\n${link}\n\nThank you,\nRVF VMS Team`,
+    subject: 'Welcome to RVF VMS - Your Veterinary Portal',
+    text: `Hello ${veterinaryName},\n\nYou have been issued vaccines for the first time. Please access your personal Veterinary Portal using the following link:\n${link}\n\nYou can use this link to report your vaccine usage for all current and future vaccines assigned to you. We recommend saving or bookmarking this link.\n\nThank you,\nRVF VMS Team`,
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2>Vaccine Usage Report Form</h2>
+        <h2>Welcome to Your Veterinary Portal</h2>
         <p>Hello <b>${veterinaryName}</b>,</p>
-        <p>You have recently been issued vaccines. Please use the link below to fill out your usage report. You can also revisit this link later if you need to update any information.</p>
+        <p>You have been issued vaccines for the first time. Please use the link below to access your personal Veterinary Portal.</p>
+        <p>You will use this portal to report your vaccine usage for all current and future vaccines assigned to you. <b>Please save or bookmark this link for future use.</b></p>
         <p>
-          <a href="${link}" style="display: inline-block; padding: 10px 20px; background-color: #4384F5; color: white; text-decoration: none; border-radius: 5px;">Fill Report Form</a>
+          <a href="${link}" style="display: inline-block; padding: 10px 20px; background-color: #4384F5; color: white; text-decoration: none; border-radius: 5px;">Access Veterinary Portal</a>
         </p>
         <p>Or copy and paste this URL into your browser:</p>
         <p><a href="${link}">${link}</a></p>
@@ -68,4 +69,4 @@ const sendMissingShipmentAlert = async (to, endpointName, quantity) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendOTP, sendReportLinkEmail, sendMissingShipmentAlert };
+module.exports = { sendOTP, sendVeterinaryPortalLinkEmail, sendMissingShipmentAlert };
