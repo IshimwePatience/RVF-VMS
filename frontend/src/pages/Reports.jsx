@@ -174,7 +174,7 @@ export default function Reports() {
 
       {/* Advanced Filters (Only for Admin) */}
       {user?.role === 'Admin' && (
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8">
+        <div className="mb-8">
           <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">Advanced Filters</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="lg:col-span-2">
@@ -255,24 +255,21 @@ export default function Reports() {
       )}
 
       {user?.role === 'Admin' && activeTab === 'overview' ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <>
           {loading ? (
-            <div className="p-12 text-center">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-12 text-center">
               <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-slate-500 font-medium">Loading overview data...</p>
             </div>
           ) : Object.keys(overviewData).length === 0 ? (
-            <div className="py-20 flex flex-col items-center justify-center text-center bg-slate-50/50">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-slate-800">No stock data found</h3>
+            <div className="py-20 flex flex-col items-center justify-center text-center mt-2">
+              <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
+              <p className="text-[15px] font-medium text-slate-500">No stock data found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-700">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-700">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="py-4 pl-6 pr-3 font-semibold text-slate-800">Summary</th>
@@ -321,30 +318,28 @@ export default function Reports() {
                 </tbody>
               </table>
             </div>
+            </div>
           )}
-        </div>
+        </>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <>
           {loading ? (
-            <div className="p-12 text-center">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-12 text-center">
               <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-slate-500 font-medium">Loading reports data...</p>
             </div>
           ) : pagination.currentData.length === 0 ? (
-            <div className="py-20 flex flex-col items-center justify-center text-center bg-slate-50/50">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-slate-800">No reports found</h3>
+            <div className="py-20 flex flex-col items-center justify-center text-center mt-2">
+              <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
+              <p className="text-[15px] font-medium text-slate-500">No reports found</p>
               <p className="text-slate-500 text-sm mt-1 max-w-sm">
                 Try adjusting your filters to see more results.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              {user?.role !== 'Admin' ? (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                {user?.role !== 'Admin' ? (
                 <table className="w-full text-left text-sm text-slate-700">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
@@ -498,9 +493,10 @@ export default function Reports() {
               <div className="px-6 py-4 border-t border-slate-100 bg-slate-50">
                 <Pagination {...pagination} onPageChange={pagination.jump} />
               </div>
+              </div>
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );
