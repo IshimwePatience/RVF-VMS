@@ -281,7 +281,9 @@ export default function Layout() {
                   <NavLink to="/administrations" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Administer Vaccines</NavLink>
                 )}
                 <NavLink to="/transfers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Transfers</NavLink>
-                <NavLink to="/reports" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Reports</NavLink>
+                {(user?.is_central || user?.stock?.is_central) && (
+                  <NavLink to="/reports" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Reports</NavLink>
+                )}
               </nav>
             </div>
 

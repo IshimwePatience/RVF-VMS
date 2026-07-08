@@ -12,6 +12,22 @@ module.exports = (sequelize, DataTypes) => {
     district: {
       type: DataTypes.STRING
     },
+    province: {
+      type: DataTypes.STRING
+    },
+    sector: {
+      type: DataTypes.STRING
+    },
+    cell: {
+      type: DataTypes.STRING
+    },
+    village: {
+      type: DataTypes.STRING
+    },
+    stock_id: {
+      type: DataTypes.UUID,
+      allowNull: true
+    },
     from_abattoir: {
       type: DataTypes.STRING
     },

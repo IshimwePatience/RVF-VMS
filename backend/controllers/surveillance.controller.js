@@ -6,6 +6,10 @@ exports.submitForm = async (req, res) => {
     const {
       veterinary_email,
       district,
+      province,
+      sector,
+      cell,
+      village,
       from_abattoir,
       samples_type,
       abattoir_details,
@@ -24,6 +28,10 @@ exports.submitForm = async (req, res) => {
     const form = await SurveillanceForm.create({
       veterinary_email,
       district,
+      province,
+      sector,
+      cell,
+      village,
       from_abattoir,
       samples_type,
       abattoir_details,

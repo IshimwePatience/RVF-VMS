@@ -191,11 +191,94 @@ exports.updateSettings = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    
-    const settings = { ...user.settings, ...req.body.settings };
-    await user.update({ settings });
-    res.json(settings);
+
+    user.settings = { ...user.settings, ...req.body };
+    await user.save();
+
+    res.json(user.settings);
   } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Veterinary Passwordless Auth
+
+const { Veterinary } = require('../models');
+
+exports.vetRequestCode = async (req, res) => {
+  try {
+    const { email, name } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    let vet = await Veterinary.findOne({ where: { email } });
+    if (!vet) {
+      if (!name) return res.status(400).json({ message: 'Name is required for new registration' });
+      // Create new self-registered vet
+      vet = await Veterinary.create({
+        email,
+        name,
+        is_self_registered: true
+      });
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    vet.verification_code = code;
+    vet.code_expires_at = new Date(Date.now() + 15 * 60000); // 15 minutes
+    await vet.save();
+
+    // MOCKED EMAIL - Log to console
+    console.log(`[DEV] VET AUTH CODE for ${email}: ${code}`);
+
+    res.json({ message: 'Verification code sent to your email.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.vetVerifyCode = async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) return res.status(400).json({ message: 'Email and code are required' });
+
+    const vet = await Veterinary.findOne({ where: { email } });
+    if (!vet) return res.status(404).json({ message: 'Veterinary not found' });
+
+    if (vet.verification_code !== code || new Date() > vet.code_expires_at) {
+      return res.status(401).json({ message: 'Invalid or expired verification code' });
+    }
+
+    // Clear code
+    vet.verification_code = null;
+    vet.code_expires_at = null;
+    await vet.save();
+
+    // Generate JWT
+    const token = jwt.sign(
+      { 
+        id: vet.id, 
+        email: vet.email,
+        name: vet.name,
+        role: 'Veterinary',
+        stock_id: vet.stock_id
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      vet: {
+        id: vet.id,
+        name: vet.name,
+        email: vet.email,
+        stock_id: vet.stock_id,
+        is_self_registered: vet.is_self_registered
+      }
+    });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 };

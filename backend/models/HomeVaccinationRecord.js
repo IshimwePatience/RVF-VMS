@@ -14,6 +14,12 @@ module.exports = (sequelize) => {
     batch_number: { type: DataTypes.STRING, allowNull: false },
     dose_given: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     damages: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-    date_administered: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+    date_administered: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    province: { type: DataTypes.STRING, allowNull: true },
+    district: { type: DataTypes.STRING, allowNull: true },
+    sector: { type: DataTypes.STRING, allowNull: true },
+    cell: { type: DataTypes.STRING, allowNull: true },
+    village: { type: DataTypes.STRING, allowNull: true },
+    stock_id: { type: DataTypes.UUID, allowNull: true }
   });
 };

@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
+import LocationDropdown from '../components/LocationDropdown';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from '../components/Pagination';
 
@@ -245,9 +246,11 @@ export default function Stocks() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
+                    className={`w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm ${!formData.is_central ? 'bg-slate-50 cursor-not-allowed text-slate-500' : 'bg-white'}`}
                     placeholder="e.g. Kigali District Stock"
+                    readOnly={!formData.is_central}
                   />
+                  {!formData.is_central && <p className="text-xs text-slate-500 mt-1">Name is automatically generated based on location selection.</p>}
                 </div>
                 
                 <div className="flex items-center gap-2 mt-4 mb-2">
@@ -277,51 +280,58 @@ export default function Stocks() {
                     </select>
                     <p className="text-xs text-slate-500 mt-1 mb-4">This stock will request vaccines from the assigned parent.</p>
 
+                    <div className="grid grid-cols-2 gap-3 mt-3 mb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">Province</label>
+                        <div className="w-full px-3 py-1.5 border border-slate-300 rounded-lg outline-none focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all text-sm bg-white">
+                          <LocationDropdown 
+                            type="provinces"
+                            value={formData.province}
+                            onChange={(val) => {
+                              setFormData({ ...formData, province: val, district: '', sector: '' });
+                            }}
+                            placeholder="Select Province"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 mb-1">District</label>
+                        <div className="w-full px-3 py-1.5 border border-slate-300 rounded-lg outline-none focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all text-sm bg-white">
+                          <LocationDropdown 
+                            type="districts"
+                            params={{ province: formData.province }}
+                            value={formData.district}
+                            onChange={(val) => {
+                              setFormData({ ...formData, district: val, sector: '', name: !formData.is_endpoint ? `${val} District` : formData.name });
+                            }}
+                            placeholder="Select District"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="flex items-center gap-2 mt-4">
                       <input 
                         type="checkbox" 
                         id="is_endpoint"
                         checked={formData.is_endpoint}
-                        onChange={(e) => setFormData({...formData, is_endpoint: e.target.checked})}
+                        onChange={(e) => setFormData({...formData, is_endpoint: e.target.checked, sector: ''})}
                         className="w-4 h-4 text-blue-600 rounded border-slate-300"
                       />
-                      <label htmlFor="is_endpoint" className="text-sm font-medium text-slate-700">This is an Endpoint Stock (Distributes to Veterinaries)</label>
+                      <label htmlFor="is_endpoint" className="text-sm font-medium text-slate-700">This is an Endpoint Stock (Sector Level)</label>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1 ml-6 mb-4">If checked, no other stock can request from this one.</p>
+                    <p className="text-xs text-slate-500 mt-1 ml-6 mb-4">If checked, it distributes to Veterinaries.</p>
 
                     {formData.is_endpoint && (
-                      <div className="grid grid-cols-2 gap-3 pl-6 mt-3">
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Province</label>
-                          <input 
-                            type="text" 
-                            required={formData.is_endpoint}
-                            value={formData.province}
-                            onChange={(e) => setFormData({...formData, province: e.target.value})}
-                            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
-                            placeholder="e.g. Kigali"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-medium text-slate-700 mb-1">District</label>
-                          <input 
-                            type="text" 
-                            required={formData.is_endpoint}
-                            value={formData.district}
-                            onChange={(e) => setFormData({...formData, district: e.target.value})}
-                            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
-                            placeholder="e.g. Gasabo"
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <label className="block text-xs font-medium text-slate-700 mb-1">Sector</label>
-                          <input 
-                            type="text" 
-                            required={formData.is_endpoint}
+                      <div className="pl-6 mt-3">
+                        <label className="block text-xs font-medium text-slate-700 mb-1">Sector</label>
+                        <div className="w-full px-3 py-1.5 border border-slate-300 rounded-lg outline-none focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all text-sm bg-white">
+                          <LocationDropdown 
+                            type="sectors"
+                            params={{ district: formData.district }}
                             value={formData.sector}
-                            onChange={(e) => setFormData({...formData, sector: e.target.value})}
-                            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
-                            placeholder="e.g. Kacyiru"
+                            onChange={(val) => setFormData({...formData, sector: val, name: `${val} Sector`})}
+                            placeholder="Select Sector"
                           />
                         </div>
                       </div>

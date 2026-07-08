@@ -103,7 +103,7 @@ function App() {
               <Route path="stocks" element={<CentralOnlyRoute><Stocks /></CentralOnlyRoute>} />
               <Route path="vaccines" element={<CentralOnlyRoute><Vaccines /></CentralOnlyRoute>} />
               <Route path="suppliers" element={<CentralOnlyRoute><Suppliers /></CentralOnlyRoute>} />
-              <Route path="reports" element={<Reports />} />
+              <Route path="reports" element={<CentralOnlyRoute><Reports /></CentralOnlyRoute>} />
               <Route path="users" element={<AdminOnlyRoute><Users /></AdminOnlyRoute>} />
               <Route path="settings" element={<AdminOnlyRoute><Settings /></AdminOnlyRoute>} />
             </Route>

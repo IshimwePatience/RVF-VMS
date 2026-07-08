@@ -9,4 +9,8 @@ router.post('/change-password', authenticate, authController.changePassword);
 router.post('/request-reset', authController.requestPasswordReset);
 router.put('/settings', authenticate, authController.updateSettings);
 
+// Veterinary Passwordless Auth
+router.post('/vet/request-code', authController.vetRequestCode);
+router.post('/vet/verify-code', authController.vetVerifyCode);
+
 module.exports = router;

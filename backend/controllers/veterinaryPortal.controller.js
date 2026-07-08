@@ -1,4 +1,4 @@
-const { AdministrationRecord, HomeVaccinationRecord, Batch, Vaccine, sequelize } = require('../models');
+const { AdministrationRecord, HomeVaccinationRecord, Batch, Vaccine, Stock, StockInventory, sequelize } = require('../models');
 
 exports.getOverview = async (req, res) => {
   try {
@@ -107,10 +107,44 @@ exports.getAvailableVaccines = async (req, res) => {
 exports.recordVaccination = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { email, owner_name, owner_phone, owner_national_id, home_identifier, animals } = req.body;
+    const { email, owner_name, owner_phone, owner_national_id, home_identifier, animals, province, district, sector, cell, village } = req.body;
     
-    if (!email || !owner_name || !home_identifier || !animals || animals.length === 0) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    if (!email || !owner_name || !home_identifier || !animals || animals.length === 0 || !district || !sector) {
+      return res.status(400).json({ message: 'Missing required fields, including District and Sector' });
+    }
+
+    // Find the Stock representing this sector
+    const sectorStock = await Stock.findOne({
+      where: { district, sector }
+    });
+
+    if (!sectorStock) {
+      return res.status(400).json({ message: `No inventory stock registered for Sector: ${sector}, District: ${district}` });
+    }
+
+    // Group required doses by batch
+    const requiredDosesByBatch = {};
+    animals.forEach(a => {
+      if (!requiredDosesByBatch[a.batch_number]) requiredDosesByBatch[a.batch_number] = 0;
+      requiredDosesByBatch[a.batch_number] += (parseInt(a.dose_given) || 0) + (parseInt(a.damages) || 0);
+    });
+
+    // Validate and deduct inventory
+    for (const [batch_number, required_quantity] of Object.entries(requiredDosesByBatch)) {
+      const batch = await Batch.findOne({ where: { batch_number } });
+      if (!batch) return res.status(400).json({ message: `Batch ${batch_number} not found` });
+
+      const inventory = await StockInventory.findOne({
+        where: { stock_id: sectorStock.id, batch_id: batch.id },
+        transaction: t
+      });
+
+      if (!inventory || inventory.quantity_available < required_quantity) {
+        throw new Error(`Insufficient stock for batch ${batch_number} in Sector ${sector}. Needed: ${required_quantity}, Available: ${inventory ? inventory.quantity_available : 0}`);
+      }
+
+      inventory.quantity_available -= required_quantity;
+      await inventory.save({ transaction: t });
     }
 
     const recordsToCreate = animals.map(animal => ({
@@ -123,8 +157,10 @@ exports.recordVaccination = async (req, res) => {
       animal_identification: animal.animal_identification,
       vaccine_name: animal.vaccine_name,
       batch_number: animal.batch_number,
-      dose_given: animal.dose_given,
-      damages: animal.damages || 0
+      dose_given: parseInt(animal.dose_given) || 0,
+      damages: parseInt(animal.damages) || 0,
+      province, district, sector, cell, village,
+      stock_id: sectorStock.id
     }));
 
     await HomeVaccinationRecord.bulkCreate(recordsToCreate, { transaction: t });
@@ -134,6 +170,6 @@ exports.recordVaccination = async (req, res) => {
   } catch (error) {
     await t.rollback();
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(400).json({ message: error.message || 'Server error' });
   }
 };

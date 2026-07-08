@@ -55,24 +55,47 @@ export default function ReportUsage() {
     }
   }, [record]);
 
-  const verifyMutation = useMutation({
-    mutationFn: async (email) => axios.post('/rvf-api/administrations/verify-veterinary', { email }),
+  const [step, setStep] = useState('request'); // 'request' or 'verify'
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [showNameField, setShowNameField] = useState(false);
+
+  const requestMutation = useMutation({
+    mutationFn: async (payload) => axios.post('/rvf-api/auth/vet/request-code', payload),
     onSuccess: (res) => {
-      if (res.data && res.data.length > 0) {
-        navigate(`/veterinary-portal/${encodeURIComponent(email)}`);
-      } else {
-        setEmailError('No records found for this email.');
-      }
+      setStep('verify');
     },
     onError: (err) => {
-      setEmailError(err.response?.data?.message || 'Verification failed. Please try again.');
+      if (err.response?.status === 400 && err.response?.data?.message.includes('Name is required')) {
+        setShowNameField(true);
+        setEmailError('This email is not registered. Please provide your name to register.');
+      } else {
+        setEmailError(err.response?.data?.message || 'Failed to request code. Please try again.');
+      }
+    }
+  });
+
+  const verifyMutation = useMutation({
+    mutationFn: async (payload) => axios.post('/rvf-api/auth/vet/verify-code', payload),
+    onSuccess: (res) => {
+      // Store token and redirect
+      localStorage.setItem('vet_token', res.data.token);
+      localStorage.setItem('vet_user', JSON.stringify(res.data.vet));
+      navigate(`/veterinary-portal/${encodeURIComponent(email)}`);
+    },
+    onError: (err) => {
+      setEmailError(err.response?.data?.message || 'Invalid code.');
     }
   });
 
   const handleVerifyEmail = (e) => {
     e.preventDefault();
     setEmailError('');
-    verifyMutation.mutate(email);
+    if (step === 'request') {
+      requestMutation.mutate({ email, name: showNameField ? name : undefined });
+    } else {
+      verifyMutation.mutate({ email, code });
+    }
   };
 
   const submitMutation = useMutation({
@@ -129,7 +152,7 @@ export default function ReportUsage() {
               Veterinary Portal
             </h2>
             <p className="text-[16px] text-[#373A3C] leading-normal">
-              Enter your registered email address to access your vaccine usage reports.
+              {step === 'request' ? 'Enter your email address to access your portal.' : 'Enter the verification code sent to your email.'}
             </p>
           </div>
 
@@ -141,19 +164,55 @@ export default function ReportUsage() {
               <input
                 type="email"
                 required
+                disabled={step === 'verify'}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] placeholder-[#8A92A3] text-[#1F2432]"
+                className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] placeholder-[#8A92A3] text-[#1F2432] disabled:bg-gray-100"
                 placeholder="e.g., vet@example.com"
               />
-              {emailError && <p className="text-[#C02B0A] text-sm mt-2">{emailError}</p>}
             </div>
+            
+            {step === 'request' && showNameField && (
+              <div className="mb-6">
+                <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
+                  Full Name (New Registration) <span className="text-[#C02B0A]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] placeholder-[#8A92A3] text-[#1F2432]"
+                  placeholder="e.g., John Doe"
+                />
+              </div>
+            )}
+
+            {step === 'verify' && (
+              <div className="mb-6">
+                <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
+                  Verification Code <span className="text-[#C02B0A]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] placeholder-[#8A92A3] text-[#1F2432] text-center tracking-widest text-lg font-bold"
+                  placeholder="000000"
+                  maxLength="6"
+                />
+              </div>
+            )}
+
+            {emailError && <p className="text-[#C02B0A] text-sm mb-4">{emailError}</p>}
+
             <button
               type="submit"
-              disabled={verifyMutation.isPending}
-              className="w-full bg-[#0056D2] hover:bg-[#004BB8] text-white font-bold text-[16px] py-3 rounded transition-colors disabled:opacity-50"
+              disabled={requestMutation.isPending || verifyMutation.isPending}
+              className="w-full bg-[#0b57d0] hover:bg-[#0842a0] text-white font-medium py-2.5 px-4 rounded transition-colors text-[14px] disabled:opacity-50"
             >
-              {verifyMutation.isPending ? 'Verifying...' : 'Continue'}
+              {(requestMutation.isPending || verifyMutation.isPending) ? 'Processing...' : step === 'request' ? 'Continue' : 'Verify & Login'}
             </button>
           </form>
 
