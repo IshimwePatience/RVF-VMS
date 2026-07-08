@@ -358,7 +358,7 @@ export default function SampleTestFormTab({ email }) {
                 </div>
               </div>
             </div>
-          ))}
+          ); })}
         </div>
 
         {/* Desktop View: Table (Hidden on sm) */}
@@ -464,7 +464,7 @@ export default function SampleTestFormTab({ email }) {
                     <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.health_status} onChange={(e) => handleRowChange(index, 'health_status', e.target.value)} />
                   </td>
                 </tr>
-              ))}
+              ); })}
             </tbody>
           </table>
         </div>
