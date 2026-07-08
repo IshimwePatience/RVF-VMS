@@ -178,6 +178,9 @@ export default function Dashboard() {
 
   const trendData = generateTrendData(data.supplies);
 
+  const hasHighRvfData = data?.highRvfSectors?.some(d => parseFloat(d.total_affected || 0) > 0);
+  const hasVaccineUsageData = data?.vaccineUsageSectors?.some(d => parseFloat(d.total_doses || 0) > 0);
+
   return (
     <div className="max-w-[1200px] mx-auto p-4 md:p-8">
       <h1 className="text-2xl font-bold mb-6 text-gray-900">Dashboard</h1>
@@ -185,24 +188,24 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {user.role === 'Admin' && (
           <>
-            <div className="col-span-1 md:col-span-2 mb-4">
-              <h2 className="text-base font-bold mb-2 text-gray-800">Total Stock Value</h2>
-              <p className="text-3xl font-black tracking-tight text-gray-900">
-                {data.totalStockValue ? `${data.totalStockValue.toLocaleString()} RWF` : '0 RWF'}
-              </p>
-            </div>
-
-            <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow">
-              <h2 className="text-base font-bold mb-4 text-gray-800">High RVF Sectors</h2>
-              {(!data.highRvfSectors || data.highRvfSectors.length === 0) ? (
-                <div className="h-[250px] flex flex-col items-center justify-center text-center">
-                  <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
-                  <p className="text-[13px] font-medium text-slate-500">No records found</p>
-                </div>
-              ) : (
-                <div className="h-[300px] w-full">
-                  <LineChart
-                    dataset={makeHills(data.highRvfSectors, 'sector', 'total_affected').map((d, i) => ({ ...d, id: i }))}
+            {(!hasHighRvfData && !hasVaccineUsageData) ? (
+              <div className="col-span-1 md:col-span-2 h-[400px] flex flex-col items-center justify-center text-center border border-slate-100 rounded-2xl bg-white shadow-sm mt-2">
+                <img src="/empty_mascot.png" alt="No data" className="h-40 object-contain mb-6 opacity-75" />
+                <p className="text-[15px] font-medium text-slate-500">No vaccination or RVF sector data available yet.</p>
+              </div>
+            ) : (
+              <>
+                <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow">
+                  <h2 className="text-base font-bold mb-4 text-gray-800">High RVF Sectors</h2>
+                  {!hasHighRvfData ? (
+                    <div className="h-[300px] flex flex-col items-center justify-center text-center">
+                      <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
+                      <p className="text-[13px] font-medium text-slate-500">No records found</p>
+                    </div>
+                  ) : (
+                    <div className="h-[300px] w-full">
+                      <LineChart
+                        dataset={makeHills(data.highRvfSectors, 'sector', 'total_affected').map((d, i) => ({ ...d, id: i }))}
                     xAxis={[
                       {
                         dataKey: 'sector',
@@ -229,8 +232,8 @@ export default function Dashboard() {
 
             <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow">
               <h2 className="text-base font-bold mb-4 text-gray-800">Vaccine Usage</h2>
-              {(!data.vaccineUsageSectors || data.vaccineUsageSectors.length === 0) ? (
-                <div className="h-[250px] flex flex-col items-center justify-center text-center">
+              {!hasVaccineUsageData ? (
+                <div className="h-[300px] flex flex-col items-center justify-center text-center">
                   <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
                   <p className="text-[13px] font-medium text-slate-500">No records found</p>
                 </div>
@@ -261,6 +264,8 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+              </>
+            )}
           </>
         )}
 
