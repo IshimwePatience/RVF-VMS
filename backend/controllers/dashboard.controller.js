@@ -66,7 +66,7 @@ exports.getAdminDashboard = async (req, res) => {
     const outcomesRaw = await SurveillanceSample.findAll({
       attributes: [
         'health_status',
-        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+        [Sequelize.fn('COUNT', Sequelize.col('SurveillanceSample.id')), 'count']
       ],
       include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
       group: ['health_status']
@@ -88,18 +88,18 @@ exports.getAdminDashboard = async (req, res) => {
     const speciesDistribution = await SurveillanceSample.findAll({
       attributes: [
         'specie',
-        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+        [Sequelize.fn('COUNT', Sequelize.col('SurveillanceSample.id')), 'count']
       ],
       include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
       group: ['specie'],
-      order: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'DESC']]
+      order: [[Sequelize.fn('COUNT', Sequelize.col('SurveillanceSample.id')), 'DESC']]
     });
 
     // 6. Sex Distribution
     const sexDistribution = await SurveillanceSample.findAll({
       attributes: [
         'sex',
-        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+        [Sequelize.fn('COUNT', Sequelize.col('SurveillanceSample.id')), 'count']
       ],
       include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
       group: ['sex']
@@ -109,7 +109,7 @@ exports.getAdminDashboard = async (req, res) => {
     const vaccinationStatus = await SurveillanceSample.findAll({
       attributes: [
         'vaccination_status',
-        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+        [Sequelize.fn('COUNT', Sequelize.col('SurveillanceSample.id')), 'count']
       ],
       include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
       group: ['vaccination_status']
