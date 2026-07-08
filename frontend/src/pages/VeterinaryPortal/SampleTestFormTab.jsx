@@ -108,7 +108,7 @@ export default function SampleTestFormTab({ email }) {
         </h1>
         
         <div className="w-full md:w-32 flex justify-center md:justify-end">
-          {/* Empty div to keep the title centered */}
+          <img src={minisanteLogo} alt="MINISANTE" className="h-16 object-contain" />
         </div>
       </div>
 
