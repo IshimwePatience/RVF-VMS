@@ -247,36 +247,42 @@ export default function Reports() {
       )}
 
       {user?.role === 'Admin' && activeTab === 'overview' ? (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="text-sm font-medium text-slate-500 mb-1">Total Sample Test Forms</div>
-              <div className="text-3xl font-bold text-slate-900">{filteredSurveillance.length}</div>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="text-sm font-medium text-slate-500 mb-1">Total Samples Collected</div>
-              <div className="text-3xl font-bold text-slate-900">
-                {filteredSurveillance.reduce((acc, r) => acc + (r.samples?.length || 0), 0)}
-              </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="text-sm font-medium text-slate-500 mb-1">Home Vaccination Records</div>
-              <div className="text-3xl font-bold text-slate-900">{homeVaccinations.length}</div>
-            </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <div className="text-sm font-medium text-slate-500 mb-1">Total Vaccines Given</div>
-              <div className="text-3xl font-bold text-slate-900 text-blue-600">
-                {homeVaccinations.reduce((acc, r) => acc + (Number(r.dose_given) || 0), 0).toLocaleString()}
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-            <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="Mascot" className="h-40 object-contain mx-auto mb-6 opacity-75" />
-            <h3 className="text-lg font-bold text-slate-800 mb-2">County Overview</h3>
-            <p className="text-slate-500 max-w-md mx-auto">
-              This dashboard provides a high-level summary of all veterinary field activities across the county based on the selected filters. Switch tabs to view the individual submitted forms in detail.
-            </p>
+        <div className="bg-white shadow-sm border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200 bg-slate-100/50">Summary</th>
+                  <th className="py-4 px-6 font-semibold text-slate-800 border-r border-slate-200 whitespace-nowrap text-center">County Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                <tr className="hover:bg-slate-50/50">
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Sample Test Forms</td>
+                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
+                    {filteredSurveillance?.length || 0}
+                  </td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Samples Collected</td>
+                  <td className="py-3 px-6 border-r border-slate-200 text-center text-blue-600 font-bold text-lg">
+                    {filteredSurveillance?.reduce((acc, r) => acc + (r?.samples?.length || 0), 0) || 0}
+                  </td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Home Vaccination Records</td>
+                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
+                    {homeVaccinations?.length || 0}
+                  </td>
+                </tr>
+                <tr className="bg-slate-100 hover:bg-slate-200 transition-colors">
+                  <td className="py-4 px-6 font-bold text-slate-900 border-r border-slate-300">Total Vaccines Given</td>
+                  <td className="py-4 px-6 border-r border-slate-300 text-center font-bold text-xl text-slate-900">
+                    {homeVaccinations?.reduce((acc, r) => acc + (Number(r?.dose_given) || 0), 0).toLocaleString() || 0}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       ) : (
