@@ -137,10 +137,6 @@ export default function Administration() {
     setShowModal(true);
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-slate-500">Loading administrations...</div>;
-  }
-
   // Filtering
   const getProcessedAdministrations = () => {
     let processed = [...administrations];
@@ -161,6 +157,11 @@ export default function Administration() {
 
   const processedAdministrations = getProcessedAdministrations();
   const pagination = usePagination(processedAdministrations, 12);
+
+  if (loading) {
+    return <div className="p-8 text-center text-slate-500">Loading administrations...</div>;
+  }
+
 
   const selectedItem = inventory.find(i => i.batch_id === formData.batch_id);
   const maxAvailable = selectedItem ? selectedItem.quantity_available + (selectedRecord ? selectedRecord.quantity : 0) : '';
