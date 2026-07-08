@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
 
+const RWANDA_DISTRICTS = [
+  "Bugesera", "Burera", "Gakenke", "Gasabo", "Gatsibo", "Gicumbi", "Gisagara",
+  "Huye", "Kamonyi", "Karongi", "Kayonza", "Kicukiro", "Kirehe", "Muhanga",
+  "Musanze", "Ngoma", "Ngororero", "Nyabihu", "Nyagatare", "Nyamagabe",
+  "Nyamasheke", "Nyanza", "Nyarugenge", "Nyaruguru", "Rubavu", "Ruhango",
+  "Rulindo", "Rusizi", "Rutsiro", "Rwamagana"
+];
+
 export default function SampleTestFormTab({ email }) {
   const [headerData, setHeaderData] = useState({
     district: '',
@@ -53,6 +61,33 @@ export default function SampleTestFormTab({ email }) {
     setError(null);
     setSuccess(false);
 
+    const filledRows = rows.filter(row => {
+      return Object.entries(row).some(([key, value]) => key !== 'sn' && value.toString().trim() !== '');
+    });
+
+    if (filledRows.length === 0) {
+      setError('Please fill in at least one sample row.');
+      setLoading(false);
+      return;
+    }
+
+    const requiredRowFields = [
+      'farmer_name', 'phone', 'district_origin', 'sector', 'cell', 'village',
+      'specie', 'animal_id', 'breed', 'sex', 'age', 'vaccination_status',
+      'purpose', 'health_status'
+    ];
+
+    for (let i = 0; i < filledRows.length; i++) {
+      const row = filledRows[i];
+      for (const field of requiredRowFields) {
+        if (!row[field] || row[field].toString().trim() === '') {
+          setError(`Please complete all fields for Sample #${row.sn}. Row must be fully filled.`);
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
     try {
       const payload = {
         veterinary_email: email,
@@ -64,7 +99,7 @@ export default function SampleTestFormTab({ email }) {
         test_requested: headerData.testRequested,
         submitted_by: headerData.submittedBy,
         phone_number: headerData.phoneNumber,
-        samples: rows
+        samples: filledRows
       };
 
       await axios.post('/rvf-api/surveillance', payload);
@@ -121,11 +156,7 @@ export default function SampleTestFormTab({ email }) {
               <label className="font-bold mr-2 whitespace-nowrap">District:</label>
               <select required value={headerData.district} onChange={(e) => handleHeaderChange('district', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600 appearance-none cursor-pointer">
                 <option value="">Select District</option>
-                <option value="Gasabo">Gasabo</option>
-                <option value="Kicukiro">Kicukiro</option>
-                <option value="Nyarugenge">Nyarugenge</option>
-                <option value="Bugesera">Bugesera</option>
-                <option value="Nyagatare">Nyagatare</option>
+                {RWANDA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
@@ -145,15 +176,16 @@ export default function SampleTestFormTab({ email }) {
           {/* Right Column */}
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap">From Abattoir (Yes, No):</label>
+              <label className="font-bold mr-2 whitespace-nowrap">Sample Source:</label>
               <select value={headerData.fromAbattoir} onChange={(e) => handleHeaderChange('fromAbattoir', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600 appearance-none cursor-pointer">
                 <option value=""></option>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
+                <option value="Home">Home</option>
+                <option value="Market">Market</option>
+                <option value="Abattoir">Abattoir</option>
               </select>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap">If yes, Abattoir (Name & Phone):</label>
+              <label className="font-bold mr-2 whitespace-nowrap">If Market/Abattoir (Name & Phone):</label>
               <input type="text" value={headerData.abattoirDetails} onChange={(e) => handleHeaderChange('abattoirDetails', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
@@ -187,11 +219,7 @@ export default function SampleTestFormTab({ email }) {
                   <label className="block text-sm font-semibold mb-1">Animal District Origin</label>
                   <select className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.district_origin} onChange={(e) => handleRowChange(index, 'district_origin', e.target.value)}>
                     <option value="">Select District</option>
-                    <option value="Gasabo">Gasabo</option>
-                    <option value="Kicukiro">Kicukiro</option>
-                    <option value="Nyarugenge">Nyarugenge</option>
-                    <option value="Bugesera">Bugesera</option>
-                    <option value="Nyagatare">Nyagatare</option>
+                    {RWANDA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
@@ -241,8 +269,12 @@ export default function SampleTestFormTab({ email }) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Purpose (Surveillance, Slaughter)</label>
-                  <input type="text" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.purpose} onChange={(e) => handleRowChange(index, 'purpose', e.target.value)} />
+                  <label className="block text-sm font-semibold mb-1">Purpose (Diagnosis, Surveillance)</label>
+                  <select className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.purpose} onChange={(e) => handleRowChange(index, 'purpose', e.target.value)}>
+                    <option value=""></option>
+                    <option value="Diagnosis">Diagnosis</option>
+                    <option value="Surveillance">Surveillance</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Health Status (Sick, Normal, Control)</label>
@@ -271,7 +303,7 @@ export default function SampleTestFormTab({ email }) {
                 <th className="border border-slate-300 p-2 font-bold min-w-[60px] text-slate-800">Sex</th>
                 <th className="border border-slate-300 p-2 font-bold min-w-[60px] text-slate-800">Age</th>
                 <th className="border border-slate-300 p-2 font-bold min-w-[90px] text-slate-800">Vaccination<br/>Status (Yes, No)</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[100px] text-slate-800">Purpose<br/>(Surveillance,<br/>Slaughter)</th>
+                <th className="border border-slate-300 p-2 font-bold min-w-[100px] text-slate-800">Purpose<br/>(Diagnosis,<br/>Surveillance)</th>
                 <th className="border border-slate-300 p-2 font-bold min-w-[90px] text-slate-800">Health Status<br/>(Sick, Normal,<br/>Control)</th>
               </tr>
             </thead>
@@ -288,11 +320,7 @@ export default function SampleTestFormTab({ email }) {
                   <td className="border border-slate-300 p-0">
                     <select className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30" value={row.district_origin} onChange={(e) => handleRowChange(index, 'district_origin', e.target.value)}>
                       <option value=""></option>
-                      <option value="Gasabo">Gasabo</option>
-                      <option value="Kicukiro">Kicukiro</option>
-                      <option value="Nyarugenge">Nyarugenge</option>
-                      <option value="Bugesera">Bugesera</option>
-                      <option value="Nyagatare">Nyagatare</option>
+                      {RWANDA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </td>
                   <td className="border border-slate-300 p-0">
@@ -327,7 +355,11 @@ export default function SampleTestFormTab({ email }) {
                     </select>
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.purpose} onChange={(e) => handleRowChange(index, 'purpose', e.target.value)} />
+                    <select className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30" value={row.purpose} onChange={(e) => handleRowChange(index, 'purpose', e.target.value)}>
+                      <option value=""></option>
+                      <option value="Diagnosis">Diagnosis</option>
+                      <option value="Surveillance">Surveillance</option>
+                    </select>
                   </td>
                   <td className="border border-slate-300 p-0">
                     <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.health_status} onChange={(e) => handleRowChange(index, 'health_status', e.target.value)} />
