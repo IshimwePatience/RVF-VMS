@@ -46,7 +46,7 @@ exports.getAdminDashboard = async (req, res) => {
     });
 
     const samplesCount = await SurveillanceSample.count({
-      include: [{ model: SurveillanceForm, as: 'form', where: whereSurvForm, required: true }]
+      include: [{ model: SurveillanceForm, where: whereSurvForm, required: true }]
     });
 
     // 2. Daily Epidemic Curve (Cases by Date)
@@ -68,7 +68,7 @@ exports.getAdminDashboard = async (req, res) => {
         'health_status',
         [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
       ],
-      include: [{ model: SurveillanceForm, as: 'form', where: whereSurvForm, attributes: [], required: true }],
+      include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
       group: ['health_status']
     });
 
@@ -90,7 +90,7 @@ exports.getAdminDashboard = async (req, res) => {
         'specie',
         [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
       ],
-      include: [{ model: SurveillanceForm, as: 'form', where: whereSurvForm, attributes: [], required: true }],
+      include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
       group: ['specie'],
       order: [[Sequelize.fn('COUNT', Sequelize.col('id')), 'DESC']]
     });
@@ -101,7 +101,7 @@ exports.getAdminDashboard = async (req, res) => {
         'sex',
         [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
       ],
-      include: [{ model: SurveillanceForm, as: 'form', where: whereSurvForm, attributes: [], required: true }],
+      include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
       group: ['sex']
     });
 
@@ -111,7 +111,7 @@ exports.getAdminDashboard = async (req, res) => {
         'vaccination_status',
         [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
       ],
-      include: [{ model: SurveillanceForm, as: 'form', where: whereSurvForm, attributes: [], required: true }],
+      include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
       group: ['vaccination_status']
     });
 
