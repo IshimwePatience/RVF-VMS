@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
-// Using a generic image path for RAB logo, assuming it's available or we can fallback
-import rabLogo from '../../assets/images/RAB_Logo2.png';
 
 export default function SampleTestFormTab({ email }) {
   const [headerData, setHeaderData] = useState({
@@ -102,7 +100,7 @@ export default function SampleTestFormTab({ email }) {
       {/* Header section */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6 md:gap-0">
         <div className="w-full md:w-32 flex justify-center md:justify-start">
-          <img src={rabLogo} alt="RAB" className="h-16 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = minisanteLogo; }} />
+          <img src="/RAB_Logo2.png" alt="RAB" className="h-16 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = minisanteLogo; }} />
         </div>
         
         <h1 className="text-xl md:text-2xl font-bold tracking-wide underline underline-offset-4 decoration-2 text-center flex-1">
