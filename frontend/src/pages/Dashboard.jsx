@@ -218,7 +218,6 @@ export default function Dashboard() {
                         id: 'affected',
                         dataKey: 'total_affected',
                         label: 'Total Affected',
-                        area: true,
                         color: '#8b5cf6',
                         showMark: false,
                         curve: 'catmullRom',
@@ -253,7 +252,6 @@ export default function Dashboard() {
                         id: 'doses',
                         dataKey: 'total_doses',
                         label: 'Total Doses',
-                        area: true,
                         color: '#10b981',
                         showMark: false,
                         curve: 'catmullRom',
@@ -299,7 +297,6 @@ export default function Dashboard() {
                           id: 'distributed',
                           dataKey: 'distributed_level',
                           label: 'Distributed Level',
-                          area: true,
                           color: '#f43f5e',
                           showMark: false,
                           curve: 'catmullRom',
@@ -308,7 +305,6 @@ export default function Dashboard() {
                           id: 'current',
                           dataKey: 'current_supply',
                           label: 'Current Supply',
-                          area: true,
                           color: '#8b5cf6',
                           showMark: false,
                           curve: 'catmullRom',
@@ -338,7 +334,7 @@ export default function Dashboard() {
               <h2 className="text-lg font-bold text-gray-800">Your Sector Analytics</h2>
             </div>
             
-            <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
+            <div className="col-span-1 md:col-span-2 border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
               <h3 className="text-base font-bold text-gray-800 mb-1">Inventory Overview</h3>
               <p className="text-[12px] text-slate-400 font-medium mb-6">Distribution of vaccines at your facility</p>
               <div className="flex-1 min-h-[300px]">
@@ -351,7 +347,7 @@ export default function Dashboard() {
             </div>
             
             {hasVaccinationTrendData && (
-                <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
+                <div className="col-span-1 md:col-span-2 border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
                   <h3 className="text-base font-bold text-gray-800 mb-6">Vaccination Trend (Doses Used)</h3>
                   <div className="h-[300px] w-full">
                     <LineChart
@@ -367,7 +363,6 @@ export default function Dashboard() {
                           id: 'doses_used',
                           dataKey: 'doses_used',
                           label: 'Doses Used',
-                          area: true,
                           color: '#10b981',
                           showMark: false,
                           curve: 'catmullRom',
