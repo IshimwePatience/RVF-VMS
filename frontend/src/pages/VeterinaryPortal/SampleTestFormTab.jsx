@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import LocationDropdown from '../../components/LocationDropdown';
+import SearchableDropdown from '../../components/SearchableDropdown';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
 
 const RWANDA_DISTRICTS = [
@@ -202,15 +203,14 @@ export default function SampleTestFormTab({ email }) {
 
       <form onSubmit={handleSubmit}>
         {/* Top Form Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mb-8 text-[15px] bg-slate-50 p-6 rounded-xl border border-slate-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mb-8 text-[15px]">
           {/* Left Column */}
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
               <label className="font-bold mr-2 whitespace-nowrap">District:</label>
-              <select required value={headerData.district} onChange={(e) => handleHeaderChange('district', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600 appearance-none cursor-pointer">
-                <option value="">Select District</option>
-                {RWANDA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
+              <div className="flex-1 border-b border-dotted border-slate-400 pb-1">
+                <LocationDropdown type="districts" value={headerData.district} onChange={(val) => handleHeaderChange('district', val)} placeholder="Select District" />
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
               <label className="font-bold mr-2 whitespace-nowrap">Numbers & Type of Samples:</label>
@@ -315,7 +315,7 @@ export default function SampleTestFormTab({ email }) {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-sm font-semibold mb-1">Specie</label>
-                    <input type="text" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.specie} onChange={(e) => handleRowChange(index, 'specie', e.target.value)} />
+                    <SearchableDropdown options={['Cattle', 'Sheep', 'Goat']} value={row.specie} onChange={(val) => handleRowChange(index, 'specie', val)} placeholder="Specie" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1 flex items-center justify-between">Animal Id</label>
@@ -329,32 +329,24 @@ export default function SampleTestFormTab({ email }) {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Sex</label>
-                    <input type="text" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.sex} onChange={(e) => handleRowChange(index, 'sex', e.target.value)} />
+                    <SearchableDropdown options={['Male', 'Female']} value={row.sex} onChange={(val) => handleRowChange(index, 'sex', val)} placeholder="Sex" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Age</label>
-                    <input type="text" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.age} onChange={(e) => handleRowChange(index, 'age', e.target.value)} />
+                    <input type="number" min="0" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.age} onChange={(e) => handleRowChange(index, 'age', e.target.value)} />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Vaccination Status (Yes, No)</label>
-                  <select className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.vaccination_status} onChange={(e) => handleRowChange(index, 'vaccination_status', e.target.value)}>
-                    <option value=""></option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                  </select>
+                  <SearchableDropdown options={['Yes', 'No']} value={row.vaccination_status} onChange={(val) => handleRowChange(index, 'vaccination_status', val)} placeholder="Vaccination" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Purpose (Diagnosis, Surveillance)</label>
-                  <select className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.purpose} onChange={(e) => handleRowChange(index, 'purpose', e.target.value)}>
-                    <option value=""></option>
-                    <option value="Diagnosis">Diagnosis</option>
-                    <option value="Surveillance">Surveillance</option>
-                  </select>
+                  <SearchableDropdown options={['Diagnosis', 'Surveillance']} value={row.purpose} onChange={(val) => handleRowChange(index, 'purpose', val)} placeholder="Purpose" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Health Status (Sick, Normal, Control)</label>
-                  <input type="text" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.health_status} onChange={(e) => handleRowChange(index, 'health_status', e.target.value)} />
+                  <SearchableDropdown options={['Sick', 'Normal', 'Control']} value={row.health_status} onChange={(val) => handleRowChange(index, 'health_status', val)} placeholder="Health Status" />
                 </div>
               </div>
             </div>
@@ -396,10 +388,7 @@ export default function SampleTestFormTab({ email }) {
                     <input type="tel" pattern="^250\d{7}$" minLength="10" maxLength="10" title="Must start with 250 and be exactly 10 digits" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <select className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30" value={row.district_origin} onChange={(e) => handleRowChange(index, 'district_origin', e.target.value)}>
-                      <option value=""></option>
-                      {RWANDA_DISTRICTS.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
+                    <LocationDropdown type="districts" value={row.district_origin} onChange={(val) => handleRowChange(index, 'district_origin', val)} placeholder="District" />
                   </td>
                   <td className="border border-slate-300 p-0">
                     <LocationDropdown
@@ -432,7 +421,7 @@ export default function SampleTestFormTab({ email }) {
                     />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.specie} onChange={(e) => handleRowChange(index, 'specie', e.target.value)} />
+                    <SearchableDropdown options={['Cattle', 'Sheep', 'Goat']} value={row.specie} onChange={(val) => handleRowChange(index, 'specie', val)} placeholder="Specie" />
                   </td>
                   <td className="border border-slate-300 p-0">
                     <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.animal_id} onChange={(e) => handleRowChange(index, 'animal_id', e.target.value)} />
@@ -441,27 +430,19 @@ export default function SampleTestFormTab({ email }) {
                     <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.breed} onChange={(e) => handleRowChange(index, 'breed', e.target.value)} />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.sex} onChange={(e) => handleRowChange(index, 'sex', e.target.value)} />
+                    <SearchableDropdown options={['Male', 'Female']} value={row.sex} onChange={(val) => handleRowChange(index, 'sex', val)} placeholder="Sex" />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.age} onChange={(e) => handleRowChange(index, 'age', e.target.value)} />
+                    <input type="number" min="0" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.age} onChange={(e) => handleRowChange(index, 'age', e.target.value)} />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <select className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30" value={row.vaccination_status} onChange={(e) => handleRowChange(index, 'vaccination_status', e.target.value)}>
-                      <option value=""></option>
-                      <option value="Yes">Yes</option>
-                      <option value="No">No</option>
-                    </select>
+                    <SearchableDropdown options={['Yes', 'No']} value={row.vaccination_status} onChange={(val) => handleRowChange(index, 'vaccination_status', val)} placeholder="Vaccination" />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <select className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30" value={row.purpose} onChange={(e) => handleRowChange(index, 'purpose', e.target.value)}>
-                      <option value=""></option>
-                      <option value="Diagnosis">Diagnosis</option>
-                      <option value="Surveillance">Surveillance</option>
-                    </select>
+                    <SearchableDropdown options={['Diagnosis', 'Surveillance']} value={row.purpose} onChange={(val) => handleRowChange(index, 'purpose', val)} placeholder="Purpose" />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.health_status} onChange={(e) => handleRowChange(index, 'health_status', e.target.value)} />
+                    <SearchableDropdown options={['Sick', 'Normal', 'Control']} value={row.health_status} onChange={(val) => handleRowChange(index, 'health_status', val)} placeholder="Health Status" />
                   </td>
                 </tr>
               ); })}

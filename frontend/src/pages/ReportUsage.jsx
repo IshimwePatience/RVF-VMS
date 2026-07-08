@@ -239,6 +239,7 @@ export default function ReportUsage() {
             </label>
             <input
               type="tel" required
+              minLength="10" maxLength="10"
               pattern="^250\d{7}$"
               title="Must start with 250 and be exactly 10 digits"
               value={formData.owner_phone}
@@ -254,6 +255,7 @@ export default function ReportUsage() {
             </label>
             <input
               type="text" required
+              minLength="16" maxLength="16"
               pattern="^\d{16}$"
               title="National ID must be exactly 16 digits"
               value={formData.owner_national_id}

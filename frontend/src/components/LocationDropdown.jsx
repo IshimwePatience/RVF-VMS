@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import SearchableDropdown from './SearchableDropdown';
 
 const cache = {};
 
-export default function LocationDropdown({ type, params = {}, value, onChange, className, placeholder, disabled }) {
+export default function LocationDropdown({ type, params = {}, value, onChange, placeholder, disabled }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -41,18 +42,13 @@ export default function LocationDropdown({ type, params = {}, value, onChange, c
   }, [type, params.district, params.sector, params.cell]);
 
   return (
-    <select
-      className={className}
+    <SearchableDropdown
+      options={options}
       value={value || ''}
-      onChange={e => onChange(e.target.value)}
-      disabled={disabled || loading || options.length === 0}
-    >
-      <option value="">
-        {loading ? 'Loading...' : placeholder}
-      </option>
-      {options.map(opt => (
-        <option key={opt} value={opt}>{opt}</option>
-      ))}
-    </select>
+      onChange={onChange}
+      placeholder={loading ? 'Loading...' : placeholder}
+      disabled={disabled || loading || (type !== 'districts' && options.length === 0)}
+      loading={loading}
+    />
   );
 }
