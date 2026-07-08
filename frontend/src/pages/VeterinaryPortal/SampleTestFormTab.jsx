@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import LocationDropdown from '../../components/LocationDropdown';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
 
 const RWANDA_DISTRICTS = [
@@ -50,9 +51,34 @@ export default function SampleTestFormTab({ email }) {
   };
 
   const handleRowChange = (index, field, value) => {
+    if (isRowDisabled(index)) {
+      setError(`Please fill in the previous row before starting Sample #${rows[index].sn}.`);
+      return;
+    }
+    if (error && error.includes('previous row before starting Sample')) {
+      setError(null);
+    }
     const newRows = [...rows];
     newRows[index][field] = value;
+    
+    if (field === 'district_origin') {
+      newRows[index].sector = '';
+      newRows[index].cell = '';
+      newRows[index].village = '';
+    } else if (field === 'sector') {
+      newRows[index].cell = '';
+      newRows[index].village = '';
+    } else if (field === 'cell') {
+      newRows[index].village = '';
+    }
+
     setRows(newRows);
+  };
+
+    const isRowDisabled = (index) => {
+    if (index === 0) return false;
+    const prevRow = rows[index - 1];
+    return !Object.entries(prevRow).some(([key, value]) => key !== 'sn' && value?.toString().trim() !== '');
   };
 
   const handleSubmit = async (e) => {
@@ -194,7 +220,7 @@ export default function SampleTestFormTab({ email }) {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
               <label className="font-bold mr-2 whitespace-nowrap text-blue-700">Phone Number:</label>
-              <input type="tel" required value={headerData.phoneNumber} onChange={(e) => handleHeaderChange('phoneNumber', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" />
+              <input type="tel" required pattern="^\d{10}$" title="Must be exactly 10 digits" value={headerData.phoneNumber} onChange={(e) => handleHeaderChange('phoneNumber', e.target.value.replace(/\D/g, ''))} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" />
             </div>
           </div>
         </div>
@@ -213,7 +239,7 @@ export default function SampleTestFormTab({ email }) {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Phone</label>
-                  <input type="text" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value)} />
+                  <input type="tel" pattern="^\d{10}$" title="Must be exactly 10 digits" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Animal District Origin</label>
@@ -225,15 +251,36 @@ export default function SampleTestFormTab({ email }) {
                 <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="block text-sm font-semibold mb-1">Sector</label>
-                    <input type="text" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.sector} onChange={(e) => handleRowChange(index, 'sector', e.target.value)} />
+                    <LocationDropdown
+                      type="sectors"
+                      params={{ district: row.district_origin }}
+                      value={row.sector}
+                      onChange={(val) => handleRowChange(index, 'sector', val)}
+                      className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 appearance-none"
+                      placeholder="Select Sector"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Cell</label>
-                    <input type="text" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.cell} onChange={(e) => handleRowChange(index, 'cell', e.target.value)} />
+                    <LocationDropdown
+                      type="cells"
+                      params={{ district: row.district_origin, sector: row.sector }}
+                      value={row.cell}
+                      onChange={(val) => handleRowChange(index, 'cell', val)}
+                      className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 appearance-none"
+                      placeholder="Select Cell"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Village</label>
-                    <input type="text" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.village} onChange={(e) => handleRowChange(index, 'village', e.target.value)} />
+                    <LocationDropdown
+                      type="villages"
+                      params={{ district: row.district_origin, sector: row.sector, cell: row.cell }}
+                      value={row.village}
+                      onChange={(val) => handleRowChange(index, 'village', val)}
+                      className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 appearance-none"
+                      placeholder="Select Village"
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -315,7 +362,7 @@ export default function SampleTestFormTab({ email }) {
                     <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.farmer_name} onChange={(e) => handleRowChange(index, 'farmer_name', e.target.value)} />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value)} />
+                    <input type="tel" pattern="^\d{10}$" title="Must be exactly 10 digits" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
                   </td>
                   <td className="border border-slate-300 p-0">
                     <select className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30" value={row.district_origin} onChange={(e) => handleRowChange(index, 'district_origin', e.target.value)}>
@@ -324,13 +371,34 @@ export default function SampleTestFormTab({ email }) {
                     </select>
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.sector} onChange={(e) => handleRowChange(index, 'sector', e.target.value)} />
+                    <LocationDropdown
+                      type="sectors"
+                      params={{ district: row.district_origin }}
+                      value={row.sector}
+                      onChange={(val) => handleRowChange(index, 'sector', val)}
+                      className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30"
+                      placeholder="Sector"
+                    />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.cell} onChange={(e) => handleRowChange(index, 'cell', e.target.value)} />
+                    <LocationDropdown
+                      type="cells"
+                      params={{ district: row.district_origin, sector: row.sector }}
+                      value={row.cell}
+                      onChange={(val) => handleRowChange(index, 'cell', val)}
+                      className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30"
+                      placeholder="Cell"
+                    />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.village} onChange={(e) => handleRowChange(index, 'village', e.target.value)} />
+                    <LocationDropdown
+                      type="villages"
+                      params={{ district: row.district_origin, sector: row.sector, cell: row.cell }}
+                      value={row.village}
+                      onChange={(val) => handleRowChange(index, 'village', val)}
+                      className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30"
+                      placeholder="Village"
+                    />
                   </td>
                   <td className="border border-slate-300 p-0">
                     <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.specie} onChange={(e) => handleRowChange(index, 'specie', e.target.value)} />

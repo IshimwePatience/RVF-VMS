@@ -35,6 +35,7 @@ const veterinaryRoutes = require('./routes/veterinary.routes');
 const veterinaryPortalRoutes = require('./routes/veterinaryPortal.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const surveillanceRoutes = require('./routes/surveillance.routes');
+const locationRoutes = require('./routes/location.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -53,6 +54,7 @@ app.use('/api/veterinaries', veterinaryRoutes);
 app.use('/api/veterinary-portal', veterinaryPortalRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/surveillance', surveillanceRoutes);
+app.use('/api/locations', locationRoutes);
 
 
 app.get('/api/health', (req, res) => {

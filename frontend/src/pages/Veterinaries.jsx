@@ -276,7 +276,7 @@ export default function Veterinaries() {
                           type="text" required
                           placeholder="788 000 000"
                           value={formData.phone_number}
-                          onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, phone_number: e.target.value.replace(/\D/g, '') })}
                           className="flex-1 px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                         />
                       </div>
@@ -288,7 +288,7 @@ export default function Veterinaries() {
                         type="text" required
                         placeholder="1 1990 8..."
                         value={formData.national_id}
-                        onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, national_id: e.target.value.replace(/\D/g, '') })}
                         className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
                       />
                     </div>

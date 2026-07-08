@@ -251,10 +251,10 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
                     </label>
                     <input
                       type="tel" required
-                      pattern="^(07\d{8}|250\d{9})$"
-                      title="Must be a valid Rwandan phone number starting with 07 (10 digits) or 250 (12 digits)"
+                      pattern="^250\d{7}$"
+                      title="Must start with 250 and be exactly 10 digits"
                       value={home.owner_phone}
-                      onChange={e => updateHome(home.id, 'owner_phone', e.target.value)}
+                      onChange={e => updateHome(home.id, 'owner_phone', e.target.value.replace(/\D/g, ''))}
                       placeholder="Your answer"
                       className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
                     />
@@ -268,7 +268,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
                       pattern="^\d{16}$"
                       title="National ID must be exactly 16 digits"
                       value={home.owner_national_id}
-                      onChange={e => updateHome(home.id, 'owner_national_id', e.target.value)}
+                      onChange={e => updateHome(home.id, 'owner_national_id', e.target.value.replace(/\D/g, ''))}
                       placeholder="Your answer"
                       className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
                     />
