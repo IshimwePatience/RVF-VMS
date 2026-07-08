@@ -187,7 +187,7 @@ export default function Dashboard() {
           <>
             <div className="col-span-1 md:col-span-2 mb-4">
               <h2 className="text-base font-bold mb-2 text-gray-800">Total Stock Value</h2>
-              <p className="text-5xl font-black tracking-tight text-gray-900">
+              <p className="text-3xl font-black tracking-tight text-gray-900">
                 {data.totalStockValue ? `${data.totalStockValue.toLocaleString()} RWF` : '0 RWF'}
               </p>
             </div>
