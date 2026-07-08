@@ -63,6 +63,11 @@ if (Veterinary) {
   Stock.hasMany(Veterinary, { foreignKey: 'stock_id' });
 }
 
+if (db.SurveillanceForm && db.SurveillanceSample) {
+  db.SurveillanceForm.hasMany(db.SurveillanceSample, { foreignKey: 'form_id', as: 'samples' });
+  db.SurveillanceSample.belongsTo(db.SurveillanceForm, { foreignKey: 'form_id' });
+}
+
 Request.belongsTo(Stock, { as: 'RequestingStock', foreignKey: 'requesting_stock_id' });
 Request.belongsTo(Stock, { as: 'ParentStock', foreignKey: 'parent_stock_id' });
 Request.belongsTo(Vaccine, { foreignKey: 'vaccine_id' });

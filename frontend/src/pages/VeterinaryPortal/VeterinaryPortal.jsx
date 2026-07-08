@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
 import OverviewTab from './OverviewTab';
 import HomeVaccinationTab from './HomeVaccinationTab';
+import SampleTestFormTab from './SampleTestFormTab';
 
 export default function VeterinaryPortal() {
   const { email } = useParams();
@@ -66,6 +67,16 @@ export default function VeterinaryPortal() {
             >
               Home Vaccination Records
             </button>
+            <button
+              onClick={() => setActiveTab('sample_test')}
+              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'sample_test'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Sample Test Form
+            </button>
           </nav>
         </div>
 
@@ -73,6 +84,7 @@ export default function VeterinaryPortal() {
         <div>
           {activeTab === 'overview' && <OverviewTab email={email} />}
           {activeTab === 'vaccination' && <HomeVaccinationTab email={email} onSubmissionComplete={() => setActiveTab('overview')} />}
+          {activeTab === 'sample_test' && <SampleTestFormTab email={email} />}
         </div>
       </div>
     </div>
