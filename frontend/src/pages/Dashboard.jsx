@@ -180,6 +180,7 @@ export default function Dashboard() {
 
   const hasHighRvfData = data?.highRvfSectors?.some(d => parseFloat(d.total_affected || 0) > 0);
   const hasVaccineUsageData = data?.vaccineUsageSectors?.some(d => parseFloat(d.total_doses || 0) > 0);
+  const hasVaccinationTrendData = data?.reports?.some(r => parseFloat(r.doses_used || 0) > 0);
 
   return (
     <div className="max-w-[1200px] mx-auto p-4 md:p-8">
@@ -349,13 +350,7 @@ export default function Dashboard() {
               </div>
             </div>
             
-            {(!data.reports || data.reports.length === 0) ? (
-              <div className="h-[300px] flex flex-col items-center justify-center text-center border border-slate-100 rounded-2xl bg-white shadow-sm">
-                <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-32 object-contain mb-4 opacity-75" />
-                <p className="text-[14px] font-medium text-slate-500">No vaccination records found</p>
-              </div>
-            ) : (
-              <>
+            {hasVaccinationTrendData && (
                 <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
                   <h3 className="text-base font-bold text-gray-800 mb-6">Vaccination Trend (Doses Used)</h3>
                   <div className="h-[300px] w-full">
@@ -383,36 +378,6 @@ export default function Dashboard() {
                     />
                   </div>
                 </div>
-
-                <div className="col-span-1 md:col-span-2 border border-slate-100 shadow-sm rounded-2xl p-6 bg-white">
-                  <h2 className="text-base font-bold text-gray-800 mb-6">Recent Vaccinations</h2>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-[14px]">
-                      <thead>
-                        <tr className="border-b border-slate-200">
-                          <th className="py-3 px-2 font-bold text-slate-500 tracking-wider text-[12px]">Date</th>
-                          <th className="py-3 px-2 font-bold text-slate-500 tracking-wider text-[12px]">Veterinary</th>
-                          <th className="py-3 px-2 font-bold text-slate-500 tracking-wider text-[12px]">Sector</th>
-                          <th className="py-3 px-2 font-bold text-slate-500 tracking-wider text-[12px]">Doses Used</th>
-                          <th className="py-3 px-2 font-bold text-slate-500 tracking-wider text-[12px]">Animals Affected</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportsPagination.currentData.map((r) => (
-                          <tr key={r.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                            <td className="py-4 px-2 text-slate-600">{new Date(r.date_administered).toLocaleDateString()}</td>
-                            <td className="py-4 px-2 font-semibold text-slate-800">{r.veterinary_name}</td>
-                            <td className="py-4 px-2 text-slate-600">{r.sector}</td>
-                            <td className="py-4 px-2 font-black text-[#8b5cf6]">{r.doses_used}</td>
-                            <td className="py-4 px-2 font-black text-[#10b981]">{r.animals_affected}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <Pagination {...reportsPagination} onPageChange={reportsPagination.jump} />
-                </div>
-              </>
             )}
           </>
         )}
