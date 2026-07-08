@@ -1,381 +1,270 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
-import { LineChart } from '@mui/x-charts/LineChart';
-import { usePagination } from '../hooks/usePagination';
-import Pagination from '../components/Pagination';
+import LocationDropdown from '../components/LocationDropdown';
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
+  ArcElement, PointElement, LineElement, Filler
+} from 'chart.js';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
 
-const COLORS = ['#8b5cf6', '#10b981', '#f43f5e', '#3b82f6', '#f59e0b', '#06b6d4'];
+ChartJS.register(
+  CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
+  ArcElement, PointElement, LineElement, Filler
+);
 
-const AnalyticDonut = ({ data }) => {
-  const total = data.reduce((sum, item) => sum + parseInt(item.total_quantity || 0), 0);
-  
-  let renderData = [...data];
-  if (renderData.length === 1) {
-    renderData.push({ total_quantity: 0, vaccine_name: 'Capacity', isEmpty: true });
-  }
-
-  return (
-    <div className="relative w-full h-full flex flex-col items-center justify-center">
-      <div className="relative w-full max-w-[220px] aspect-square">
-        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm overflow-visible">
-          {renderData.map((item, index) => {
-            if (index > 2) return null; // Max 3 rings
-            const radius = 42 - (index * 13);
-            const percentage = total > 0 && !item.isEmpty ? (item.total_quantity / total) * 100 : 0;
-            const color = item.isEmpty ? '#94a3b8' : COLORS[index % COLORS.length];
-            const circumference = 2 * Math.PI * radius;
-            
-            const segments = index === 0 ? 44 : index === 1 ? 32 : 20;
-            const segmentLength = circumference / segments;
-            const dash = segmentLength * 0.65; // 65% solid block
-            const gap = segmentLength * 0.35;  // 35% empty gap
-            
-            return (
-              <g key={index} transform="rotate(-90 50 50)">
-                <defs>
-                  <mask id={`ring-mask-${index}`}>
-                    <circle
-                      cx="50" cy="50" r={radius}
-                      fill="none"
-                      stroke="white"
-                      strokeWidth={14}
-                      strokeDasharray={`${circumference} ${circumference}`}
-                      strokeDashoffset={circumference - (percentage / 100) * circumference}
-                      strokeLinecap="butt"
-                      style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
-                    />
-                  </mask>
-                </defs>
-
-                {/* Background dashed track */}
-                <circle
-                  cx="50" cy="50" r={radius}
-                  fill="none"
-                  stroke={item.isEmpty ? `${color}22` : `${color}33`}
-                  strokeWidth={9}
-                  strokeDasharray={`${dash} ${gap}`}
-                />
-                
-                {/* Foreground dashed track, revealed by the mask */}
-                {!item.isEmpty && (
-                  <circle
-                    cx="50" cy="50" r={radius}
-                    fill="none"
-                    stroke={color}
-                    strokeWidth={9}
-                    strokeDasharray={`${dash} ${gap}`}
-                    mask={`url(#ring-mask-${index})`}
-                  />
-                )}
-              </g>
-            );
-          })}
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-3xl font-black text-gray-800 tracking-tighter" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}>
-            {total.toLocaleString()}
-          </span>
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Total Doses</span>
-        </div>
-      </div>
-      <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
-        {data.map((entry, index) => (
-          <div key={index} className="flex items-center text-[12px] font-bold text-gray-600">
-            <span className="w-2 h-2 rounded-full mr-2 shadow-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
-            {entry.vaccine_name}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+// Clone colors from the screenshot
+const COLORS = {
+  primary: '#1e40af', // Deep blue
+  deaths: '#ef4444', // Red
+  recovered: '#10b981', // Green
+  active: '#14b8a6', // Teal
+  warning: '#f59e0b', // Yellow/Orange
+  male: '#3b82f6', // Light Blue
+  female: '#f43f5e', // Pink
 };
+
+const CHART_OPTIONS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true, font: { size: 11 } } }
+  }
+};
+
+const MetricCard = ({ title, value, subtitle, colorClass }) => (
+  <div className="bg-white border-t-4 border-slate-200 shadow-sm p-4 flex flex-col" style={{ borderTopColor: colorClass }}>
+    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">{title}</span>
+    <span className="text-3xl font-black text-slate-800" style={{ color: colorClass }}>{value}</span>
+    {subtitle && <span className="text-[10px] text-slate-400 mt-1">{subtitle}</span>}
+  </div>
+);
 
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
-  const { data, isLoading: loading } = useQuery({
-    queryKey: ['dashboard', user?.id],
+  const [filters, setFilters] = useState({
+    province: '', district: '', sector: '', dateFrom: '', dateTo: ''
+  });
+
+  const queryParams = new URLSearchParams();
+  if (filters.province) queryParams.append('province', filters.province);
+  if (filters.district) queryParams.append('district', filters.district);
+  if (filters.sector) queryParams.append('sector', filters.sector);
+  if (filters.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
+  if (filters.dateTo) queryParams.append('dateTo', filters.dateTo);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard', user?.id, queryParams.toString()],
     queryFn: async () => {
       let endpoint = '';
-      if (user.role === 'Admin') {
-        endpoint = '/rvf-api/dashboard/admin';
+      if (user.role === 'Admin' || user.is_central) {
+        endpoint = `/rvf-api/dashboard/admin?${queryParams.toString()}`;
       } else if (user?.stock?.is_endpoint) {
         endpoint = '/rvf-api/dashboard/endpoint';
       } else if (user.role === 'Zipline' || user.role === 'Operations') {
         endpoint = '/rvf-api/dashboard/inventory';
       }
-      
       if (!endpoint) return null;
-      
       const res = await axios.get(endpoint);
       return res.data;
     },
     enabled: !!user,
   });
 
-  const isEndpoint = user?.stock?.is_endpoint === true;
-  const reportsPagination = usePagination(data?.reports || [], 12);
+  if (isLoading) return <div className="p-8 text-center text-slate-500 font-medium">Loading Dashboard Data...</div>;
+  if (!data) return <div className="p-8 text-center text-slate-500">No data available</div>;
 
-  if (loading) return <div className="p-8">Loading...</div>;
-  if (!data) return <div className="p-8">No data available</div>;
+  // Non-admin fallback
+  if (user.role !== 'Admin' && !user.is_central) {
+    return (
+      <div className="p-8 text-center">
+        <h2 className="text-xl font-bold mb-4">Stock Dashboard</h2>
+        <p className="text-slate-500">Analytics are primarily available on the Central Admin view.</p>
+      </div>
+    );
+  }
 
-  // Helper to pad categorical data
-  const makeHills = (chartData, keyX, ...keyYs) => {
-    if (!chartData || chartData.length === 0) return [];
-    const paddingStart = { [keyX]: 'Start', isPadding: true };
-    const paddingEnd = { [keyX]: 'End', isPadding: true };
-    keyYs.forEach(key => {
-      paddingStart[key] = 0;
-      paddingEnd[key] = 0;
-    });
-    return [
-      paddingStart,
-      ...chartData,
-      paddingEnd
-    ];
-  };
-
-  const generateTrendData = (supplies) => {
-    if (!supplies) return [];
-    
-    let totalCurrent = 0;
-    let totalDistributed = 0;
-    supplies.forEach(s => {
-      totalCurrent += (s.current_supply || 0);
-      totalDistributed += (s.distributed_level || 0);
-    });
-
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const actualToday = (new Date().getDay() + 6) % 7; 
-    
-    const trend = [];
-    
-    for (let i = 0; i < 7; i++) {
-      const dayName = days[(actualToday - 6 + i + 7) % 7];
-      
-      if (totalCurrent === 0 && totalDistributed === 0) {
-        trend.push({ name: dayName, current_supply: 0, distributed_level: 0 });
-        continue;
+  // --- Process Data for Charts ---
+  const d = data;
+  
+  // 1. Daily Epidemic Curve (Bar)
+  const curveData = {
+    labels: d.dailyCurve?.map(c => new Date(c.date).toLocaleDateString(undefined, {month:'short', day:'numeric'})) || [],
+    datasets: [
+      {
+        label: 'Animals Affected',
+        data: d.dailyCurve?.map(c => c.affected) || [],
+        backgroundColor: COLORS.primary,
+        borderRadius: 2
+      },
+      {
+        label: 'Doses Administered',
+        data: d.dailyCurve?.map(c => c.doses) || [],
+        backgroundColor: COLORS.recovered,
+        borderRadius: 2
       }
-
-      const progress = 0.5 + (i * 0.08); 
-      const variance1 = i === 6 ? 1 : 0.85 + (Math.sin(i * 1.5) * 0.15); 
-      const variance2 = i === 6 ? 1 : 0.85 + (Math.cos(i * 1.2) * 0.15); 
-      
-      const currentVal = i === 6 ? totalCurrent : Math.floor(totalCurrent * progress * variance1);
-      const distVal = i === 6 ? totalDistributed : Math.floor(totalDistributed * progress * variance2);
-      
-      trend.push({
-        name: dayName,
-        current_supply: currentVal,
-        distributed_level: distVal
-      });
-    }
-    
-    return trend;
+    ]
   };
 
-  const trendData = generateTrendData(data.supplies);
+  // 2. Clinical Outcomes (Donut)
+  const outcomesData = {
+    labels: d.outcomes?.map(o => o.health_status || 'Unknown') || [],
+    datasets: [{
+      data: d.outcomes?.map(o => o.count) || [],
+      backgroundColor: [COLORS.active, COLORS.deaths, COLORS.recovered, COLORS.warning],
+      borderWidth: 0,
+      cutout: '65%'
+    }]
+  };
 
-  const hasHighRvfData = data?.highRvfSectors?.some(d => parseFloat(d.total_affected || 0) > 0);
-  const hasVaccineUsageData = data?.vaccineUsageSectors?.some(d => parseFloat(d.total_doses || 0) > 0);
-  const hasVaccinationTrendData = data?.reports?.some(r => parseFloat(r.doses_used || 0) > 0);
+  // 3. Impact by District (Horizontal Bar)
+  const districtData = {
+    labels: d.districtImpact?.map(x => x.district || 'Unknown') || [],
+    datasets: [{
+      label: 'Affected Animals',
+      data: d.districtImpact?.map(x => x.affected) || [],
+      backgroundColor: COLORS.primary,
+      borderRadius: 2,
+      barThickness: 12
+    }]
+  };
+
+  // 4. Species Distribution (Horizontal Bar)
+  const speciesData = {
+    labels: d.speciesDistribution?.map(x => x.specie || 'Unknown') || [],
+    datasets: [{
+      label: 'Sample Count',
+      data: d.speciesDistribution?.map(x => x.count) || [],
+      backgroundColor: COLORS.active,
+      borderRadius: 2,
+      barThickness: 12
+    }]
+  };
+
+  // 5. Sex Distribution (Donut)
+  const sexData = {
+    labels: d.sexDistribution?.map(x => x.sex || 'Unknown') || [],
+    datasets: [{
+      data: d.sexDistribution?.map(x => x.count) || [],
+      backgroundColor: [COLORS.male, COLORS.female, COLORS.warning],
+      borderWidth: 0,
+      cutout: '65%'
+    }]
+  };
+
+  // 6. Vaccination Status (Bar)
+  const vaxStatusData = {
+    labels: d.vaccinationStatus?.map(x => x.vaccination_status || 'Unknown') || [],
+    datasets: [{
+      label: 'Sample Count',
+      data: d.vaccinationStatus?.map(x => x.count) || [],
+      backgroundColor: COLORS.warning,
+      borderRadius: 2
+    }]
+  };
+
+  // 7. Vaccine Stock (Bar)
+  const stockData = {
+    labels: d.stockByVaccine?.map(x => x.name || 'Unknown') || [],
+    datasets: [{
+      label: 'Doses Available',
+      data: d.stockByVaccine?.map(x => x.quantity) || [],
+      backgroundColor: COLORS.recovered,
+      borderRadius: 2
+    }]
+  };
 
   return (
-    <div className="max-w-[1200px] mx-auto p-4 md:p-8">
-      <h1 className="text-2xl font-bold mb-6 text-gray-900">Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {user.role === 'Admin' && (
-          <>
-            {(!hasHighRvfData && !hasVaccineUsageData) ? (
-              <div className="col-span-1 md:col-span-2 h-[400px] flex flex-col items-center justify-center text-center mt-2">
-                <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
-                <p className="text-[15px] font-medium text-slate-500">No vaccination or RVF sector data available yet.</p>
-              </div>
-            ) : (
-              <>
-                <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow">
-                  <h2 className="text-base font-bold mb-4 text-gray-800">High RVF Sectors</h2>
-                  {!hasHighRvfData ? (
-                    <div className="h-[300px] flex flex-col items-center justify-center text-center">
-                      <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-32 object-contain mb-4 opacity-75" />
-                      <p className="text-[13px] font-medium text-slate-500">No records found</p>
-                    </div>
-                  ) : (
-                    <div className="h-[300px] w-full">
-                      <LineChart
-                        dataset={makeHills(data.highRvfSectors, 'sector', 'total_affected').map((d, i) => ({ ...d, id: i }))}
-                    xAxis={[
-                      {
-                        dataKey: 'sector',
-                        scaleType: 'point',
-                      },
-                    ]}
-                    series={[
-                      {
-                        id: 'affected',
-                        dataKey: 'total_affected',
-                        label: 'Total Affected',
-                        color: '#8b5cf6',
-                        showMark: false,
-                        curve: 'catmullRom',
-                      },
-                    ]}
-                    margin={{ top: 10, right: 10, left: 30, bottom: 20 }}
-                    height={300}
-                  />
-                </div>
-              )}
-            </div>
+    <div className="min-h-screen bg-white">
+      {/* Top Header / Filters */}
+      <div className="bg-[#1e3a8a] px-6 py-3 flex items-center justify-between text-white">
+        <div>
+          <h1 className="text-lg font-bold">Rwanda RVF Vaccine Hub Dashboard</h1>
+          <p className="text-[10px] text-blue-200">Central Stock | Veterinary Data Visualization</p>
+        </div>
+        <div className="text-right">
+          <div className="text-sm font-bold">{d.summary?.totalAffected?.toLocaleString() || 0} Affected Animals</div>
+          <div className="text-[10px] text-blue-200">Data as of {new Date().toLocaleDateString()}</div>
+        </div>
+      </div>
 
-            <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow">
-              <h2 className="text-base font-bold mb-4 text-gray-800">Vaccine Usage</h2>
-              {!hasVaccineUsageData ? (
-                <div className="h-[300px] flex flex-col items-center justify-center text-center">
-                  <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-32 object-contain mb-4 opacity-75" />
-                  <p className="text-[13px] font-medium text-slate-500">No records found</p>
-                </div>
-              ) : (
-                <div className="h-[300px] w-full">
-                  <LineChart
-                    dataset={makeHills(data.vaccineUsageSectors, 'sector', 'total_doses').map((d, i) => ({ ...d, id: i }))}
-                    xAxis={[
-                      {
-                        dataKey: 'sector',
-                        scaleType: 'point',
-                      },
-                    ]}
-                    series={[
-                      {
-                        id: 'doses',
-                        dataKey: 'total_doses',
-                        label: 'Total Doses',
-                        color: '#10b981',
-                        showMark: false,
-                        curve: 'catmullRom',
-                      },
-                    ]}
-                    margin={{ top: 10, right: 10, left: 30, bottom: 20 }}
-                    height={300}
-                  />
-                </div>
-              )}
-            </div>
-              </>
-            )}
-          </>
-        )}
+      <div className="border-b border-slate-200 bg-white px-6 py-3 flex flex-wrap gap-4 items-center shadow-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Province</span>
+          <div className="w-32 border-b-2 border-slate-200 bg-white text-xs font-bold text-slate-800">
+            <LocationDropdown type="provinces" value={filters.province} onChange={(val) => setFilters({ ...filters, province: val, district: '', sector: '' })} placeholder="All Provinces" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">District</span>
+          <div className="w-32 border-b-2 border-slate-200 bg-white text-xs font-bold text-slate-800">
+            <LocationDropdown type="districts" params={{ province: filters.province }} value={filters.district} onChange={(val) => setFilters({ ...filters, district: val, sector: '' })} placeholder="All Districts" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Sector</span>
+          <div className="w-32 border-b-2 border-slate-200 bg-white text-xs font-bold text-slate-800">
+            <LocationDropdown type="sectors" params={{ district: filters.district }} value={filters.sector} onChange={(val) => setFilters({ ...filters, sector: val })} placeholder="All Sectors" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <input type="date" value={filters.dateFrom} onChange={e => setFilters({...filters, dateFrom: e.target.value})} className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 px-2 py-1 rounded" />
+          <span className="text-xs text-slate-400">-</span>
+          <input type="date" value={filters.dateTo} onChange={e => setFilters({...filters, dateTo: e.target.value})} className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 px-2 py-1 rounded" />
+          <button onClick={() => setFilters({province:'', district:'', sector:'', dateFrom:'', dateTo:''})} className="ml-2 bg-slate-800 text-white text-[10px] font-bold px-3 py-1.5 rounded hover:bg-slate-700 transition-colors">Reset</button>
+        </div>
+      </div>
 
-        {(user.role === 'Zipline' || user.role === 'Operations') && !isEndpoint && (
-          <>
-            <div className="col-span-1 md:col-span-2 mb-2 mt-4">
-              <h2 className="text-lg font-bold text-gray-800">Current Supply Levels</h2>
-            </div>
-            
-            {(!data.supplies || data.supplies.length === 0) ? (
-              <div className="col-span-1 md:col-span-2 h-[300px] flex flex-col items-center justify-center text-center border border-slate-100 rounded-2xl bg-white shadow-sm">
-                <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-32 object-contain mb-4 opacity-75" />
-                <p className="text-[14px] font-medium text-slate-500">No stock available</p>
-              </div>
-            ) : (
-              <>
-                <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow">
-                  <h3 className="text-base font-bold text-gray-800 mb-6">Supply Overview (7-Day Trend)</h3>
-                  <div className="h-[350px] w-full mt-2">
-                    <LineChart
-                      dataset={trendData.map((d, i) => ({ ...d, id: i }))}
-                      xAxis={[
-                        {
-                          dataKey: 'name',
-                          scaleType: 'point',
-                        },
-                      ]}
-                      series={[
-                        {
-                          id: 'distributed',
-                          dataKey: 'distributed_level',
-                          label: 'Distributed Level',
-                          color: '#f43f5e',
-                          showMark: false,
-                          curve: 'catmullRom',
-                        },
-                        {
-                          id: 'current',
-                          dataKey: 'current_supply',
-                          label: 'Current Supply',
-                          color: '#8b5cf6',
-                          showMark: false,
-                          curve: 'catmullRom',
-                        },
-                      ]}
-                      margin={{ top: 10, right: 10, left: 40, bottom: 30 }}
-                      height={350}
-                    />
-                  </div>
-                </div>
+      <div className="p-6">
+        {/* Metric Cards Row */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <MetricCard title="Animals Affected" value={d.summary?.totalAffected?.toLocaleString() || 0} colorClass={COLORS.primary} subtitle="Reported in field" />
+          <MetricCard title="Animals Died" value={d.summary?.totalDied?.toLocaleString() || 0} colorClass={COLORS.deaths} subtitle="Reported mortality" />
+          <MetricCard title="Doses Administered" value={d.summary?.totalDoses?.toLocaleString() || 0} colorClass={COLORS.recovered} subtitle="Total vaccines used" />
+          <MetricCard title="Samples Collected" value={d.summary?.samplesCount?.toLocaleString() || 0} colorClass={COLORS.active} subtitle="Lab & Field Samples" />
+          <MetricCard title="Vaccines in Stock" value={d.summary?.totalVaccinesInStock?.toLocaleString() || 0} colorClass={COLORS.warning} subtitle="Central & distributed" />
+          <MetricCard title="Total Stock Value" value={(d.summary?.totalStockValue || 0).toLocaleString()} colorClass={COLORS.male} subtitle="RWF" />
+        </div>
 
-                <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
-                  <h3 className="text-base font-bold text-gray-800 mb-1">Analytic View</h3>
-                  <p className="text-[12px] text-slate-400 font-medium mb-6">Total doses proportion</p>
-                  <div className="flex-1 min-h-[250px]">
-                    <AnalyticDonut data={data.supplies} />
-                  </div>
-                </div>
-              </>
-            )}
-          </>
-        )}
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Row 1 */}
+          <div className="lg:col-span-2 bg-slate-50 border border-slate-200 p-4 shadow-sm">
+            <h3 className="text-[11px] font-bold text-slate-800 uppercase mb-4">Daily Epidemic Curve — Cases vs Vaccinations</h3>
+            <div className="h-[250px]"><Bar data={curveData} options={{...CHART_OPTIONS, maintainAspectRatio: false}} /></div>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm">
+            <h3 className="text-[11px] font-bold text-slate-800 uppercase mb-4">Clinical Outcomes</h3>
+            <div className="h-[250px] pb-4"><Doughnut data={outcomesData} options={CHART_OPTIONS} /></div>
+          </div>
 
-        {isEndpoint && (
-          <>
-            <div className="col-span-1 md:col-span-2 mb-2 mt-4">
-              <h2 className="text-lg font-bold text-gray-800">Your Sector Analytics</h2>
-            </div>
-            
-            <div className="col-span-1 md:col-span-2 border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
-              <h3 className="text-base font-bold text-gray-800 mb-1">Inventory Overview</h3>
-              <p className="text-[12px] text-slate-400 font-medium mb-6">Distribution of vaccines at your facility</p>
-              <div className="flex-1 min-h-[300px]">
-                <AnalyticDonut data={[
-                  { total_quantity: data.stockLevel || 0, vaccine_name: 'Current Stock Level' },
-                  { total_quantity: data.vaccinesUsed || 0, vaccine_name: 'Vaccines Used' },
-                  { total_quantity: data.vaccinesDamaged || 0, vaccine_name: 'Vaccines Damaged' }
-                ]} />
-              </div>
-            </div>
-            
-            {hasVaccinationTrendData && (
-                <div className="col-span-1 md:col-span-2 border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
-                  <h3 className="text-base font-bold text-gray-800 mb-6">Vaccination Trend (Doses Used)</h3>
-                  <div className="h-[300px] w-full">
-                    <LineChart
-                      dataset={[...data.reports].reverse().map((r, i) => ({ ...r, id: i, formattedDate: new Date(r.date_administered).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }))}
-                      xAxis={[
-                        {
-                          dataKey: 'formattedDate',
-                          scaleType: 'point',
-                        },
-                      ]}
-                      series={[
-                        {
-                          id: 'doses_used',
-                          dataKey: 'doses_used',
-                          label: 'Doses Used',
-                          color: '#10b981',
-                          showMark: false,
-                          curve: 'catmullRom',
-                        },
-                      ]}
-                      margin={{ top: 10, right: 10, left: 30, bottom: 20 }}
-                      height={300}
-                    />
-                  </div>
-                </div>
-            )}
-          </>
-        )}
+          {/* Row 2 */}
+          <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm">
+            <h3 className="text-[11px] font-bold text-slate-800 uppercase mb-4">Impact by District</h3>
+            <div className="h-[250px]"><Bar data={districtData} options={{...CHART_OPTIONS, indexAxis: 'y'}} /></div>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm">
+            <h3 className="text-[11px] font-bold text-slate-800 uppercase mb-4">Species Distribution</h3>
+            <div className="h-[250px]"><Bar data={speciesData} options={{...CHART_OPTIONS, indexAxis: 'y'}} /></div>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm">
+            <h3 className="text-[11px] font-bold text-slate-800 uppercase mb-4">Vaccine Stock Levels</h3>
+            <div className="h-[250px]"><Bar data={stockData} options={CHART_OPTIONS} /></div>
+          </div>
+
+          {/* Row 3 */}
+          <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm">
+            <h3 className="text-[11px] font-bold text-slate-800 uppercase mb-4">Sex Distribution (Samples)</h3>
+            <div className="h-[250px] pb-4"><Doughnut data={sexData} options={CHART_OPTIONS} /></div>
+          </div>
+          <div className="lg:col-span-2 bg-slate-50 border border-slate-200 p-4 shadow-sm">
+            <h3 className="text-[11px] font-bold text-slate-800 uppercase mb-4">Vaccination Status of Sampled Animals</h3>
+            <div className="h-[250px]"><Bar data={vaxStatusData} options={CHART_OPTIONS} /></div>
+          </div>
+
+        </div>
       </div>
     </div>
   );
