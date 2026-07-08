@@ -73,3 +73,21 @@ exports.submitForm = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.getForms = async (req, res) => {
+  try {
+    const forms = await SurveillanceForm.findAll({
+      include: [
+        {
+          model: SurveillanceSample,
+          as: 'samples'
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(forms);
+  } catch (error) {
+    console.error('Error fetching surveillance forms:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

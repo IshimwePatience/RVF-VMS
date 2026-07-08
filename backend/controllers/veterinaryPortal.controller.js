@@ -2,12 +2,31 @@ const { AdministrationRecord, HomeVaccinationRecord, Batch, Vaccine, Stock, Stoc
 
 exports.getOverview = async (req, res) => {
   try {
-    const { email } = req.query;
-    if (!email) return res.status(400).json({ message: 'Email is required' });
+    const { email, province, district, sector } = req.query;
+
+    const allocWhere = {};
+    const usageWhere = {};
+
+    if (email) {
+      allocWhere.email = email;
+      usageWhere.veterinary_email = email;
+    }
+    if (province) {
+      allocWhere.province = province;
+      usageWhere.province = province;
+    }
+    if (district) {
+      allocWhere.district = district;
+      usageWhere.district = district;
+    }
+    if (sector) {
+      allocWhere.sector = sector;
+      usageWhere.sector = sector;
+    }
 
     // Fetch allocations
     const allocations = await AdministrationRecord.findAll({
-      where: { email },
+      where: allocWhere,
       include: [
         {
           model: Batch,
@@ -18,7 +37,7 @@ exports.getOverview = async (req, res) => {
 
     // Fetch usages
     const usages = await HomeVaccinationRecord.findAll({
-      where: { veterinary_email: email }
+      where: usageWhere
     });
 
     // Aggregate
@@ -171,5 +190,26 @@ exports.recordVaccination = async (req, res) => {
     await t.rollback();
     console.error(error);
     res.status(400).json({ message: error.message || 'Server error' });
+  }
+};
+
+exports.getAllVaccinations = async (req, res) => {
+  try {
+    const { email, province, district, sector } = req.query;
+    const where = {};
+    if (email) where.veterinary_email = email;
+    if (province) where.province = province;
+    if (district) where.district = district;
+    if (sector) where.sector = sector;
+
+    const records = await HomeVaccinationRecord.findAll({
+      where,
+      order: [['date_administered', 'DESC']]
+    });
+
+    res.json(records);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 };

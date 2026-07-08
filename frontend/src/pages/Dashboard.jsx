@@ -190,7 +190,7 @@ export default function Dashboard() {
         {user.role === 'Admin' && (
           <>
             {(!hasHighRvfData && !hasVaccineUsageData) ? (
-              <div className="col-span-1 md:col-span-2 h-[400px] flex flex-col items-center justify-center text-center border border-slate-100 rounded-2xl bg-white shadow-sm mt-2">
+              <div className="col-span-1 md:col-span-2 h-[400px] flex flex-col items-center justify-center text-center mt-2">
                 <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
                 <p className="text-[15px] font-medium text-slate-500">No vaccination or RVF sector data available yet.</p>
               </div>

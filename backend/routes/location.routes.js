@@ -19,6 +19,16 @@ function getProvinceByDistrict(district) {
   return null;
 }
 
+// Get all provinces
+router.get('/provinces', (req, res) => {
+  try {
+    const provinces = rwanda.getProvinces();
+    res.json(provinces || []);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get all districts or filter by province
 router.get('/districts', (req, res) => {
   try {

@@ -279,7 +279,7 @@ export default function Stocks() {
                   </div>
                 )}
 
-                {!formData.is_central && (
+                {!formData.is_central && !formData.has_custom_name && (
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Assigned Parent Stock</label>
                     <select 
@@ -362,6 +362,24 @@ export default function Stocks() {
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+                
+                {!formData.is_central && formData.has_custom_name && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Assigned Parent Stock</label>
+                    <select 
+                      value={formData.parent_stock_id}
+                      onChange={(e) => setFormData({...formData, parent_stock_id: e.target.value})}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
+                    >
+                      <option value="">Select a Parent Stock (Optional)</option>
+                      {centralStocks.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      {stocks.filter(s => !s.is_central && !s.is_endpoint && s.id !== formData.parent_stock_id).map(s => (
+                         <option key={s.id} value={s.id}>{s.name} (Subordinate)</option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500 mt-1 mb-4">This regional stock will request vaccines from the assigned parent.</p>
                   </div>
                 )}
               </div>

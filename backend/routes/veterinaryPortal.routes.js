@@ -5,5 +5,6 @@ const veterinaryPortalController = require('../controllers/veterinaryPortal.cont
 router.get('/overview', veterinaryPortalController.getOverview);
 router.get('/available-vaccines', veterinaryPortalController.getAvailableVaccines);
 router.post('/vaccination', veterinaryPortalController.recordVaccination);
+router.get('/vaccinations', veterinaryPortalController.getAllVaccinations);
 
 module.exports = router;
