@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
-import { LineChartPro } from '@mui/x-charts-pro/LineChartPro';
+import { LineChart } from '@mui/x-charts/LineChart';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from '../components/Pagination';
 
@@ -201,13 +201,12 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="h-[300px] w-full">
-                  <LineChartPro
+                  <LineChart
                     dataset={makeHills(data.highRvfSectors, 'sector', 'total_affected').map((d, i) => ({ ...d, id: i }))}
                     xAxis={[
                       {
                         dataKey: 'sector',
                         scaleType: 'point',
-                        zoom: { slider: { enabled: true, preview: { seriesIds: ['affected'] } } },
                       },
                     ]}
                     series={[
@@ -237,13 +236,12 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="h-[300px] w-full">
-                  <LineChartPro
+                  <LineChart
                     dataset={makeHills(data.vaccineUsageSectors, 'sector', 'total_doses').map((d, i) => ({ ...d, id: i }))}
                     xAxis={[
                       {
                         dataKey: 'sector',
                         scaleType: 'point',
-                        zoom: { slider: { enabled: true, preview: { seriesIds: ['doses'] } } },
                       },
                     ]}
                     series={[
@@ -282,13 +280,12 @@ export default function Dashboard() {
                 <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow">
                   <h3 className="text-base font-bold text-gray-800 mb-6">Supply Overview (7-Day Trend)</h3>
                   <div className="h-[350px] w-full mt-2">
-                    <LineChartPro
+                    <LineChart
                       dataset={trendData.map((d, i) => ({ ...d, id: i }))}
                       xAxis={[
                         {
                           dataKey: 'name',
                           scaleType: 'point',
-                          zoom: { slider: { enabled: true, preview: { seriesIds: ['current'] } } },
                         },
                       ]}
                       series={[
@@ -357,13 +354,12 @@ export default function Dashboard() {
                 <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
                   <h3 className="text-base font-bold text-gray-800 mb-6">Vaccination Trend (Doses Used)</h3>
                   <div className="h-[300px] w-full">
-                    <LineChartPro
+                    <LineChart
                       dataset={[...data.reports].reverse().map((r, i) => ({ ...r, id: i, formattedDate: new Date(r.date_administered).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }))}
                       xAxis={[
                         {
                           dataKey: 'formattedDate',
                           scaleType: 'point',
-                          zoom: { slider: { enabled: true, preview: { seriesIds: ['doses_used'] } } },
                         },
                       ]}
                       series={[
