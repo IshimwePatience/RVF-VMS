@@ -19,9 +19,14 @@ function getProvinceByDistrict(district) {
   return null;
 }
 
-// Get all districts
+// Get all districts or filter by province
 router.get('/districts', (req, res) => {
   try {
+    const { province } = req.query;
+    if (province) {
+      const districts = rwanda.getDistricts(province);
+      return res.json(districts || []);
+    }
     const provinces = rwanda.getProvinces();
     let allDistricts = [];
     for (const p of provinces) {
@@ -33,6 +38,15 @@ router.get('/districts', (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Get province by district
+router.get('/province-by-district', (req, res) => {
+  const { district } = req.query;
+  if (!district) return res.status(400).json({ error: 'District is required' });
+  const province = getProvinceByDistrict(district);
+  if (!province) return res.status(404).json({ error: 'District not found' });
+  res.json({ province });
 });
 
 // Get sectors for a district

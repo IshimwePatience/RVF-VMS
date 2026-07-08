@@ -20,6 +20,7 @@ export default function Stocks() {
   const [formData, setFormData] = useState({
     name: '',
     is_central: false,
+    has_custom_name: false,
     is_endpoint: false,
     parent_stock_id: '',
     province: '',
@@ -71,14 +72,15 @@ export default function Stocks() {
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setFormData({ name: '', is_central: false, is_endpoint: false, parent_stock_id: '', province: '', district: '', sector: '' });
+    setFormData({ name: '', is_central: false, has_custom_name: false, is_endpoint: false, parent_stock_id: '', province: '', district: '', sector: '' });
   };
 
   const handleEdit = (stock) => {
     setEditingId(stock.id);
     setFormData({ 
       name: stock.name, 
-      is_central: stock.is_central, 
+      is_central: stock.is_central,
+      has_custom_name: !stock.is_central && stock.name && !stock.name.includes('District') && !stock.name.includes('Sector'),
       is_endpoint: stock.is_endpoint || false,
       parent_stock_id: stock.parent_stock_id || '',
       province: stock.province || '',
@@ -246,23 +248,36 @@ export default function Stocks() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className={`w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm ${!formData.is_central ? 'bg-slate-50 cursor-not-allowed text-slate-500' : 'bg-white'}`}
+                    className={`w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm ${(!formData.is_central && !formData.has_custom_name) ? 'bg-slate-50 cursor-not-allowed text-slate-500' : 'bg-white'}`}
                     placeholder="e.g. Kigali District Stock"
-                    readOnly={!formData.is_central}
+                    readOnly={!formData.is_central && !formData.has_custom_name}
                   />
-                  {!formData.is_central && <p className="text-xs text-slate-500 mt-1">Name is automatically generated based on location selection.</p>}
+                  {(!formData.is_central && !formData.has_custom_name) && <p className="text-xs text-slate-500 mt-1">Name is automatically generated based on location selection.</p>}
                 </div>
                 
-                <div className="flex items-center gap-2 mt-4 mb-2">
+                <div className="flex items-center gap-2 mt-4">
                   <input 
                     type="checkbox" 
                     id="is_central"
                     checked={formData.is_central}
-                    onChange={(e) => setFormData({...formData, is_central: e.target.checked, parent_stock_id: ''})}
+                    onChange={(e) => setFormData({...formData, is_central: e.target.checked, parent_stock_id: '', has_custom_name: false})}
                     className="w-4 h-4 text-blue-600 rounded border-slate-300"
                   />
                   <label htmlFor="is_central" className="text-sm font-medium text-slate-700">This is a Central Stock</label>
                 </div>
+
+                {!formData.is_central && (
+                  <div className="flex items-center gap-2 mt-2 mb-2">
+                    <input 
+                      type="checkbox" 
+                      id="has_custom_name"
+                      checked={formData.has_custom_name}
+                      onChange={(e) => setFormData({...formData, has_custom_name: e.target.checked})}
+                      className="w-4 h-4 text-blue-600 rounded border-slate-300"
+                    />
+                    <label htmlFor="has_custom_name" className="text-sm font-medium text-slate-700">Custom Stock Name (Regional/Zipline)</label>
+                  </div>
+                )}
 
                 {!formData.is_central && (
                   <div>
@@ -302,7 +317,15 @@ export default function Stocks() {
                             params={{ province: formData.province }}
                             value={formData.district}
                             onChange={(val) => {
-                              setFormData({ ...formData, district: val, sector: '', name: !formData.is_endpoint ? `${val} District` : formData.name });
+                              const newName = (!formData.is_endpoint && !formData.has_custom_name && val) ? `${val} District` : formData.name;
+                              setFormData(prev => ({ ...prev, district: val, sector: '', name: newName }));
+                              if (val && !formData.province) {
+                                axios.get(`/rvf-api/locations/province-by-district?district=${val}`).then(res => {
+                                  if (res.data.province) {
+                                    setFormData(p => ({ ...p, province: res.data.province }));
+                                  }
+                                }).catch(() => {});
+                              }
                             }}
                             placeholder="Select District"
                           />
@@ -330,7 +353,10 @@ export default function Stocks() {
                             type="sectors"
                             params={{ district: formData.district }}
                             value={formData.sector}
-                            onChange={(val) => setFormData({...formData, sector: val, name: `${val} Sector`})}
+                            onChange={(val) => {
+                              const newName = (!formData.has_custom_name && val) ? `${val} Sector` : formData.name;
+                              setFormData({...formData, sector: val, name: newName});
+                            }}
                             placeholder="Select Sector"
                           />
                         </div>

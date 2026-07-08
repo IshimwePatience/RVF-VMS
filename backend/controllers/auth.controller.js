@@ -206,15 +206,20 @@ exports.updateSettings = async (req, res) => {
 
 const { Veterinary } = require('../models');
 
-exports.vetRequestCode = async (req, res) => {
+exports.vetLogin = async (req, res) => {
   try {
     const { email, name } = req.body;
     if (!email) return res.status(400).json({ message: 'Email is required' });
 
     let vet = await Veterinary.findOne({ where: { email } });
+    
     if (!vet) {
-      if (!name) return res.status(400).json({ message: 'Name is required for new registration' });
-      // Create new self-registered vet
+      if (!name) {
+        // Not found, and no name provided -> tell frontend they need to register
+        return res.status(404).json({ message: 'Veterinary not found. Registration required.' });
+      }
+      
+      // Name provided -> Create new self-registered vet
       vet = await Veterinary.create({
         email,
         name,
@@ -222,61 +227,14 @@ exports.vetRequestCode = async (req, res) => {
       });
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    vet.verification_code = code;
-    vet.code_expires_at = new Date(Date.now() + 15 * 60000); // 15 minutes
-    await vet.save();
-
-    // MOCKED EMAIL - Log to console
-    console.log(`[DEV] VET AUTH CODE for ${email}: ${code}`);
-
-    res.json({ message: 'Verification code sent to your email.' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-
-exports.vetVerifyCode = async (req, res) => {
-  try {
-    const { email, code } = req.body;
-    if (!email || !code) return res.status(400).json({ message: 'Email and code are required' });
-
-    const vet = await Veterinary.findOne({ where: { email } });
-    if (!vet) return res.status(404).json({ message: 'Veterinary not found' });
-
-    if (vet.verification_code !== code || new Date() > vet.code_expires_at) {
-      return res.status(401).json({ message: 'Invalid or expired verification code' });
-    }
-
-    // Clear code
-    vet.verification_code = null;
-    vet.code_expires_at = null;
-    await vet.save();
-
-    // Generate JWT
+    // Vet found or newly created -> issue token directly
     const token = jwt.sign(
-      { 
-        id: vet.id, 
-        email: vet.email,
-        name: vet.name,
-        role: 'Veterinary',
-        stock_id: vet.stock_id
-      },
-      JWT_SECRET,
-      { expiresIn: '7d' }
+      { email: vet.email, name: vet.name, role: 'Veterinary', id: vet.id, stock_id: vet.stock_id },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
     );
 
-    res.json({
-      token,
-      vet: {
-        id: vet.id,
-        name: vet.name,
-        email: vet.email,
-        stock_id: vet.stock_id,
-        is_self_registered: vet.is_self_registered
-      }
-    });
+    res.json({ token, user: { email: vet.email, name: vet.name, role: 'Veterinary', id: vet.id, stock_id: vet.stock_id } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

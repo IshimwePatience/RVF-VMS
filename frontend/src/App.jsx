@@ -107,8 +107,8 @@ function App() {
               <Route path="users" element={<AdminOnlyRoute><Users /></AdminOnlyRoute>} />
               <Route path="settings" element={<AdminOnlyRoute><Settings /></AdminOnlyRoute>} />
             </Route>
-            <Route path="/report-usage" element={<ReportUsage />} />
-            <Route path="/report-usage/:token" element={<ReportUsage />} />
+            <Route path="/veterinary-login" element={<ReportUsage mode="login" />} />
+            <Route path="/veterinary-signup" element={<ReportUsage mode="register" />} />
             <Route path="/veterinary-portal/:email" element={<VeterinaryPortal />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

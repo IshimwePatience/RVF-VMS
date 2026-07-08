@@ -17,7 +17,7 @@ export default function VeterinaryPortal() {
   }, [activeTab, email]);
 
   const handleSignOut = () => {
-    navigate('/report-usage');
+    navigate('/veterinary-login');
   };
 
   return (
