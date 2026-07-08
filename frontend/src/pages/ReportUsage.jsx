@@ -238,7 +238,9 @@ export default function ReportUsage() {
               Owner's Phone Number <span className="text-red-500">*</span>
             </label>
             <input
-              type="text" required
+              type="tel" required
+              pattern="^(07\d{8}|250\d{9})$"
+              title="Must be a valid Rwandan phone number starting with 07 (10 digits) or 250 (12 digits)"
               value={formData.owner_phone}
               onChange={(e) => setFormData({ ...formData, owner_phone: e.target.value })}
               placeholder="Your answer"
@@ -252,6 +254,8 @@ export default function ReportUsage() {
             </label>
             <input
               type="text" required
+              pattern="^\d{16}$"
+              title="National ID must be exactly 16 digits"
               value={formData.owner_national_id}
               onChange={(e) => setFormData({ ...formData, owner_national_id: e.target.value })}
               placeholder="Your answer"

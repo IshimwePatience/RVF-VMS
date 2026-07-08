@@ -151,6 +151,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
             const selectedVaccine = availableVaccines.find(v => v.display_name === sel);
             formattedAnimals.push({
               animal_type: a.animal_type,
+              animal_identification: 'N/A',
               vaccine_name: selectedVaccine ? selectedVaccine.vaccine_name : '',
               batch_number: selectedVaccine ? selectedVaccine.batch_number : '',
               dose_given: parseInt(a.dose_given) || 0,
@@ -164,6 +165,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
           owner_name: home.owner_name,
           owner_phone: home.owner_phone,
           owner_national_id: home.owner_national_id,
+          home_identifier: home.id.toString(),
           animals: formattedAnimals
         });
       });
@@ -248,7 +250,9 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
                       Owner's Phone Number <span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="text" required
+                      type="tel" required
+                      pattern="^(07\d{8}|250\d{9})$"
+                      title="Must be a valid Rwandan phone number starting with 07 (10 digits) or 250 (12 digits)"
                       value={home.owner_phone}
                       onChange={e => updateHome(home.id, 'owner_phone', e.target.value)}
                       placeholder="Your answer"
@@ -261,6 +265,8 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
                     </label>
                     <input
                       type="text" required
+                      pattern="^\d{16}$"
+                      title="National ID must be exactly 16 digits"
                       value={home.owner_national_id}
                       onChange={e => updateHome(home.id, 'owner_national_id', e.target.value)}
                       placeholder="Your answer"
@@ -290,13 +296,17 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
                       <div className="space-y-8">
                         <div>
                           <label className="block text-[15px] font-medium text-[#202124] mb-4">Animal Type <span className="text-red-500">*</span></label>
-                          <input
-                            type="text" required
+                          <select
+                            required
                             value={animal.animal_type}
                             onChange={e => updateAnimal(home.id, animal.id, 'animal_type', e.target.value)}
                             className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
-                            placeholder="Your answer"
-                          />
+                          >
+                            <option value="" disabled>Choose</option>
+                            <option value="Sheep">Sheep</option>
+                            <option value="Goat">Goat</option>
+                            <option value="Cattle">Cattle</option>
+                          </select>
                         </div>
                         <div>
                           <label className="block text-[15px] font-medium text-[#202124] mb-4">Vaccines <span className="text-red-500">*</span></label>

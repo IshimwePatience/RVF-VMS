@@ -100,7 +100,7 @@ export default function SampleTestFormTab({ email }) {
       {/* Header section */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6 md:gap-0">
         <div className="w-full md:w-32 flex justify-center md:justify-start">
-          <img src="/RAB_Logo2.png" alt="RAB" className="h-16 object-contain" onError={(e) => { e.target.onerror = null; e.target.src = minisanteLogo; }} />
+          <img src={`${import.meta.env.BASE_URL}RAB_Logo2.png`} alt="RAB" className="h-16 object-contain" />
         </div>
         
         <h1 className="text-xl md:text-2xl font-bold tracking-wide underline underline-offset-4 decoration-2 text-center flex-1">
@@ -108,7 +108,7 @@ export default function SampleTestFormTab({ email }) {
         </h1>
         
         <div className="w-full md:w-32 flex justify-center md:justify-end">
-          <img src={minisanteLogo} alt="MINISANTE" className="h-16 object-contain" />
+          {/* Empty div to keep the title centered */}
         </div>
       </div>
 
