@@ -358,21 +358,81 @@ export default function SampleTestFormTab({ email }) {
           <table className="w-full border-collapse border border-slate-300 text-[12px] text-center bg-white shadow-sm">
             <thead className="bg-slate-100">
               <tr>
-                <th className="border border-slate-300 p-2 font-bold w-12 text-slate-800">S/N</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[120px] text-slate-800">Farmer Name</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[100px] text-slate-800">Phone</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[100px] text-slate-800">Animal District Origin</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[90px] text-slate-800">Sector</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[90px] text-slate-800">Cell</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[90px] text-slate-800">Village</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[80px] text-slate-800">Specie</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[120px] text-slate-800">Animal Id<br/>(Eartag, Animal<br/>Name Or S/N)</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[80px] text-slate-800">Breed</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[60px] text-slate-800">Sex</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[60px] text-slate-800">Age</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[90px] text-slate-800">Vaccination<br/>Status (Yes, No)</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[100px] text-slate-800">Purpose<br/>(Diagnosis,<br/>Surveillance)</th>
-                <th className="border border-slate-300 p-2 font-bold min-w-[90px] text-slate-800">Health Status<br/>(Sick, Normal,<br/>Control)</th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[60px] h-full flex items-center justify-center font-bold">
+                    S/N
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[120px] h-full flex items-center justify-center font-bold">
+                    Farmer Name
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[100px] h-full flex items-center justify-center font-bold">
+                    Phone
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[140px] h-full flex items-center justify-center font-bold">
+                    Animal District Origin
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[140px] h-full flex items-center justify-center font-bold">
+                    Sector
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[140px] h-full flex items-center justify-center font-bold">
+                    Cell
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[140px] h-full flex items-center justify-center font-bold">
+                    Village
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[110px] h-full flex items-center justify-center font-bold">
+                    Specie
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[120px] h-full flex items-center justify-center font-bold">
+                    Animal Id<br/>(Eartag, Animal<br/>Name Or S/N)
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[100px] h-full flex items-center justify-center font-bold">
+                    Breed
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[110px] h-full flex items-center justify-center font-bold">
+                    Sex
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[100px] h-full flex items-center justify-center font-bold">
+                    Age
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[120px] h-full flex items-center justify-center font-bold">
+                    Vaccination<br/>Status (Yes, No)
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[120px] h-full flex items-center justify-center font-bold">
+                    Purpose<br/>(Diagnosis,<br/>Surveillance)
+                  </div>
+                </th>
+                <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
+                  <div className="resize-x overflow-auto p-2 min-w-[120px] h-full flex items-center justify-center font-bold">
+                    Health Status<br/>(Sick, Normal,<br/>Control)
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>

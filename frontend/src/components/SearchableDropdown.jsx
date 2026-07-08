@@ -15,14 +15,17 @@ export default function SearchableDropdown({ options, value, onChange, placehold
       backgroundColor: 'transparent',
       border: 'none',
       boxShadow: state.isFocused ? '0 0 0 1px #3b82f6' : 'none',
-      minHeight: '100%',
+      minHeight: '38px',
       cursor: 'pointer',
-      width: '100%'
+      width: '100%',
+      flexWrap: 'nowrap'
     }),
     valueContainer: (provided) => ({
       ...provided,
-      padding: '0 8px',
+      padding: '0 2px',
       justifyContent: 'center',
+      flexWrap: 'nowrap',
+      overflow: 'hidden'
     }),
     singleValue: (provided) => ({
       ...provided,
@@ -32,25 +35,34 @@ export default function SearchableDropdown({ options, value, onChange, placehold
     placeholder: (provided) => ({
       ...provided,
       textAlign: 'center',
-      color: '#94a3b8' // slate-400
+      color: '#94a3b8',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
     }),
     indicatorSeparator: () => ({
       display: 'none',
     }),
     dropdownIndicator: (provided) => ({
       ...provided,
-      padding: '0 4px',
+      padding: '2px',
       color: '#94a3b8',
+      cursor: 'pointer',
       '&:hover': {
         color: '#64748b'
       }
+    }),
+    clearIndicator: (provided) => ({
+      ...provided,
+      padding: '2px',
+      cursor: 'pointer'
     }),
     menu: (provided) => ({
       ...provided,
       zIndex: 50,
       textAlign: 'left',
-      minWidth: '150px', // Ensure it doesn't get squashed if the column is too small
-      maxWidth: '90vw'   // Ensure it doesn't break the mobile viewport
+      minWidth: '150px', 
+      maxWidth: '90vw'   
     }),
     menuPortal: base => ({ ...base, zIndex: 9999 }),
     option: (provided, state) => ({
@@ -75,7 +87,7 @@ export default function SearchableDropdown({ options, value, onChange, placehold
         isLoading={loading}
         isClearable={isClearable}
         menuPortalTarget={document.body}
-        menuPosition="absolute"
+        menuPosition="fixed"
         menuPlacement="auto"
       />
     </div>
