@@ -89,15 +89,6 @@ export default function NewRequest() {
     cancelMutation.mutate(id);
   };
 
-  if (user?.is_central) {
-    return (
-      <div className="max-w-[1200px] mx-auto py-12 text-center">
-        <h2 className="text-xl font-bold text-slate-800">Central Stock Cannot Make Requests</h2>
-        <p className="text-slate-500 mt-2">Central stock receives vaccines directly from suppliers. You don't have a parent stock to request from.</p>
-      </div>
-    );
-  }
-
   // Filtering and Sorting
   const getProcessedInventory = () => {
     let processed = [...parentInventory];
@@ -116,6 +107,16 @@ export default function NewRequest() {
 
   const processedInventory = getProcessedInventory();
   const pagination = usePagination(processedInventory, 12);
+
+  if (user?.is_central) {
+    return (
+      <div className="max-w-[1200px] mx-auto py-12 text-center">
+        <h2 className="text-xl font-bold text-slate-800">Central Stock Cannot Make Requests</h2>
+        <p className="text-slate-500 mt-2">Central stock receives vaccines directly from suppliers. You don't have a parent stock to request from.</p>
+      </div>
+    );
+  }
+
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
