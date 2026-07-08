@@ -48,7 +48,7 @@ export default function LocationDropdown({ type, params = {}, value, onChange, c
       disabled={disabled || loading || options.length === 0}
     >
       <option value="">
-        {loading ? 'Loading...' : (options.length === 0 && !disabled ? `No ${type} found` : placeholder)}
+        {loading ? 'Loading...' : placeholder}
       </option>
       {options.map(opt => (
         <option key={opt} value={opt}>{opt}</option>

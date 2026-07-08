@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import LocationDropdown from '../../components/LocationDropdown';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
@@ -12,19 +12,25 @@ const RWANDA_DISTRICTS = [
 ];
 
 export default function SampleTestFormTab({ email }) {
-  const [headerData, setHeaderData] = useState({
-    district: '',
-    fromAbattoir: '',
-    samplesType: '',
-    abattoirDetails: '',
-    collectionDate: '',
-    testRequested: '',
-    submittedBy: '',
-    phoneNumber: ''
+  const [headerData, setHeaderData] = useState(() => {
+    const saved = localStorage.getItem('rvf_sample_form_header_draft');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      district: '',
+      fromAbattoir: '',
+      samplesType: '',
+      abattoirDetails: '',
+      collectionDate: '',
+      testRequested: '',
+      submittedBy: '',
+      phoneNumber: ''
+    };
   });
 
-  const getEmptyRows = () => Array.from({ length: 10 }, (_, i) => ({
-    sn: i + 1,
+  const getEmptyRows = (startSn = 1) => Array.from({ length: 10 }, (_, i) => ({
+    sn: startSn + i,
     farmer_name: '',
     phone: '',
     district_origin: '',
@@ -41,7 +47,25 @@ export default function SampleTestFormTab({ email }) {
     health_status: ''
   }));
 
-  const [rows, setRows] = useState(getEmptyRows());
+  const [rows, setRows] = useState(() => {
+    const saved = localStorage.getItem('rvf_sample_form_rows_draft');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return getEmptyRows(1);
+  });
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const ROWS_PER_PAGE = 10;
+
+  useEffect(() => {
+    localStorage.setItem('rvf_sample_form_header_draft', JSON.stringify(headerData));
+  }, [headerData]);
+
+  useEffect(() => {
+    localStorage.setItem('rvf_sample_form_rows_draft', JSON.stringify(rows));
+  }, [rows]);
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
@@ -130,6 +154,9 @@ export default function SampleTestFormTab({ email }) {
 
       await axios.post('/rvf-api/surveillance', payload);
       setSuccess(true);
+      localStorage.removeItem('rvf_sample_form_header_draft');
+      localStorage.removeItem('rvf_sample_form_rows_draft');
+      setCurrentPage(1);
       setHeaderData({
         district: '', fromAbattoir: '', samplesType: '', abattoirDetails: '',
         collectionDate: '', testRequested: '', submittedBy: '', phoneNumber: ''
@@ -195,7 +222,7 @@ export default function SampleTestFormTab({ email }) {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
               <label className="font-bold mr-2 whitespace-nowrap text-blue-700">Submitted by (Name & Title):</label>
-              <input type="text" required value={headerData.submittedBy} onChange={(e) => handleHeaderChange('submittedBy', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" placeholder="e.g. John Doe, Veterinarian" />
+              <input type="text" required value={headerData.submittedBy} onChange={(e) => handleHeaderChange('submittedBy', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" />
             </div>
           </div>
 
@@ -220,7 +247,7 @@ export default function SampleTestFormTab({ email }) {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
               <label className="font-bold mr-2 whitespace-nowrap text-blue-700">Phone Number:</label>
-              <input type="tel" required pattern="^\d{10}$" title="Must be exactly 10 digits" value={headerData.phoneNumber} onChange={(e) => handleHeaderChange('phoneNumber', e.target.value.replace(/\D/g, ''))} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" />
+              <input type="tel" required pattern="^250\d{7}$" minLength="10" maxLength="10" title="Must start with 250 and be exactly 10 digits" value={headerData.phoneNumber} onChange={(e) => handleHeaderChange('phoneNumber', e.target.value.replace(/\D/g, ''))} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" />
             </div>
           </div>
         </div>
@@ -228,7 +255,9 @@ export default function SampleTestFormTab({ email }) {
         {/* Mobile View: Stacked Cards (Hidden on md and up) */}
         <div className="md:hidden space-y-8 mt-6">
           <h2 className="font-bold text-lg border-b pb-2">Sample Records</h2>
-          {rows.map((row, index) => (
+          {rows.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE).map((row, relativeIndex) => {
+    const index = (currentPage - 1) * ROWS_PER_PAGE + relativeIndex;
+    return (
             <div key={index} className="bg-slate-50 p-5 border border-slate-200 rounded-xl shadow-sm space-y-4">
               <div className="font-bold text-lg text-blue-800 border-b border-slate-200 pb-2 mb-4">Sample #{row.sn}</div>
               
@@ -239,7 +268,7 @@ export default function SampleTestFormTab({ email }) {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Phone</label>
-                  <input type="tel" pattern="^\d{10}$" title="Must be exactly 10 digits" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
+                  <input type="tel" pattern="^250\d{7}$" minLength="10" maxLength="10" title="Must start with 250 and be exactly 10 digits" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Animal District Origin</label>
@@ -355,14 +384,16 @@ export default function SampleTestFormTab({ email }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, index) => (
+              {rows.slice((currentPage - 1) * ROWS_PER_PAGE, currentPage * ROWS_PER_PAGE).map((row, relativeIndex) => {
+    const index = (currentPage - 1) * ROWS_PER_PAGE + relativeIndex;
+    return (
                 <tr key={index} className="hover:bg-slate-50 transition-colors">
                   <td className="border border-slate-300 p-1 font-bold text-slate-600 bg-slate-50">{row.sn}</td>
                   <td className="border border-slate-300 p-0">
                     <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.farmer_name} onChange={(e) => handleRowChange(index, 'farmer_name', e.target.value)} />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="tel" pattern="^\d{10}$" title="Must be exactly 10 digits" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
+                    <input type="tel" pattern="^250\d{7}$" minLength="10" maxLength="10" title="Must start with 250 and be exactly 10 digits" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
                   </td>
                   <td className="border border-slate-300 p-0">
                     <select className="w-full h-full bg-transparent outline-none p-2 text-center appearance-none cursor-pointer focus:bg-blue-50/30" value={row.district_origin} onChange={(e) => handleRowChange(index, 'district_origin', e.target.value)}>
@@ -437,6 +468,31 @@ export default function SampleTestFormTab({ email }) {
             </tbody>
           </table>
         </div>
+        {/* Pagination Controls */}
+        <div className="flex justify-between items-center mt-4 mb-8 bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+          <button 
+            type="button"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-slate-100 text-slate-600 rounded disabled:opacity-50 hover:bg-slate-200 transition-colors font-semibold"
+          >
+            Previous
+          </button>
+          <span className="font-bold text-slate-700">Page {currentPage}</span>
+          <button 
+            type="button"
+            onClick={() => {
+              if (currentPage * ROWS_PER_PAGE >= rows.length) {
+                setRows(prev => [...prev, ...getEmptyRows(prev.length + 1)]);
+              }
+              setCurrentPage(p => p + 1);
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-semibold shadow-sm"
+          >
+            Next
+          </button>
+        </div>
+
         
         <div className="mt-8 flex justify-end w-full">
           <button type="submit" disabled={loading} className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-12 rounded-lg shadow-md transition-colors disabled:opacity-50 text-lg">

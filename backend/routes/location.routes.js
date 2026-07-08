@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const rwanda = require('rwanda');
+const rwanda = require('rwanda-locations');
 
 const _provCache = {};
 
@@ -9,8 +9,8 @@ function getProvinceByDistrict(district) {
   const lowerDist = district.toLowerCase();
   if (_provCache[lowerDist]) return _provCache[lowerDist];
   
-  for (const p of rwanda.Provinces()) {
-    const dists = rwanda.Districts(p) || [];
+  for (const p of rwanda.getProvinces()) {
+    const dists = rwanda.getDistricts(p) || [];
     if (dists.some(d => d.toLowerCase() === lowerDist)) {
       _provCache[lowerDist] = p;
       return p;
@@ -22,8 +22,14 @@ function getProvinceByDistrict(district) {
 // Get all districts
 router.get('/districts', (req, res) => {
   try {
-    const districts = rwanda.Districts();
-    res.json(districts || []);
+    const provinces = rwanda.getProvinces();
+    let allDistricts = [];
+    for (const p of provinces) {
+      allDistricts = allDistricts.concat(rwanda.getDistricts(p));
+    }
+    // Sort districts alphabetically
+    allDistricts.sort();
+    res.json(allDistricts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -38,7 +44,7 @@ router.get('/sectors', (req, res) => {
     const province = getProvinceByDistrict(district);
     if (!province) return res.status(404).json({ error: 'District not found' });
 
-    const sectors = rwanda.Sectors(province, district);
+    const sectors = rwanda.getSectors(province, district);
     res.json(sectors || []);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -54,7 +60,7 @@ router.get('/cells', (req, res) => {
     const province = getProvinceByDistrict(district);
     if (!province) return res.status(404).json({ error: 'District not found' });
 
-    const cells = rwanda.Cells(province, district, sector);
+    const cells = rwanda.getCells(province, district, sector);
     res.json(cells || []);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -70,7 +76,7 @@ router.get('/villages', (req, res) => {
     const province = getProvinceByDistrict(district);
     if (!province) return res.status(404).json({ error: 'District not found' });
 
-    const villages = rwanda.Villages(province, district, sector, cell);
+    const villages = rwanda.getVillages(province, district, sector, cell);
     res.json(villages || []);
   } catch (error) {
     res.status(500).json({ error: error.message });

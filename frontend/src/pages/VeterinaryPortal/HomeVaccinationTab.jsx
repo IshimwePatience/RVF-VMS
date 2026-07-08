@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
@@ -10,17 +10,29 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
   const [success, setSuccess] = useState(false);
   const [expandedAnimals, setExpandedAnimals] = useState({});
 
-  const [homes, setHomes] = useState([
-    {
-      id: Date.now(),
-      owner_name: '',
-      owner_phone: '',
-      owner_national_id: '',
-      animals: [
-        { id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }
-      ]
+  const [homes, setHomes] = useState(() => {
+    const saved = localStorage.getItem('rvf_vaccination_form_draft');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
     }
-  ]);
+    return [
+      {
+        id: Date.now(),
+        owner_name: '',
+        owner_phone: '',
+        owner_national_id: '',
+        animals: [
+          { id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }
+        ]
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('rvf_vaccination_form_draft', JSON.stringify(homes));
+  }, [homes]);
 
   const { data: availableVaccines = [], isLoading: loading, error: queryError } = useQuery({
     queryKey: ['available-vaccines', email],
