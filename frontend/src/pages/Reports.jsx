@@ -49,15 +49,7 @@ export default function Reports() {
     enabled: !!user && user.role !== 'Admin'
   });
 
-  // 2. Central Overview Data
-  const { data: overviewData = {}, isLoading: loadingOverview } = useQuery({
-    queryKey: ['central-overview', filters.province, filters.district, filters.sector, filters.veterinary_name],
-    queryFn: async () => {
-      const res = await axios.get(`/rvf-api/veterinary-portal/overview?${queryParams.toString()}`);
-      return res.data;
-    },
-    enabled: user?.role === 'Admin' && activeTab === 'overview'
-  });
+  // Removed Central Overview Data as it is no longer used
 
   // 3. Central Home Vaccinations Data
   const { data: homeVaccinations = [], isLoading: loadingHomeVaccinations } = useQuery({
@@ -66,7 +58,7 @@ export default function Reports() {
       const res = await axios.get(`/rvf-api/veterinary-portal/vaccinations?${queryParams.toString()}`);
       return res.data;
     },
-    enabled: user?.role === 'Admin' && activeTab === 'home_vaccination'
+    enabled: user?.role === 'Admin'
   });
 
   // 4. Central Surveillance Data
@@ -118,7 +110,7 @@ export default function Reports() {
   
   const loading = user?.role !== 'Admin' 
     ? loadingVaccination 
-    : (activeTab === 'overview' ? loadingOverview : activeTab === 'home_vaccination' ? loadingHomeVaccinations : loadingSurveillance);
+    : (activeTab === 'home_vaccination' ? loadingHomeVaccinations : loadingSurveillance);
 
   if (selectedReport) {
     return <SampleTestReportView report={selectedReport} onClose={() => setSelectedReport(null)} />;
@@ -255,72 +247,38 @@ export default function Reports() {
       )}
 
       {user?.role === 'Admin' && activeTab === 'overview' ? (
-        <>
-          {loading ? (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-12 text-center">
-              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-slate-500 font-medium">Loading overview data...</p>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="text-sm font-medium text-slate-500 mb-1">Total Sample Test Forms</div>
+              <div className="text-3xl font-bold text-slate-900">{filteredSurveillance.length}</div>
             </div>
-          ) : Object.keys(overviewData).length === 0 ? (
-            <div className="py-20 flex flex-col items-center justify-center text-center mt-2">
-              <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
-              <p className="text-[15px] font-medium text-slate-500">No stock data found</p>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="text-sm font-medium text-slate-500 mb-1">Total Samples Collected</div>
+              <div className="text-3xl font-bold text-slate-900">
+                {filteredSurveillance.reduce((acc, r) => acc + (r.samples?.length || 0), 0)}
+              </div>
             </div>
-          ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-700">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="py-4 pl-6 pr-3 font-semibold text-slate-800">Summary</th>
-                    {Object.keys(overviewData).map(vaccine => (
-                      <th key={vaccine} className="py-4 px-3 font-semibold text-slate-800 text-center">{vaccine}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 pl-6 pr-3 text-slate-600 font-medium">Starting Balance</td>
-                    {Object.values(overviewData).map((data, i) => (
-                      <td key={i} className="py-4 px-3 text-center text-slate-600">{data.startingBalance}</td>
-                    ))}
-                  </tr>
-                  <tr className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 pl-6 pr-3 text-slate-600 font-medium">New Received</td>
-                    {Object.values(overviewData).map((data, i) => (
-                      <td key={i} className="py-4 px-3 text-center text-blue-600">+{data.newReceived}</td>
-                    ))}
-                  </tr>
-                  <tr className="hover:bg-slate-50/80 transition-colors bg-slate-50 font-bold text-slate-900">
-                    <td className="py-4 pl-6 pr-3">Total</td>
-                    {Object.values(overviewData).map((data, i) => (
-                      <td key={i} className="py-4 px-3 text-center">{data.total}</td>
-                    ))}
-                  </tr>
-                  <tr className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 pl-6 pr-3 text-slate-600 font-medium">Used Vaccines</td>
-                    {Object.values(overviewData).map((data, i) => (
-                      <td key={i} className="py-4 px-3 text-center text-emerald-600">-{data.usedVaccines}</td>
-                    ))}
-                  </tr>
-                  <tr className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 pl-6 pr-3 text-slate-600 font-medium">Damages</td>
-                    {Object.values(overviewData).map((data, i) => (
-                      <td key={i} className="py-4 px-3 text-center text-red-600">-{data.damages}</td>
-                    ))}
-                  </tr>
-                  <tr className="hover:bg-slate-50/80 transition-colors bg-slate-100 font-bold text-slate-900">
-                    <td className="py-4 pl-6 pr-3">Total Balance</td>
-                    {Object.values(overviewData).map((data, i) => (
-                      <td key={i} className="py-4 px-3 text-center text-lg">{data.totalBalance}</td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="text-sm font-medium text-slate-500 mb-1">Home Vaccination Records</div>
+              <div className="text-3xl font-bold text-slate-900">{homeVaccinations.length}</div>
             </div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="text-sm font-medium text-slate-500 mb-1">Total Vaccines Given</div>
+              <div className="text-3xl font-bold text-slate-900 text-blue-600">
+                {homeVaccinations.reduce((acc, r) => acc + (Number(r.dose_given) || 0), 0).toLocaleString()}
+              </div>
             </div>
-          )}
-        </>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+            <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="Mascot" className="h-40 object-contain mx-auto mb-6 opacity-75" />
+            <h3 className="text-lg font-bold text-slate-800 mb-2">County Overview</h3>
+            <p className="text-slate-500 max-w-md mx-auto">
+              This dashboard provides a high-level summary of all veterinary field activities across the county based on the selected filters. Switch tabs to view the individual submitted forms in detail.
+            </p>
+          </div>
+        </div>
       ) : (
         <>
           {loading ? (
@@ -337,56 +295,55 @@ export default function Reports() {
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                {user?.role !== 'Admin' ? (
+            <div className="overflow-x-auto mt-4">
+              {user?.role !== 'Admin' ? (
                 <table className="w-full text-left text-sm text-slate-700">
-                  <thead className="bg-slate-50 border-b border-slate-200">
+                  <thead className="border-b border-slate-200">
                     <tr>
-                      <th className="py-4 pl-6 pr-3 font-semibold text-slate-800">Date</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Veterinary Name</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Location</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Vaccine</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Doses</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Affected</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Died</th>
-                      <th className="py-4 pr-6 pl-3 font-semibold text-slate-800">Status</th>
+                      <th className="py-3 font-semibold text-slate-800">Date</th>
+                      <th className="py-3 font-semibold text-slate-800">Veterinary Name</th>
+                      <th className="py-3 font-semibold text-slate-800">Location</th>
+                      <th className="py-3 font-semibold text-slate-800">Vaccine</th>
+                      <th className="py-3 font-semibold text-slate-800">Doses</th>
+                      <th className="py-3 font-semibold text-slate-800">Affected</th>
+                      <th className="py-3 font-semibold text-slate-800">Died</th>
+                      <th className="py-3 font-semibold text-slate-800">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {pagination.currentData.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50/80 transition-colors group">
-                        <td className="py-4 pl-6 pr-3 text-slate-600 whitespace-nowrap">
+                      <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group">
+                        <td className="py-4 pr-4 text-slate-600 whitespace-nowrap">
                           {new Date(r.date_administered).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           <span className="font-semibold text-slate-900">{r.veterinary_name}</span>
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           <div className="flex flex-col">
                             <span className="text-sm font-medium text-slate-800">{r.sector}</span>
                             <span className="text-xs text-slate-500">{r.province} / {r.district}</span>
                           </div>
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           <span className="inline-flex px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
                             {r.Batch?.Vaccine?.name || 'N/A'}
                           </span>
                         </td>
-                        <td className="py-4 px-3 text-slate-800 font-medium">
+                        <td className="py-4 text-slate-800 font-medium">
                           {r.doses_used || 0}
                         </td>
-                        <td className="py-4 px-3 text-amber-600 font-medium">
+                        <td className="py-4 text-amber-600 font-medium">
                           {r.animals_affected || 0}
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           {r.animals_died > 0 ? (
                             <span className="text-red-600 font-bold">{r.animals_died}</span>
                           ) : (
                             <span className="text-slate-400">0</span>
                           )}
                         </td>
-                        <td className="py-4 pr-6 pl-3">
+                        <td className="py-4">
                           {r.report_status === 'submitted' ? (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -405,40 +362,40 @@ export default function Reports() {
                 </table>
               ) : activeTab === 'home_vaccination' ? (
                 <table className="w-full text-left text-sm text-slate-700">
-                  <thead className="bg-slate-50 border-b border-slate-200">
+                  <thead className="border-b border-slate-200">
                     <tr>
-                      <th className="py-4 pl-6 pr-3 font-semibold text-slate-800">Date Submitted</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Veterinary Email</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Location</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Vaccine</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Animal Type</th>
-                      <th className="py-4 pr-6 pl-3 font-semibold text-slate-800">Action</th>
+                      <th className="py-3 font-semibold text-slate-800">Date Submitted</th>
+                      <th className="py-3 font-semibold text-slate-800">Veterinary Email</th>
+                      <th className="py-3 font-semibold text-slate-800">Location</th>
+                      <th className="py-3 font-semibold text-slate-800">Vaccine</th>
+                      <th className="py-3 font-semibold text-slate-800">Animal Type</th>
+                      <th className="py-3 font-semibold text-slate-800">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {pagination.currentData.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50/80 transition-colors group cursor-pointer" onClick={() => setSelectedHomeVaccination(r)}>
-                        <td className="py-4 pl-6 pr-3 text-slate-600 whitespace-nowrap">
+                      <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => setSelectedHomeVaccination(r)}>
+                        <td className="py-4 pr-4 text-slate-600 whitespace-nowrap">
                           {new Date(r.date_administered || r.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           <span className="font-semibold text-slate-900">{r.veterinary_email}</span>
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           <div className="flex flex-col">
                             <span className="text-sm font-medium text-slate-800">{r.sector || r.district}</span>
                             <span className="text-xs text-slate-500">{r.province} / {r.district}</span>
                           </div>
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           <span className="inline-flex px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
                             {r.vaccine_name || 'N/A'}
                           </span>
                         </td>
-                        <td className="py-4 px-3 text-slate-800 font-medium">
+                        <td className="py-4 text-slate-800 font-medium">
                           {r.animal_type || 'N/A'}
                         </td>
-                        <td className="py-4 pr-6 pl-3">
+                        <td className="py-4">
                           <button className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center">
                             View Form
                             <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
@@ -450,36 +407,36 @@ export default function Reports() {
                 </table>
               ) : (
                 <table className="w-full text-left text-sm text-slate-700">
-                  <thead className="bg-slate-50 border-b border-slate-200">
+                  <thead className="border-b border-slate-200">
                     <tr>
-                      <th className="py-4 pl-6 pr-3 font-semibold text-slate-800">Date Submitted</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Veterinary Email</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Location</th>
-                      <th className="py-4 px-3 font-semibold text-slate-800">Samples</th>
-                      <th className="py-4 pr-6 pl-3 font-semibold text-slate-800">Action</th>
+                      <th className="py-3 font-semibold text-slate-800">Date Submitted</th>
+                      <th className="py-3 font-semibold text-slate-800">Veterinary Email</th>
+                      <th className="py-3 font-semibold text-slate-800">Location</th>
+                      <th className="py-3 font-semibold text-slate-800">Samples</th>
+                      <th className="py-3 font-semibold text-slate-800">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {pagination.currentData.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50/80 transition-colors group cursor-pointer" onClick={() => setSelectedReport(r)}>
-                        <td className="py-4 pl-6 pr-3 text-slate-600 whitespace-nowrap">
+                      <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => setSelectedReport(r)}>
+                        <td className="py-4 pr-4 text-slate-600 whitespace-nowrap">
                           {new Date(r.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           <span className="font-semibold text-slate-900">{r.veterinary_email}</span>
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           <div className="flex flex-col">
                             <span className="text-sm font-medium text-slate-800">{r.sector || r.district}</span>
                             <span className="text-xs text-slate-500">{r.province} / {r.district}</span>
                           </div>
                         </td>
-                        <td className="py-4 px-3">
+                        <td className="py-4">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs font-medium">
                             {r.samples?.length || 0} Samples
                           </span>
                         </td>
-                        <td className="py-4 pr-6 pl-3">
+                        <td className="py-4">
                           <button className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center">
                             View Report
                             <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
@@ -490,9 +447,8 @@ export default function Reports() {
                   </tbody>
                 </table>
               )}
-              <div className="px-6 py-4 border-t border-slate-100 bg-slate-50">
+              <div className="mt-4">
                 <Pagination {...pagination} onPageChange={pagination.jump} />
-              </div>
               </div>
             </div>
           )}
