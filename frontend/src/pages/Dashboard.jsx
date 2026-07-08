@@ -190,7 +190,7 @@ export default function Dashboard() {
           <>
             {(!hasHighRvfData && !hasVaccineUsageData) ? (
               <div className="col-span-1 md:col-span-2 h-[400px] flex flex-col items-center justify-center text-center border border-slate-100 rounded-2xl bg-white shadow-sm mt-2">
-                <img src="/empty_mascot.png" alt="No data" className="h-40 object-contain mb-6 opacity-75" />
+                <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
                 <p className="text-[15px] font-medium text-slate-500">No vaccination or RVF sector data available yet.</p>
               </div>
             ) : (
@@ -199,7 +199,7 @@ export default function Dashboard() {
                   <h2 className="text-base font-bold mb-4 text-gray-800">High RVF Sectors</h2>
                   {!hasHighRvfData ? (
                     <div className="h-[300px] flex flex-col items-center justify-center text-center">
-                      <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
+                      <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-32 object-contain mb-4 opacity-75" />
                       <p className="text-[13px] font-medium text-slate-500">No records found</p>
                     </div>
                   ) : (
@@ -234,7 +234,7 @@ export default function Dashboard() {
               <h2 className="text-base font-bold mb-4 text-gray-800">Vaccine Usage</h2>
               {!hasVaccineUsageData ? (
                 <div className="h-[300px] flex flex-col items-center justify-center text-center">
-                  <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
+                  <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-32 object-contain mb-4 opacity-75" />
                   <p className="text-[13px] font-medium text-slate-500">No records found</p>
                 </div>
               ) : (
@@ -277,7 +277,7 @@ export default function Dashboard() {
             
             {(!data.supplies || data.supplies.length === 0) ? (
               <div className="col-span-1 md:col-span-2 h-[300px] flex flex-col items-center justify-center text-center border border-slate-100 rounded-2xl bg-white shadow-sm">
-                <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
+                <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-32 object-contain mb-4 opacity-75" />
                 <p className="text-[14px] font-medium text-slate-500">No stock available</p>
               </div>
             ) : (
@@ -351,7 +351,7 @@ export default function Dashboard() {
             
             {(!data.reports || data.reports.length === 0) ? (
               <div className="h-[300px] flex flex-col items-center justify-center text-center border border-slate-100 rounded-2xl bg-white shadow-sm">
-                <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
+                <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-32 object-contain mb-4 opacity-75" />
                 <p className="text-[14px] font-medium text-slate-500">No vaccination records found</p>
               </div>
             ) : (
