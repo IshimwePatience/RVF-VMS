@@ -295,71 +295,78 @@ export default function Reports() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto mt-4">
+            <>
               {user?.role !== 'Admin' ? (
-                <table className="w-full text-left text-sm text-slate-700">
-                  <thead className="border-b border-slate-200">
-                    <tr>
-                      <th className="py-3 font-semibold text-slate-800">Date</th>
-                      <th className="py-3 font-semibold text-slate-800">Veterinary Name</th>
-                      <th className="py-3 font-semibold text-slate-800">Location</th>
-                      <th className="py-3 font-semibold text-slate-800">Vaccine</th>
-                      <th className="py-3 font-semibold text-slate-800">Doses</th>
-                      <th className="py-3 font-semibold text-slate-800">Affected</th>
-                      <th className="py-3 font-semibold text-slate-800">Died</th>
-                      <th className="py-3 font-semibold text-slate-800">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {pagination.currentData.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group">
-                        <td className="py-4 pr-4 text-slate-600 whitespace-nowrap">
-                          {new Date(r.date_administered).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </td>
-                        <td className="py-4">
-                          <span className="font-semibold text-slate-900">{r.veterinary_name}</span>
-                        </td>
-                        <td className="py-4">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium text-slate-800">{r.sector}</span>
-                            <span className="text-xs text-slate-500">{r.province} / {r.district}</span>
-                          </div>
-                        </td>
-                        <td className="py-4">
-                          <span className="inline-flex px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
-                            {r.Batch?.Vaccine?.name || 'N/A'}
-                          </span>
-                        </td>
-                        <td className="py-4 text-slate-800 font-medium">
-                          {r.doses_used || 0}
-                        </td>
-                        <td className="py-4 text-amber-600 font-medium">
-                          {r.animals_affected || 0}
-                        </td>
-                        <td className="py-4">
-                          {r.animals_died > 0 ? (
-                            <span className="text-red-600 font-bold">{r.animals_died}</span>
-                          ) : (
-                            <span className="text-slate-400">0</span>
-                          )}
-                        </td>
-                        <td className="py-4">
-                          {r.report_status === 'submitted' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                              Submitted
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                              Pending
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-slate-700">
+                      <thead className="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                          <th className="py-4 pl-6 pr-3 font-semibold text-slate-800">Date</th>
+                          <th className="py-4 px-3 font-semibold text-slate-800">Veterinary Name</th>
+                          <th className="py-4 px-3 font-semibold text-slate-800">Location</th>
+                          <th className="py-4 px-3 font-semibold text-slate-800">Vaccine</th>
+                          <th className="py-4 px-3 font-semibold text-slate-800">Doses</th>
+                          <th className="py-4 px-3 font-semibold text-slate-800">Affected</th>
+                          <th className="py-4 px-3 font-semibold text-slate-800">Died</th>
+                          <th className="py-4 pr-6 pl-3 font-semibold text-slate-800">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {pagination.currentData.map((r) => (
+                          <tr key={r.id} className="hover:bg-slate-50/80 transition-colors group">
+                            <td className="py-4 pl-6 pr-3 text-slate-600 whitespace-nowrap">
+                              {new Date(r.date_administered).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </td>
+                            <td className="py-4 px-3">
+                              <span className="font-semibold text-slate-900">{r.veterinary_name}</span>
+                            </td>
+                            <td className="py-4 px-3">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-slate-800">{r.sector}</span>
+                                <span className="text-xs text-slate-500">{r.province} / {r.district}</span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-3">
+                              <span className="inline-flex px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200">
+                                {r.Batch?.Vaccine?.name || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-3 text-slate-800 font-medium">
+                              {r.doses_used || 0}
+                            </td>
+                            <td className="py-4 px-3 text-amber-600 font-medium">
+                              {r.animals_affected || 0}
+                            </td>
+                            <td className="py-4 px-3">
+                              {r.animals_died > 0 ? (
+                                <span className="text-red-600 font-bold">{r.animals_died}</span>
+                              ) : (
+                                <span className="text-slate-400">0</span>
+                              )}
+                            </td>
+                            <td className="py-4 pr-6 pl-3">
+                              {r.report_status === 'submitted' ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                  Submitted
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                  Pending
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-6 py-4 border-t border-slate-100 bg-slate-50">
+                    <Pagination {...pagination} onPageChange={pagination.jump} />
+                  </div>
+                </div>
               ) : activeTab === 'home_vaccination' ? (
                 <table className="w-full text-left text-sm text-slate-700">
                   <thead className="border-b border-slate-200">
@@ -450,7 +457,7 @@ export default function Reports() {
               <div className="mt-4">
                 <Pagination {...pagination} onPageChange={pagination.jump} />
               </div>
-            </div>
+            </>
           )}
         </>
       )}
