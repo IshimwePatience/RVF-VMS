@@ -130,11 +130,93 @@ export default function Reports() {
 
   return (
     <div className="pb-12 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Veterinary Reports</h1>
           <p className="text-slate-500 mt-1">All forms submitted by veterinarians in the field.</p>
         </div>
+
+        {user?.role === 'Admin' && (
+          <div className="flex flex-wrap justify-end items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Email</span>
+              <input 
+                type="text"
+                placeholder="Search..."
+                value={filters.veterinary_name}
+                onChange={e => setFilters({...filters, veterinary_name: e.target.value})}
+                className="w-40 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Province</span>
+              <div className="w-36 border border-slate-300 rounded-full bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
+                <LocationDropdown 
+                  type="provinces"
+                  value={filters.province}
+                  onChange={(val) => setFilters({ ...filters, province: val, district: '', sector: '' })}
+                  placeholder="All"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">District</span>
+              <div className="w-36 border border-slate-300 rounded-full bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
+                <LocationDropdown 
+                  type="districts"
+                  params={{ province: filters.province }}
+                  value={filters.district}
+                  onChange={(val) => setFilters({ ...filters, district: val, sector: '' })}
+                  placeholder="All"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Sector</span>
+              <div className="w-36 border border-slate-300 rounded-full bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
+                <LocationDropdown 
+                  type="sectors"
+                  params={{ district: filters.district }}
+                  value={filters.sector}
+                  onChange={(val) => setFilters({ ...filters, sector: val })}
+                  placeholder="All"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">From</span>
+              <input 
+                type="date"
+                value={filters.dateFrom}
+                onChange={e => setFilters({...filters, dateFrom: e.target.value})}
+                className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">To</span>
+              <input 
+                type="date"
+                value={filters.dateTo}
+                onChange={e => setFilters({...filters, dateTo: e.target.value})}
+                className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+              />
+            </div>
+
+            {(filters.province || filters.district || filters.sector || filters.veterinary_name || filters.dateFrom || filters.dateTo || filters.status) && (
+              <button 
+                onClick={() => setFilters({ province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '' })}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-full transition-colors border border-red-200"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {user?.role === 'Admin' && (
@@ -169,88 +251,6 @@ export default function Reports() {
           >
             Sample Test Forms
           </button>
-        </div>
-      )}
-
-      {/* Advanced Filters (Only for Admin) */}
-      {user?.role === 'Admin' && (
-        <div className="mb-8">
-          <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">Advanced Filters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="lg:col-span-2">
-              <label className="block text-xs font-medium text-slate-700 mb-1">Veterinary Email</label>
-              <input 
-                type="text"
-                placeholder="Search by email..."
-                value={filters.veterinary_name}
-                onChange={e => setFilters({...filters, veterinary_name: e.target.value})}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Province</label>
-              <div className="w-full px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg outline-none focus-within:border-blue-500 focus-within:bg-white transition-colors text-sm">
-                <LocationDropdown 
-                  type="provinces"
-                  value={filters.province}
-                  onChange={(val) => setFilters({ ...filters, province: val, district: '', sector: '' })}
-                  placeholder="All Provinces"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">District</label>
-              <div className="w-full px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg outline-none focus-within:border-blue-500 focus-within:bg-white transition-colors text-sm">
-                <LocationDropdown 
-                  type="districts"
-                  params={{ province: filters.province }}
-                  value={filters.district}
-                  onChange={(val) => setFilters({ ...filters, district: val, sector: '' })}
-                  placeholder="All Districts"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Sector</label>
-              <div className="w-full px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg outline-none focus-within:border-blue-500 focus-within:bg-white transition-colors text-sm">
-                <LocationDropdown 
-                  type="sectors"
-                  params={{ district: filters.district }}
-                  value={filters.sector}
-                  onChange={(val) => setFilters({ ...filters, sector: val })}
-                  placeholder="All Sectors"
-                />
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 pt-4 border-t border-slate-100">
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Date From (Local filtering)</label>
-              <input 
-                type="date"
-                value={filters.dateFrom}
-                onChange={e => setFilters({...filters, dateFrom: e.target.value})}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Date To</label>
-              <input 
-                type="date"
-                value={filters.dateTo}
-                onChange={e => setFilters({...filters, dateTo: e.target.value})}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-blue-500 focus:bg-white transition-colors text-sm"
-              />
-            </div>
-            <div className="lg:col-span-2 flex items-end justify-end">
-              <button 
-                onClick={() => setFilters({ province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '' })}
-                className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-              >
-                Clear All Filters
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
