@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid } from 'recharts';
+import { LineChartPro } from '@mui/x-charts-pro/LineChartPro';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from '../components/Pagination';
 
@@ -11,7 +11,6 @@ const COLORS = ['#8b5cf6', '#10b981', '#f43f5e', '#3b82f6', '#f59e0b', '#06b6d4'
 const AnalyticDonut = ({ data }) => {
   const total = data.reduce((sum, item) => sum + parseInt(item.total_quantity || 0), 0);
   
-  // To match the beautiful two-ring inspiration design, we ensure there's a second empty ring if they only have 1 vaccine
   let renderData = [...data];
   if (renderData.length === 1) {
     renderData.push({ total_quantity: 0, vaccine_name: 'Capacity', isEmpty: true });
@@ -121,19 +120,15 @@ export default function Dashboard() {
   if (loading) return <div className="p-8">Loading...</div>;
   if (!data) return <div className="p-8">No data available</div>;
 
-  // Helper to pad categorical data with 0s so it always draws a curved "hill" even with 1 item
+  // Helper to pad categorical data
   const makeHills = (chartData, keyX, ...keyYs) => {
     if (!chartData || chartData.length === 0) return [];
-    
-    // Create empty padding objects with all Y keys set to 0
-    const paddingStart = { [keyX]: '', isPadding: true };
-    const paddingEnd = { [keyX]: ' ', isPadding: true };
-    
+    const paddingStart = { [keyX]: 'Start', isPadding: true };
+    const paddingEnd = { [keyX]: 'End', isPadding: true };
     keyYs.forEach(key => {
       paddingStart[key] = 0;
       paddingEnd[key] = 0;
     });
-
     return [
       paddingStart,
       ...chartData,
@@ -141,23 +136,6 @@ export default function Dashboard() {
     ];
   };
 
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length && !payload[0].payload.isPadding) {
-      return (
-        <div className="bg-white border border-slate-100 p-3 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] min-w-[120px]">
-          <p className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label || payload[0].name}</p>
-          {payload.map((p, i) => (
-            <p key={i} className="text-[16px] font-black" style={{ color: p.fill || p.color || COLORS[0] }}>
-              {p.value.toLocaleString()}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  // Generate realistic 7-day trend data for the chart to match the requested visual design
   const generateTrendData = (supplies) => {
     if (!supplies) return [];
     
@@ -169,11 +147,10 @@ export default function Dashboard() {
     });
 
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const actualToday = (new Date().getDay() + 6) % 7; // 0 for Mon
+    const actualToday = (new Date().getDay() + 6) % 7; 
     
     const trend = [];
     
-    // Generate 7 points leading up to the real current values to simulate the requested time-series chart
     for (let i = 0; i < 7; i++) {
       const dayName = days[(actualToday - 6 + i + 7) % 7];
       
@@ -182,10 +159,9 @@ export default function Dashboard() {
         continue;
       }
 
-      // Smooth progression curves with slight realistic variance
       const progress = 0.5 + (i * 0.08); 
-      const variance1 = i === 6 ? 1 : 0.85 + (Math.sin(i * 1.5) * 0.15); // Smooth wave
-      const variance2 = i === 6 ? 1 : 0.85 + (Math.cos(i * 1.2) * 0.15); // Different smooth wave
+      const variance1 = i === 6 ? 1 : 0.85 + (Math.sin(i * 1.5) * 0.15); 
+      const variance2 = i === 6 ? 1 : 0.85 + (Math.cos(i * 1.2) * 0.15); 
       
       const currentVal = i === 6 ? totalCurrent : Math.floor(totalCurrent * progress * variance1);
       const distVal = i === 6 ? totalDistributed : Math.floor(totalDistributed * progress * variance2);
@@ -220,25 +196,34 @@ export default function Dashboard() {
               <h2 className="text-base font-bold mb-4 text-gray-800">High RVF Sectors</h2>
               {(!data.highRvfSectors || data.highRvfSectors.length === 0) ? (
                 <div className="h-[250px] flex flex-col items-center justify-center text-center">
+                  <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
                   <p className="text-[13px] font-medium text-slate-500">No records found</p>
                 </div>
               ) : (
-                <div className="h-[250px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={makeHills(data.highRvfSectors, 'sector', 'total_affected')} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorAffected" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.6}/>
-                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="sector" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dy={10} />
-                      <YAxis tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dx={-10} />
-                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                      <Area type="monotone" dataKey="total_affected" stroke="#8b5cf6" strokeWidth={4} fillOpacity={1} fill="url(#colorAffected)" activeDot={{ r: 6, strokeWidth: 0, fill: '#8b5cf6', style: { filter: 'drop-shadow(0px 0px 4px rgba(139,92,246,0.8))' } }} />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                <div className="h-[300px] w-full">
+                  <LineChartPro
+                    dataset={makeHills(data.highRvfSectors, 'sector', 'total_affected').map((d, i) => ({ ...d, id: i }))}
+                    xAxis={[
+                      {
+                        dataKey: 'sector',
+                        scaleType: 'point',
+                        zoom: { slider: { enabled: true, preview: { seriesIds: ['affected'] } } },
+                      },
+                    ]}
+                    series={[
+                      {
+                        id: 'affected',
+                        dataKey: 'total_affected',
+                        label: 'Total Affected',
+                        area: true,
+                        color: '#8b5cf6',
+                        showMark: false,
+                        curve: 'catmullRom',
+                      },
+                    ]}
+                    margin={{ top: 10, right: 10, left: 30, bottom: 20 }}
+                    height={300}
+                  />
                 </div>
               )}
             </div>
@@ -247,25 +232,34 @@ export default function Dashboard() {
               <h2 className="text-base font-bold mb-4 text-gray-800">Vaccine Usage</h2>
               {(!data.vaccineUsageSectors || data.vaccineUsageSectors.length === 0) ? (
                 <div className="h-[250px] flex flex-col items-center justify-center text-center">
+                  <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
                   <p className="text-[13px] font-medium text-slate-500">No records found</p>
                 </div>
               ) : (
-                <div className="h-[250px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={makeHills(data.vaccineUsageSectors, 'sector', 'total_doses')} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorDoses" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.5}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="sector" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dy={10} />
-                      <YAxis tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dx={-10} />
-                      <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                      <Area type="monotone" dataKey="total_doses" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorDoses)" activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981', style: { filter: 'drop-shadow(0px 0px 4px rgba(16,185,129,0.8))' } }} />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                <div className="h-[300px] w-full">
+                  <LineChartPro
+                    dataset={makeHills(data.vaccineUsageSectors, 'sector', 'total_doses').map((d, i) => ({ ...d, id: i }))}
+                    xAxis={[
+                      {
+                        dataKey: 'sector',
+                        scaleType: 'point',
+                        zoom: { slider: { enabled: true, preview: { seriesIds: ['doses'] } } },
+                      },
+                    ]}
+                    series={[
+                      {
+                        id: 'doses',
+                        dataKey: 'total_doses',
+                        label: 'Total Doses',
+                        area: true,
+                        color: '#10b981',
+                        showMark: false,
+                        curve: 'catmullRom',
+                      },
+                    ]}
+                    margin={{ top: 10, right: 10, left: 30, bottom: 20 }}
+                    height={300}
+                  />
                 </div>
               )}
             </div>
@@ -280,33 +274,46 @@ export default function Dashboard() {
             
             {(!data.supplies || data.supplies.length === 0) ? (
               <div className="col-span-1 md:col-span-2 h-[300px] flex flex-col items-center justify-center text-center border border-slate-100 rounded-2xl bg-white shadow-sm">
+                <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
                 <p className="text-[14px] font-medium text-slate-500">No stock available</p>
               </div>
             ) : (
               <>
                 <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow">
                   <h3 className="text-base font-bold text-gray-800 mb-6">Supply Overview (7-Day Trend)</h3>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorCurrentSupply" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.6}/>
-                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="colorDistributed" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.5}/>
-                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dy={10} />
-                        <YAxis tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dx={-10} />
-                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                        <Area type="monotone" dataKey="distributed_level" name="Distributed Level" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorDistributed)" activeDot={{ r: 5, strokeWidth: 0, fill: '#f43f5e', style: { filter: 'drop-shadow(0px 0px 4px rgba(244,63,94,0.8))' } }} />
-                        <Area type="monotone" dataKey="current_supply" name="Current Supply" stroke="#8b5cf6" strokeWidth={4} fillOpacity={1} fill="url(#colorCurrentSupply)" activeDot={{ r: 6, strokeWidth: 0, fill: '#8b5cf6', style: { filter: 'drop-shadow(0px 0px 4px rgba(139,92,246,0.8))' } }} />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                  <div className="h-[350px] w-full mt-2">
+                    <LineChartPro
+                      dataset={trendData.map((d, i) => ({ ...d, id: i }))}
+                      xAxis={[
+                        {
+                          dataKey: 'name',
+                          scaleType: 'point',
+                          zoom: { slider: { enabled: true, preview: { seriesIds: ['current'] } } },
+                        },
+                      ]}
+                      series={[
+                        {
+                          id: 'distributed',
+                          dataKey: 'distributed_level',
+                          label: 'Distributed Level',
+                          area: true,
+                          color: '#f43f5e',
+                          showMark: false,
+                          curve: 'catmullRom',
+                        },
+                        {
+                          id: 'current',
+                          dataKey: 'current_supply',
+                          label: 'Current Supply',
+                          area: true,
+                          color: '#8b5cf6',
+                          showMark: false,
+                          curve: 'catmullRom',
+                        },
+                      ]}
+                      margin={{ top: 10, right: 10, left: 40, bottom: 30 }}
+                      height={350}
+                    />
                   </div>
                 </div>
 
@@ -342,36 +349,37 @@ export default function Dashboard() {
             
             {(!data.reports || data.reports.length === 0) ? (
               <div className="h-[300px] flex flex-col items-center justify-center text-center border border-slate-100 rounded-2xl bg-white shadow-sm">
+                <img src="/empty_mascot.png" alt="No data" className="h-32 object-contain mb-4 opacity-75" />
                 <p className="text-[14px] font-medium text-slate-500">No vaccination records found</p>
               </div>
             ) : (
               <>
                 <div className="border border-slate-100 shadow-sm rounded-2xl p-6 bg-white hover:shadow-md transition-shadow flex flex-col">
                   <h3 className="text-base font-bold text-gray-800 mb-6">Vaccination Trend (Doses Used)</h3>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={[...data.reports].reverse()} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorEndpointDoses" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.5}/>
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis 
-                          dataKey="date_administered" 
-                          tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                          tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dy={10} 
-                        />
-                        <YAxis tick={{ fontSize: 11, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} dx={-10} />
-                        <Tooltip 
-                          labelFormatter={(val) => new Date(val).toLocaleDateString()}
-                          content={<CustomTooltip />} 
-                          cursor={{ stroke: '#94a3b8', strokeWidth: 1, strokeDasharray: '4 4' }}
-                        />
-                        <Area type="monotone" dataKey="doses_used" name="Doses Used" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorEndpointDoses)" activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981', style: { filter: 'drop-shadow(0px 0px 4px rgba(16,185,129,0.8))' } }} />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                  <div className="h-[300px] w-full">
+                    <LineChartPro
+                      dataset={[...data.reports].reverse().map((r, i) => ({ ...r, id: i, formattedDate: new Date(r.date_administered).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) }))}
+                      xAxis={[
+                        {
+                          dataKey: 'formattedDate',
+                          scaleType: 'point',
+                          zoom: { slider: { enabled: true, preview: { seriesIds: ['doses_used'] } } },
+                        },
+                      ]}
+                      series={[
+                        {
+                          id: 'doses_used',
+                          dataKey: 'doses_used',
+                          label: 'Doses Used',
+                          area: true,
+                          color: '#10b981',
+                          showMark: false,
+                          curve: 'catmullRom',
+                        },
+                      ]}
+                      margin={{ top: 10, right: 10, left: 30, bottom: 20 }}
+                      height={300}
+                    />
                   </div>
                 </div>
 
