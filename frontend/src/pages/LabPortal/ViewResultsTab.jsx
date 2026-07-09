@@ -56,7 +56,7 @@ export default function ViewResultsTab() {
               </tr>
             ) : (
               results.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group">
+                <tr key={r.id} className="hover:bg-slate-100 transition-colors group">
                   <td className="py-4 px-6 text-slate-600">
                     {new Date(r.createdAt).toLocaleDateString()}
                   </td>
