@@ -226,7 +226,6 @@ exports.vetLogin = async (req, res) => {
       
       // Name and district provided -> Create new self-registered vet
       vet = await Veterinary.create({
-        email: phone_number + '@placeholder.com', // fallback for db constraint if any, or we can make it nullable. We'll make it nullable but to be safe for now give placeholder
         phone_number,
         name,
         district,
