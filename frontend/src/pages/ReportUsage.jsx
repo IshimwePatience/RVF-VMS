@@ -87,12 +87,16 @@ export default function ReportUsage({ mode = 'login' }) {
   const handleVerifyPhone = (e) => {
     e.preventDefault();
     setPhoneError('');
-    if (!/^07[23489]\d{7}$/.test(phone)) {
+    
+    // Clean the phone number (remove spaces)
+    const cleanPhone = phone.replace(/\s+/g, '').trim();
+
+    if (!/^07[23489]\d{7}$/.test(cleanPhone)) {
       setPhoneError('Invalid Rwandan phone number. Format should be 078xxxxxxx');
       return;
     }
     loginMutation.mutate({ 
-      phone_number: phone, 
+      phone_number: cleanPhone, 
       name: mode === 'register' ? name : undefined,
       district: mode === 'register' ? district : undefined 
     });

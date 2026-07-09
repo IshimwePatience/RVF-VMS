@@ -208,9 +208,13 @@ const { Veterinary } = require('../models');
 
 exports.vetLogin = async (req, res) => {
   try {
-    const { phone_number, name, district } = req.body;
+    const { name, district } = req.body;
+    let { phone_number } = req.body;
     if (!phone_number) return res.status(400).json({ message: 'Phone number is required' });
     
+    // Clean phone number (remove spaces)
+    phone_number = phone_number.replace(/\s+/g, '').trim();
+
     // Optional basic validation for rwandan number format (078, 079, 072, 073, 074)
     if (!/^07[23489]\d{7}$/.test(phone_number)) {
       return res.status(400).json({ message: 'Invalid Rwandan phone number. Format should be 078xxxxxxx' });
