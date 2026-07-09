@@ -115,7 +115,7 @@ export default function DashboardMap({ locations }) {
           newMarkers.push({
             id: loc.id,
             coords: [jitterLat, jitterLon],
-            popup: [sector, district, province].filter(Boolean).join(', ') || 'Unknown Area'
+            popup: [village, cell, sector, district, province].filter(Boolean).join(', ') || 'Unknown Area'
           });
         }
       }

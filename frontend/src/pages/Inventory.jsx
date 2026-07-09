@@ -174,7 +174,7 @@ export default function Inventory() {
       const vid = item.Batch?.Vaccine?.id;
       if (!vid) return;
       if (!balances[vid]) {
-        balances[vid] = { vaccine: item.Batch.Vaccine, received: 0, issued: 0, balance: 0 };
+        balances[vid] = { vaccine: item.Batch.Vaccine, vaccine_name: item.Batch.Vaccine.name, received: 0, issued: 0, balance: 0 };
       }
       balances[vid].received += item.quantity_available + (item.issued_quantity || 0);
       balances[vid].issued += (item.issued_quantity || 0);

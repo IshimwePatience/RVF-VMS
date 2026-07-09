@@ -128,12 +128,23 @@ exports.getAdminDashboard = async (req, res) => {
     });
 
     // 9. Locations for Map
-    const mapLocations = await SurveillanceForm.findAll({
+    const survLocations = await SurveillanceForm.findAll({
       attributes: ['id', 'province', 'district', 'sector', 'cell', 'village', 'createdAt'],
       where: whereSurvForm,
       order: [['createdAt', 'DESC']],
-      limit: 100 // Cap to 100 to avoid overloading the map geocoder
+      limit: 50 
     });
+    const adminLocations = await AdministrationRecord.findAll({
+      attributes: ['id', 'province', 'district', 'sector', 'cell', 'village', 'createdAt'],
+      where: whereAdmin,
+      order: [['date_administered', 'DESC']],
+      limit: 50 
+    });
+    
+    // Combine and cap at 100 locations
+    const mapLocations = [...survLocations, ...adminLocations]
+      .sort((a, b) => new Date(b.createdAt || b.date_administered) - new Date(a.createdAt || a.date_administered))
+      .slice(0, 100);
 
     res.json({
       summary: {

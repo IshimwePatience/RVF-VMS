@@ -370,14 +370,14 @@ export default function Dashboard() {
       {isMapModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-slate-100">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Map Overview</h2>
-                <p className="text-sm text-slate-500 mt-1">Showing origins of cases from this dataset</p>
+                <h2 className="text-base font-bold text-slate-900">Map Overview</h2>
+                <p className="text-xs text-slate-500">Showing origins of cases</p>
               </div>
               <button 
                 onClick={() => setIsMapModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

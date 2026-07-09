@@ -461,8 +461,8 @@ export default function Reports() {
                         </td>
                         <td className="py-4">
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium text-slate-800">{r.sector || r.district}</span>
-                            <span className="text-xs text-slate-500">{r.province} / {r.district}</span>
+                            <span className="text-sm font-medium text-slate-800">{r.sector || (r.samples && r.samples[0]?.sector) || r.district}</span>
+                            <span className="text-xs text-slate-500">{r.province || 'Eastern Province'} / {r.district || (r.samples && r.samples[0]?.district_origin)}</span>
                           </div>
                         </td>
                         <td className="py-4">
@@ -480,11 +480,11 @@ export default function Reports() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setMapLocationData({
-                                  province: r.province,
-                                  district: r.district,
-                                  sector: r.sector,
-                                  cell: r.cell,
-                                  village: r.village
+                                  province: r.province || 'Eastern Province',
+                                  district: r.district || (r.samples && r.samples[0]?.district_origin),
+                                  sector: r.sector || (r.samples && r.samples[0]?.sector),
+                                  cell: r.cell || (r.samples && r.samples[0]?.cell),
+                                  village: r.village || (r.samples && r.samples[0]?.village)
                                 });
                               }}
                               className="text-slate-500 font-medium hover:text-slate-700 text-sm flex items-center"
