@@ -369,8 +369,6 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
                   owner_name: '', owner_phone: '', owner_national_id: '',
                   animals: [{ id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }]
                 }]);
-                setSuccess(false);
-                setError(null);
               }}
               className="text-blue-600 hover:bg-blue-50 px-4 py-2 rounded text-[14px] font-medium transition-colors"
             >

@@ -77,11 +77,8 @@ export default function SampleTestFormTab({ phone }) {
 
   const handleRowChange = (index, field, value) => {
     if (isRowDisabled(index)) {
-      setError(`Please fill in the previous row before starting Sample #${rows[index].sn}.`);
+      addToast(`Please fill in the previous row before starting Sample #${rows[index].sn}.`, 'error');
       return;
-    }
-    if (error && error.includes('previous row before starting Sample')) {
-      setError(null);
     }
     const newRows = [...rows];
     newRows[index][field] = value;
