@@ -7,9 +7,14 @@ exports.getVeterinaries = async (req, res) => {
     
     let where = {};
     
-    // If endpoint user (not admin), only show their veterinaries
-    if (role !== 'Admin') {
-      where.stock_id = stock_id;
+    // If not admin, restrict to user's district
+    if (role !== 'Admin' && stock_id) {
+      const userStock = await Stock.findByPk(stock_id);
+      if (userStock && userStock.district) {
+        where.district = userStock.district;
+      } else {
+        where.stock_id = stock_id;
+      }
     }
     
     // Filters for Admins
