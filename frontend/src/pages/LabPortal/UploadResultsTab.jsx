@@ -195,8 +195,8 @@ export default function UploadResultsTab() {
       {/* Upload Dropzone */}
       {!parsedData && (
         <div 
-          className={`relative py-32 transition-all duration-300 flex flex-col items-center justify-center text-center
-            ${isDragging ? 'bg-blue-50/50 scale-[1.02] rounded-3xl' : 'bg-transparent'}
+          className={`relative py-16 transition-all duration-300 flex flex-col items-center justify-center text-center
+            ${isDragging ? '' : 'bg-transparent'}
           `}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -210,7 +210,7 @@ export default function UploadResultsTab() {
             className="hidden" 
           />
 
-          <h2 className="text-[2.5rem] md:text-[3rem] leading-tight font-extrabold text-[#4a4a4a] tracking-tight max-w-xl mb-10">
+          <h2 className="text-2xl md:text-3xl leading-tight font-bold text-[#4a4a4a] tracking-tight max-w-xl mb-8">
             Upload RVF Test Results
           </h2>
           
