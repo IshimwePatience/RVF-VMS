@@ -28,6 +28,12 @@ export default function ViewResultsTab() {
                 <th className="py-4 px-6 font-semibold text-slate-800">Location</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Animal ID</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Specie</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Breed</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Sex</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Age</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Vacc. Status</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Purpose</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Health Status</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">PCR Result</th>
               </tr>
             </thead>
@@ -35,7 +41,7 @@ export default function ViewResultsTab() {
           <tbody className="divide-y divide-slate-100">
             {isLoading ? (
               <tr>
-                <td colSpan="6" className="py-12 text-center text-slate-500">
+                <td colSpan="12" className="py-12 text-center text-slate-500">
                   <div className="flex justify-center mb-4">
                     <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                   </div>
@@ -44,7 +50,7 @@ export default function ViewResultsTab() {
               </tr>
             ) : results.length === 0 ? (
               <tr>
-                <td colSpan="6" className="py-20 text-center">
+                <td colSpan="12" className="py-20 text-center">
                   <div className="flex flex-col items-center justify-center">
                     <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
                     <p className="text-[15px] font-medium text-slate-500">No reports found</p>
@@ -70,21 +76,6 @@ export default function ViewResultsTab() {
                         <span className="text-sm font-medium text-slate-800">{r.sector || r.animal_district_origin}</span>
                         <span className="text-xs text-slate-500">{r.animal_district_origin}</span>
                       </div>
-                      <button 
-                        onClick={() => {
-                          setMapLocationData({
-                            province: 'Eastern Province', // typically Eastern for Rwamagana/Ngoma
-                            district: r.animal_district_origin,
-                            sector: r.sector,
-                            cell: r.cell,
-                            village: r.village
-                          });
-                        }}
-                        className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
-                        title="View Map"
-                      >
-                        <MapPin className="w-4 h-4" />
-                      </button>
                     </div>
                   </td>
                   <td className="py-4 px-6 font-medium text-slate-700">
@@ -92,6 +83,24 @@ export default function ViewResultsTab() {
                   </td>
                   <td className="py-4 px-6 text-slate-600">
                     {r.specie || 'N/A'}
+                  </td>
+                  <td className="py-4 px-6 text-slate-600">
+                    {r.breed || 'N/A'}
+                  </td>
+                  <td className="py-4 px-6 text-slate-600">
+                    {r.sex || 'N/A'}
+                  </td>
+                  <td className="py-4 px-6 text-slate-600">
+                    {r.age || 'N/A'}
+                  </td>
+                  <td className="py-4 px-6 text-slate-600">
+                    {r.vaccination_status || 'N/A'}
+                  </td>
+                  <td className="py-4 px-6 text-slate-600">
+                    {r.purpose || 'N/A'}
+                  </td>
+                  <td className="py-4 px-6 text-slate-600">
+                    {r.health_status || 'N/A'}
                   </td>
                   <td className="py-4 px-6">
                     <span className={`inline-flex px-2 py-1 rounded-md text-xs font-bold ${
