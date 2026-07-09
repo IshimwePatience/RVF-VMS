@@ -66,7 +66,7 @@ export default function VeterinaryPortal() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Tabs */}
-        <div className="border-b border-slate-200 mb-6 overflow-x-auto scrollbar-hide">
+        <div className="mb-6 overflow-x-auto scrollbar-hide">
           <nav className="-mb-px flex space-x-6 md:space-x-8 min-w-max">
             <button
               onClick={() => setActiveTab('overview')}

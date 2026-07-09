@@ -217,7 +217,7 @@ export default function Reports() {
       </div>
 
       {user?.role === 'Admin' && (
-        <div className="flex space-x-4 mb-8 border-b border-slate-200 overflow-x-auto">
+        <div className="flex space-x-4 mb-8 overflow-x-auto">
           <button
             onClick={() => { setActiveTab('overview'); pagination.jump(1); }}
             className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${

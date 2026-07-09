@@ -60,7 +60,7 @@ export default function LabPortal() {
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         {/* Tabs */}
-        <div className="flex border-b border-slate-200 mb-8">
+        <div className="flex mb-8">
           <button
             onClick={() => setActiveTab('upload')}
             className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${activeTab === 'upload' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}

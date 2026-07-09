@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { RefreshCw, MapPin } from 'lucide-react';
+import { RefreshCw, MapPin, Pencil, Trash2, X } from 'lucide-react';
 import MapModal from '../../components/MapModal';
+import { AuthContext } from '../../context/AuthContext';
+import { ToastContext } from '../../context/ToastContext';
 
 export default function ViewResultsTab() {
+  const { user } = useContext(AuthContext);
+  const { addToast } = useContext(ToastContext);
   const [mapLocationData, setMapLocationData] = useState(null);
+  const [editingResult, setEditingResult] = useState(null);
 
   const { data: results = [], isLoading, refetch, isFetching } = useQuery({
     queryKey: ['lab-results'],
@@ -35,13 +40,16 @@ export default function ViewResultsTab() {
                 <th className="py-4 px-6 font-semibold text-slate-800">Purpose</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Health Status</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">PCR Result</th>
+                {user?.role === 'Lab User' && (
+                  <th className="py-4 px-6 font-semibold text-slate-800 text-right">Actions</th>
+                )}
               </tr>
             </thead>
           )}
           <tbody className="divide-y divide-slate-100">
             {isLoading ? (
               <tr>
-                <td colSpan="12" className="py-12 text-center text-slate-500">
+                <td colSpan={user?.role === 'Lab User' ? 13 : 12} className="py-12 text-center text-slate-500">
                   <div className="flex justify-center mb-4">
                     <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                   </div>
@@ -50,7 +58,7 @@ export default function ViewResultsTab() {
               </tr>
             ) : results.length === 0 ? (
               <tr>
-                <td colSpan="12" className="py-20 text-center">
+                <td colSpan={user?.role === 'Lab User' ? 13 : 12} className="py-20 text-center">
                   <div className="flex flex-col items-center justify-center">
                     <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
                     <p className="text-[15px] font-medium text-slate-500">No reports found</p>
@@ -111,6 +119,36 @@ export default function ViewResultsTab() {
                       {r.rvf_pcr_results || 'UNKNOWN'}
                     </span>
                   </td>
+                  {user?.role === 'Lab User' && (
+                    <td className="py-4 px-6 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => setEditingResult(r)}
+                          className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            if (window.confirm('Are you sure you want to delete this result?')) {
+                              try {
+                                await axios.delete(`/rvf-api/lab-results/${r.id}`);
+                                addToast('success', 'Result deleted successfully');
+                                refetch();
+                              } catch (err) {
+                                addToast('error', 'Failed to delete result');
+                              }
+                            }
+                          }}
+                          className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -124,6 +162,65 @@ export default function ViewResultsTab() {
           onClose={() => setMapLocationData(null)}
           locationData={mapLocationData}
         />
+      )}
+
+      {editingResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800">Edit Lab Result</h3>
+              <button onClick={() => setEditingResult(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Animal ID</label>
+                <input 
+                  type="text" 
+                  value={editingResult.animal_id || ''}
+                  onChange={e => setEditingResult({...editingResult, animal_id: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">PCR Result</label>
+                <select 
+                  value={editingResult.rvf_pcr_results || ''}
+                  onChange={e => setEditingResult({...editingResult, rvf_pcr_results: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Result</option>
+                  <option value="NEGATIVE">NEGATIVE</option>
+                  <option value="POSITIVE">POSITIVE</option>
+                </select>
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+              <button 
+                onClick={() => setEditingResult(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  try {
+                    await axios.put(`/rvf-api/lab-results/${editingResult.id}`, editingResult);
+                    addToast('success', 'Result updated successfully');
+                    setEditingResult(null);
+                    refetch();
+                  } catch (err) {
+                    addToast('error', 'Failed to update result');
+                  }
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

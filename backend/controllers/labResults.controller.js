@@ -44,3 +44,31 @@ exports.getResults = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.updateResult = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await LabResult.findByPk(id);
+    if (!result) return res.status(404).json({ message: 'Result not found' });
+    
+    await result.update(req.body);
+    res.json(result);
+  } catch (error) {
+    console.error('Error updating lab result:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.deleteResult = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await LabResult.findByPk(id);
+    if (!result) return res.status(404).json({ message: 'Result not found' });
+
+    await result.destroy();
+    res.json({ message: 'Result deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting lab result:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
