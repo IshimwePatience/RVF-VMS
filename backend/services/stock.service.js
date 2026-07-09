@@ -51,7 +51,7 @@ exports.deleteStock = async (id) => {
   // Delete requests and transfers where this stock is the primary subject
   if (Request) {
     await Request.destroy({ where: { requesting_stock_id: id } });
-    await Request.update({ parent_stock_id: null }, { where: { parent_stock_id: id } });
+    await Request.destroy({ where: { parent_stock_id: id } });
   }
   if (Transfer) {
     await Transfer.destroy({ where: { from_stock_id: id } });
