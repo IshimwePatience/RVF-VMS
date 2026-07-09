@@ -176,7 +176,6 @@ export default function Veterinaries() {
                 <tr>
                   <th className="py-3 font-semibold text-slate-800">Veterinary Name</th>
                   <th className="py-3 font-semibold text-slate-800">Contact Info</th>
-                  <th className="py-3 font-semibold text-slate-800">National ID</th>
                   <th className="py-3 font-semibold text-slate-800">Location</th>
                   {user?.stock?.is_endpoint && <th className="py-3 font-semibold text-slate-800 w-24 text-right pr-4">Actions</th>}
                 </tr>
@@ -190,11 +189,7 @@ export default function Veterinaries() {
                   <td className="py-4 text-slate-600">
                     <div className="flex flex-col">
                       <span>{v.phone_number}</span>
-                      <span className="text-xs text-slate-400">{v.email}</span>
                     </div>
-                  </td>
-                  <td className="py-4 text-slate-600">
-                    {v.national_id}
                   </td>
                   <td className="py-4">
                     <div className="flex flex-col text-slate-600 text-sm">
@@ -257,16 +252,7 @@ export default function Veterinaries() {
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Email Address *</label>
-                      <input
-                        type="email" required
-                        placeholder="vet@example.com"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
+
 
                     <div>
                       <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Phone Number *</label>
@@ -282,16 +268,7 @@ export default function Veterinaries() {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">National ID *</label>
-                      <input
-                        type="text" required
-                        placeholder="1 1990 8..."
-                        value={formData.national_id}
-                        onChange={(e) => setFormData({ ...formData, national_id: e.target.value.replace(/\D/g, '') })}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
+
 
                     <div>
                       <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Province *</label>
