@@ -21,7 +21,7 @@ exports.updateStock = async (id, data) => {
   return await item.update(data);
 };
 exports.deleteStock = async (id) => {
-  const { Stock, User, StockInventory, AdministrationRecord, Veterinary, Request, Transfer } = require('../models');
+  const { Stock, User, StockInventory, AdministrationRecord, Veterinary, Request, Transfer, SurveillanceForm, HomeVaccinationRecord } = require('../models');
   const item = await Stock.findByPk(id);
   if (!item) throw new Error('Stock not found');
   
@@ -43,6 +43,10 @@ exports.deleteStock = async (id) => {
   
   // Nullify administration records
   if (AdministrationRecord) await AdministrationRecord.update({ stock_id: null }, { where: { stock_id: id } });
+
+  // Nullify surveillance forms and home vaccination records
+  if (SurveillanceForm) await SurveillanceForm.update({ stock_id: null }, { where: { stock_id: id } });
+  if (HomeVaccinationRecord) await HomeVaccinationRecord.update({ stock_id: null }, { where: { stock_id: id } });
 
   // Delete requests and transfers where this stock is the primary subject
   if (Request) {
