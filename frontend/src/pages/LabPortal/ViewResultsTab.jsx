@@ -16,25 +16,22 @@ export default function ViewResultsTab() {
   });
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">Uploaded Results</h2>
-          <p className="text-sm text-slate-500 mt-1">View all RVF test results you have uploaded</p>
-        </div>
+    <>
+      <div className="flex justify-end mb-4">
         <button 
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-700 rounded-lg hover:bg-slate-100 font-medium transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 font-medium transition-colors disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>
 
+
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
-          <thead className="bg-slate-50 border-b border-slate-200">
+          <thead className="border-b border-slate-200">
             <tr>
               <th className="py-4 px-6 font-semibold text-slate-800">Date Uploaded</th>
               <th className="py-4 px-6 font-semibold text-slate-800">Farmer</th>
@@ -56,8 +53,14 @@ export default function ViewResultsTab() {
               </tr>
             ) : results.length === 0 ? (
               <tr>
-                <td colSpan="6" className="py-12 text-center text-slate-500">
-                  No results uploaded yet.
+                <td colSpan="6" className="py-20 text-center">
+                  <div className="flex flex-col items-center justify-center">
+                    <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
+                    <p className="text-[15px] font-medium text-slate-500">No reports found</p>
+                    <p className="text-slate-500 text-sm mt-1 max-w-sm">
+                      Try adjusting your filters to see more results.
+                    </p>
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -114,13 +117,14 @@ export default function ViewResultsTab() {
           </tbody>
         </table>
       </div>
-      
-      <MapModal 
-        isOpen={!!mapLocationData} 
-        onClose={() => setMapLocationData(null)}
-        locationData={mapLocationData}
-        title="Result Location"
-      />
-    </div>
+
+      {mapLocationData && (
+        <MapModal
+          isOpen={!!mapLocationData}
+          onClose={() => setMapLocationData(null)}
+          locationData={mapLocationData}
+        />
+      )}
+    </>
   );
 }
