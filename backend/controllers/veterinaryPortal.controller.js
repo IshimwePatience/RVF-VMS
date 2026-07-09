@@ -123,7 +123,7 @@ exports.getAvailableVaccines = async (req, res) => {
   }
 };
 
-exports.submitVaccination = async (req, res) => {
+exports.recordVaccination = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { phone, owner_name, owner_phone, owner_national_id, home_identifier, animals, province, district, sector, cell, village } = req.body;
