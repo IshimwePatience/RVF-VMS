@@ -7,11 +7,28 @@ async function seedStocks() {
     await sequelize.authenticate();
     console.log('Connected.');
 
-    // 1. Find ZIPLINE stock
-    const zipline = await Stock.findOne({ where: { name: 'ZIPLINE' } });
+    // 1. Ensure National Central Stock exists
+    let centralStock = await Stock.findOne({ where: { name: 'National Central Stock' } });
+    if (!centralStock) {
+      console.log('Creating National Central Stock...');
+      centralStock = await Stock.create({
+        name: 'National Central Stock',
+        is_central: true,
+        is_endpoint: false,
+        parent_stock_id: null
+      });
+    }
+
+    // 2. Ensure ZIPLINE stock exists
+    let zipline = await Stock.findOne({ where: { name: 'ZIPLINE' } });
     if (!zipline) {
-      console.error('Error: ZIPLINE stock not found. Please create it first.');
-      process.exit(1);
+      console.log('Creating ZIPLINE stock...');
+      zipline = await Stock.create({
+        name: 'ZIPLINE',
+        is_central: false,
+        is_endpoint: false,
+        parent_stock_id: centralStock.id
+      });
     }
     
     console.log(`Found ZIPLINE stock with ID: ${zipline.id}`);

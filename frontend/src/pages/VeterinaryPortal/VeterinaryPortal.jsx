@@ -9,6 +9,7 @@ export default function VeterinaryPortal() {
   const { phone } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem(`vetPortalActiveTab_${phone}`) || 'overview');
+  const [showDropdown, setShowDropdown] = useState(false);
 
   React.useEffect(() => {
     if (phone) {
@@ -23,24 +24,44 @@ export default function VeterinaryPortal() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-slate-200">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center">
-              <img src={minisanteLogo} alt="MINISANTE" className="h-10 object-contain mr-4" />
-              <div>
-                <h1 className="text-[26px] text-[#4b5563] font-normal tracking-wide">rvf vaccine hub</h1>
+          <div className="flex justify-between items-center h-16">
+            
+            <div className="flex items-center gap-3 shrink-0">
+              <img src={minisanteLogo} alt="MINISANTE" className="h-10 object-contain" />
+              <span className="text-[22px] text-[#5f6368] font-medium tracking-tight">rvf vaccine hub</span>
+            </div>
+
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="relative">
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="w-8 h-8 rounded-full bg-[#9ca3af] text-white flex items-center justify-center font-bold text-sm hover:ring-2 hover:ring-slate-200 transition-all focus:outline-none"
+                >
+                  V
+                </button>
+
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-50">
+                    <div className="px-4 py-2 border-b border-slate-100 mb-1">
+                      <p className="text-sm font-medium text-slate-800">Veterinary</p>
+                      <p className="text-xs text-slate-500">{phone}</p>
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-            <button 
-              onClick={handleSignOut}
-              className="text-sm font-medium text-slate-500 hover:text-red-600 transition-colors"
-            >
-              Sign out
-            </button>
+
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         

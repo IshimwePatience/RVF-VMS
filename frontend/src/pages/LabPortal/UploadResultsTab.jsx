@@ -174,11 +174,6 @@ export default function UploadResultsTab() {
   return (
     <div className="max-w-4xl mx-auto">
       
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Upload RVF Test Results</h2>
-        <p className="text-slate-500 mt-2 text-lg">Drag and drop your Excel file to sync results into the system.</p>
-      </div>
-
       {uploadResult && (
         <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-4">
           <div className="p-2 bg-green-100 text-green-700 rounded-full shrink-0">
@@ -200,8 +195,8 @@ export default function UploadResultsTab() {
       {/* Upload Dropzone */}
       {!parsedData && (
         <div 
-          className={`relative border-2 border-dashed rounded-3xl p-12 transition-all duration-200 flex flex-col items-center justify-center text-center
-            ${isDragging ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-slate-300 bg-white hover:border-blue-400 hover:bg-slate-50'}
+          className={`relative py-32 transition-all duration-300 flex flex-col items-center justify-center text-center
+            ${isDragging ? 'bg-blue-50/50 scale-[1.02] rounded-3xl' : 'bg-transparent'}
           `}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -214,21 +209,23 @@ export default function UploadResultsTab() {
             accept=".xlsx, .xls, .csv" 
             className="hidden" 
           />
-          
-          <div className="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-6 shadow-sm">
-            <UploadCloud className="w-10 h-10" />
-          </div>
+
+          <h2 className="text-[2.5rem] md:text-[3rem] leading-tight font-extrabold text-[#4a4a4a] tracking-tight max-w-xl mb-10">
+            Upload RVF Test Results
+          </h2>
           
           <button 
             onClick={() => fileInputRef.current?.click()}
-            className="px-8 py-3 bg-blue-600 text-white rounded-full font-semibold text-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+            className="px-10 py-4 bg-[#1b64da] text-white rounded-full font-semibold text-xl shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/30"
           >
-            Select Excel File
+            Upload Excel File
           </button>
           
-          <p className="text-slate-500 mt-6 font-medium">
-            or drop a file here<br/>
-            <span className="text-sm font-normal text-slate-400">Supports .xlsx, .xls, .csv</span>
+          <p className="text-[#4a4a4a] mt-6 font-medium text-lg">
+            or drop a file,
+          </p>
+          <p className="text-sm font-normal text-slate-400 mt-2">
+            Supports .xlsx, .xls, .csv
           </p>
         </div>
       )}
