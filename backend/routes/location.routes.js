@@ -19,6 +19,8 @@ function getProvinceByDistrict(district) {
   return null;
 }
 
+const { Stock } = require('../models');
+
 // Get all provinces
 router.get('/provinces', (req, res) => {
   try {
@@ -26,6 +28,24 @@ router.get('/provinces', (req, res) => {
     res.json(provinces || []);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Get districts that have an active stock
+router.get('/districts-with-stock', async (req, res) => {
+  try {
+    const stocks = await Stock.findAll({
+      attributes: ['district'],
+      where: {
+        is_central: false
+      },
+      group: ['district']
+    });
+    const districts = stocks.map(s => s.district).filter(Boolean);
+    res.json(districts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

@@ -9,6 +9,7 @@ import LocationDropdown from '../components/LocationDropdown';
 import SampleTestReportView from '../components/SampleTestReportView';
 import HomeVaccinationReportView from '../components/HomeVaccinationReportView';
 import MapModal from '../components/MapModal';
+import ViewResultsTab from './LabPortal/ViewResultsTab';
 
 export default function Reports() {
   const { user } = useContext(AuthContext);
@@ -106,6 +107,7 @@ export default function Reports() {
     if (user?.role !== 'Admin') return filteredReports;
     if (activeTab === 'home_vaccination') return homeVaccinations; // API handles filtering
     if (activeTab === 'surveillance') return filteredSurveillance;
+    if (activeTab === 'lab_results') return []; // Managed inside ViewResultsTab
     return [];
   };
 
@@ -246,6 +248,16 @@ export default function Reports() {
           >
             Sample Test Forms
           </button>
+          <button
+            onClick={() => { setActiveTab('lab_results'); pagination.jump(1); }}
+            className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+              activeTab === 'lab_results' 
+                ? 'border-blue-600 text-blue-600' 
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+            }`}
+          >
+            Lab Results
+          </button>
         </div>
       )}
 
@@ -288,6 +300,8 @@ export default function Reports() {
             </table>
           </div>
         </div>
+      ) : activeTab === 'lab_results' && user?.role === 'Admin' ? (
+        <ViewResultsTab />
       ) : (
         <>
           {loading ? (

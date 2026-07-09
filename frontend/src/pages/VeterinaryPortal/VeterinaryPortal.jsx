@@ -6,15 +6,15 @@ import HomeVaccinationTab from './HomeVaccinationTab';
 import SampleTestFormTab from './SampleTestFormTab';
 
 export default function VeterinaryPortal() {
-  const { email } = useParams();
+  const { phone } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem(`vetPortalActiveTab_${email}`) || 'overview');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem(`vetPortalActiveTab_${phone}`) || 'overview');
 
   React.useEffect(() => {
-    if (email) {
-      localStorage.setItem(`vetPortalActiveTab_${email}`, activeTab);
+    if (phone) {
+      localStorage.setItem(`vetPortalActiveTab_${phone}`, activeTab);
     }
-  }, [activeTab, email]);
+  }, [activeTab, phone]);
 
   const handleSignOut = () => {
     navigate('/veterinary-login');

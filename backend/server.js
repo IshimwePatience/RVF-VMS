@@ -55,7 +55,7 @@ app.use('/api/veterinary-portal', veterinaryPortalRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/surveillance', surveillanceRoutes);
 app.use('/api/locations', locationRoutes);
-
+app.use('/api/lab-results', require('./routes/labResults.routes'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'RVF VMS API is running' });

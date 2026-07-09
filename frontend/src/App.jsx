@@ -20,6 +20,7 @@ import ReportUsage from './pages/ReportUsage';
 import Reports from './pages/Reports';
 import VeterinaryPortal from './pages/VeterinaryPortal/VeterinaryPortal';
 import Veterinaries from './pages/Veterinaries';
+import LabPortal from './pages/LabPortal/LabPortal';
 import { AuthContext } from './context/AuthContext';
 
 const CentralOnlyRoute = ({ children }) => {
@@ -109,7 +110,8 @@ function App() {
             </Route>
             <Route path="/veterinary-login" element={<ReportUsage mode="login" />} />
             <Route path="/veterinary-signup" element={<ReportUsage mode="register" />} />
-            <Route path="/veterinary-portal/:email" element={<VeterinaryPortal />} />
+            <Route path="/veterinary-portal/:phone" element={<VeterinaryPortal />} />
+            <Route path="/lab-portal" element={<LabPortal />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

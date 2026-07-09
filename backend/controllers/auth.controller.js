@@ -208,33 +208,40 @@ const { Veterinary } = require('../models');
 
 exports.vetLogin = async (req, res) => {
   try {
-    const { email, name } = req.body;
-    if (!email) return res.status(400).json({ message: 'Email is required' });
+    const { phone_number, name, district } = req.body;
+    if (!phone_number) return res.status(400).json({ message: 'Phone number is required' });
+    
+    // Optional basic validation for rwandan number format (078, 079, 072, 073, 074)
+    if (!/^07[23489]\d{7}$/.test(phone_number)) {
+      return res.status(400).json({ message: 'Invalid Rwandan phone number. Format should be 078xxxxxxx' });
+    }
 
-    let vet = await Veterinary.findOne({ where: { email } });
+    let vet = await Veterinary.findOne({ where: { phone_number } });
     
     if (!vet) {
-      if (!name) {
-        // Not found, and no name provided -> tell frontend they need to register
+      if (!name || !district) {
+        // Not found, and no name/district provided -> tell frontend they need to register
         return res.status(404).json({ message: 'Veterinary not found. Registration required.' });
       }
       
-      // Name provided -> Create new self-registered vet
+      // Name and district provided -> Create new self-registered vet
       vet = await Veterinary.create({
-        email,
+        email: phone_number + '@placeholder.com', // fallback for db constraint if any, or we can make it nullable. We'll make it nullable but to be safe for now give placeholder
+        phone_number,
         name,
+        district,
         is_self_registered: true
       });
     }
 
     // Vet found or newly created -> issue token directly
     const token = jwt.sign(
-      { email: vet.email, name: vet.name, role: 'Veterinary', id: vet.id, stock_id: vet.stock_id },
+      { phone_number: vet.phone_number, name: vet.name, role: 'Veterinary', id: vet.id, stock_id: vet.stock_id },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
 
-    res.json({ token, user: { email: vet.email, name: vet.name, role: 'Veterinary', id: vet.id, stock_id: vet.stock_id } });
+    res.json({ token, user: { phone_number: vet.phone_number, name: vet.name, role: 'Veterinary', id: vet.id, stock_id: vet.stock_id } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

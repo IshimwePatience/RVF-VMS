@@ -11,8 +11,9 @@ export default function ReportUsage({ mode = 'login' }) {
   const navigate = useNavigate();
 
   const queryClient = useQueryClient();
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
+  const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [district, setDistrict] = useState('');
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -35,6 +36,15 @@ export default function ReportUsage({ mode = 'login' }) {
     },
     enabled: !!token,
     retry: false
+  });
+
+  const { data: districtsWithStock = [] } = useQuery({
+    queryKey: ['districts-with-stock'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/locations/districts-with-stock');
+      return res.data;
+    },
+    enabled: mode === 'register'
   });
 
   const error = queryError ? (queryError.response?.data?.message || 'Failed to load report details.') : null;
@@ -63,21 +73,29 @@ export default function ReportUsage({ mode = 'login' }) {
       // Store token and redirect
       localStorage.setItem('vet_token', res.data.token);
       localStorage.setItem('vet_user', JSON.stringify(res.data.user));
-      navigate(`/veterinary-portal/${encodeURIComponent(email)}`);
+      navigate(`/veterinary-portal/${encodeURIComponent(phone)}`);
     },
     onError: (err) => {
       if (err.response?.status === 404 && mode === 'login') {
-        setEmailError('This email is not registered. Please register first.');
+        setPhoneError('This phone number is not registered. Please register first.');
       } else {
-        setEmailError(err.response?.data?.message || 'Failed to login. Please try again.');
+        setPhoneError(err.response?.data?.message || 'Failed to login. Please try again.');
       }
     }
   });
 
-  const handleVerifyEmail = (e) => {
+  const handleVerifyPhone = (e) => {
     e.preventDefault();
-    setEmailError('');
-    loginMutation.mutate({ email, name: mode === 'register' ? name : undefined });
+    setPhoneError('');
+    if (!/^07[23489]\d{7}$/.test(phone)) {
+      setPhoneError('Invalid Rwandan phone number. Format should be 078xxxxxxx');
+      return;
+    }
+    loginMutation.mutate({ 
+      phone_number: phone, 
+      name: mode === 'register' ? name : undefined,
+      district: mode === 'register' ? district : undefined 
+    });
   };
 
   const submitMutation = useMutation({
@@ -134,22 +152,22 @@ export default function ReportUsage({ mode = 'login' }) {
               Veterinary Portal
             </h2>
             <p className="text-[16px] text-[#373A3C] leading-normal">
-              Enter your email address to access your portal.
+              Enter your phone number to access your portal.
             </p>
           </div>
 
-          <form onSubmit={handleVerifyEmail}>
+          <form onSubmit={handleVerifyPhone}>
             <div className="mb-6">
               <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
-                Email Address <span className="text-[#C02B0A]">*</span>
+                Phone Number <span className="text-[#C02B0A]">*</span>
               </label>
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] placeholder-[#8A92A3] text-[#1F2432]"
-                placeholder="e.g., vet@example.com"
+                placeholder="e.g., 0783202922"
               />
             </div>
             
@@ -168,8 +186,28 @@ export default function ReportUsage({ mode = 'login' }) {
                 />
               </div>
             )}
+            
+            {mode === 'register' && (
+              <div className="mb-6">
+                <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
+                  District <span className="text-[#C02B0A]">*</span>
+                </label>
+                <select
+                  required
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] bg-white text-[#1F2432]"
+                >
+                  <option value="">Select your district</option>
+                  {districtsWithStock.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-500 mt-1">Only districts with active stocks are shown.</p>
+              </div>
+            )}
 
-            {emailError && <p className="text-[#C02B0A] text-sm mb-4">{emailError}</p>}
+            {phoneError && <p className="text-[#C02B0A] text-sm mb-4">{phoneError}</p>}
 
             <button
               type="submit"

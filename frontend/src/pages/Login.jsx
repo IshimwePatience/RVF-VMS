@@ -40,7 +40,13 @@ export default function Login() {
         addToast('OTP sent to your email', 'success');
       } else {
         login(res.data.token, res.data.user);
-        navigate('/');
+        if (res.data.user.role === 'Veterinary') {
+          navigate(`/veterinary-portal/${res.data.user.email}`);
+        } else if (res.data.user.role === 'Laboratory') {
+          navigate('/lab-portal');
+        } else {
+          navigate('/');
+        }
       }
     } catch (err) {
       addToast(err.response?.data?.message || 'Login failed');
@@ -59,7 +65,11 @@ export default function Login() {
         setRequiresPasswordSet(true);
       } else {
         login(res.data.token, res.data.user);
-        navigate('/');
+        if (res.data.user.role === 'Laboratory') {
+          navigate('/lab-portal');
+        } else {
+          navigate('/');
+        }
       }
     } catch (err) {
       addToast(err.response?.data?.message || 'OTP verification failed');
@@ -80,8 +90,12 @@ export default function Login() {
       await axios.post('/rvf-api/auth/change-password', { newPassword: newPassword });
       const updatedUser = { ...pendingAuth.user, must_change_password: false };
       login(pendingAuth.token, updatedUser);
-      navigate('/');
-      addToast('Password set successfully!', 'success');
+      addToast('Password set successfully', 'success');
+      if (pendingAuth.user.role === 'Laboratory') {
+        navigate('/lab-portal');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to set password', 'error');
     }

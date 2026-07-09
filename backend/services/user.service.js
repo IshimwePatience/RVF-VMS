@@ -1,4 +1,4 @@
-const { User, Stock } = require('../models');
+const { User, Stock, Request, Transfer, Notification, LabResult } = require('../models');
 const bcrypt = require('bcryptjs');
 const { sendOTP } = require('../utils/email');
 
@@ -102,6 +102,20 @@ exports.deleteUser = async (id) => {
     if (adminCount <= 1) {
       throw new Error('Cannot delete the last admin user');
     }
+  }
+
+  // Nullify or delete related records to bypass foreign key constraints
+  if (Notification) await Notification.destroy({ where: { user_id: id } });
+  if (Request) {
+    await Request.update({ requested_by: null }, { where: { requested_by: id } });
+    await Request.update({ reviewed_by: null }, { where: { reviewed_by: id } });
+  }
+  if (Transfer) {
+    await Transfer.update({ shipped_by: null }, { where: { shipped_by: id } });
+    await Transfer.update({ received_by: null }, { where: { received_by: id } });
+  }
+  if (LabResult) {
+    await LabResult.update({ uploaded_by: null }, { where: { uploaded_by: id } });
   }
 
   await user.destroy();
