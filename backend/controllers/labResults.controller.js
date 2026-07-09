@@ -12,36 +12,11 @@ exports.uploadResults = async (req, res) => {
     let updatedCount = 0;
 
     for (const item of results) {
-      // Find if it already exists based on animal_id and farmer name (or just animal_id)
-      // Since animal_id is supposed to be unique to a test.
-      // If animal_id is missing, we might use S/N or just farmer_name + phone + specie
-      const whereClause = {};
-      if (item.animal_id) {
-        whereClause.animal_id = item.animal_id;
-      } else {
-        whereClause.farmer_name = item.farmer_name;
-        whereClause.phone = item.phone;
-        whereClause.specie = item.specie;
-      }
-
-      const [record, created] = await LabResult.findOrCreate({
-        where: whereClause,
-        defaults: {
-          ...item,
-          uploaded_by
-        }
+      await LabResult.create({
+        ...item,
+        uploaded_by
       });
-
-      if (!created) {
-        // Update existing record
-        await record.update({
-          ...item,
-          uploaded_by
-        });
-        updatedCount++;
-      } else {
-        createdCount++;
-      }
+      createdCount++;
     }
 
     res.json({
