@@ -41,12 +41,12 @@ exports.deleteStock = async (id) => {
   // Delete stock inventory
   if (StockInventory) await StockInventory.destroy({ where: { stock_id: id } });
   
-  // Nullify administration records
-  if (AdministrationRecord) await AdministrationRecord.update({ stock_id: null }, { where: { stock_id: id } });
+  // Delete administration records
+  if (AdministrationRecord) await AdministrationRecord.destroy({ where: { stock_id: id } });
 
-  // Nullify surveillance forms and home vaccination records
-  if (SurveillanceForm) await SurveillanceForm.update({ stock_id: null }, { where: { stock_id: id } });
-  if (HomeVaccinationRecord) await HomeVaccinationRecord.update({ stock_id: null }, { where: { stock_id: id } });
+  // Delete surveillance forms and home vaccination records
+  if (SurveillanceForm) await SurveillanceForm.destroy({ where: { stock_id: id } });
+  if (HomeVaccinationRecord) await HomeVaccinationRecord.destroy({ where: { stock_id: id } });
 
   // Delete requests and transfers where this stock is the primary subject
   if (Request) {

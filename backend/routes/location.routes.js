@@ -54,8 +54,14 @@ router.get('/districts', (req, res) => {
   try {
     const { province } = req.query;
     if (province) {
-      const districts = rwanda.getDistricts(province);
-      return res.json(districts || []);
+      try {
+        let provName = province;
+        if (provName.toLowerCase() === 'kigali') provName = 'City Of Kigali';
+        const districts = rwanda.getDistricts(provName);
+        return res.json(districts || []);
+      } catch (e) {
+        return res.json([]);
+      }
     }
     const provinces = rwanda.getProvinces();
     let allDistricts = [];
