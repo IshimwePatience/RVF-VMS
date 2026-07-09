@@ -8,14 +8,17 @@ import Pagination from '../components/Pagination';
 import LocationDropdown from '../components/LocationDropdown';
 import SampleTestReportView from '../components/SampleTestReportView';
 import HomeVaccinationReportView from '../components/HomeVaccinationReportView';
+import MapModal from '../components/MapModal';
 
 export default function Reports() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   
   const [activeTab, setActiveTab] = useState(user?.role === 'Admin' ? 'overview' : 'vaccination'); 
+  const [error, setError] = useState('');
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedHomeVaccination, setSelectedHomeVaccination] = useState(null);
+  const [mapLocationData, setMapLocationData] = useState(null);
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -409,10 +412,28 @@ export default function Reports() {
                           {r.animal_type || 'N/A'}
                         </td>
                         <td className="py-4">
-                          <button className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center">
-                            View Form
-                            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center">
+                              View Form
+                              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMapLocationData({
+                                  province: r.province,
+                                  district: r.district,
+                                  sector: r.sector,
+                                  cell: r.cell,
+                                  village: r.village
+                                });
+                              }}
+                              className="text-slate-500 font-medium hover:text-slate-700 text-sm flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                              Map
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -450,10 +471,28 @@ export default function Reports() {
                           </span>
                         </td>
                         <td className="py-4">
-                          <button className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center">
-                            View Report
-                            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center">
+                              View Report
+                              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setMapLocationData({
+                                  province: r.province,
+                                  district: r.district,
+                                  sector: r.sector,
+                                  cell: r.cell,
+                                  village: r.village
+                                });
+                              }}
+                              className="text-slate-500 font-medium hover:text-slate-700 text-sm flex items-center"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                              Map
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -467,6 +506,13 @@ export default function Reports() {
           )}
         </>
       )}
+
+      <MapModal
+        isOpen={!!mapLocationData}
+        onClose={() => setMapLocationData(null)}
+        locationData={mapLocationData}
+        title="Report Location"
+      />
     </div>
   );
 }

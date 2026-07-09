@@ -127,6 +127,14 @@ exports.getAdminDashboard = async (req, res) => {
       }
     });
 
+    // 9. Locations for Map
+    const mapLocations = await SurveillanceForm.findAll({
+      attributes: ['id', 'province', 'district', 'sector', 'cell', 'village', 'createdAt'],
+      where: whereSurvForm,
+      order: [['createdAt', 'DESC']],
+      limit: 100 // Cap to 100 to avoid overloading the map geocoder
+    });
+
     res.json({
       summary: {
         totalAffected,
@@ -142,7 +150,8 @@ exports.getAdminDashboard = async (req, res) => {
       speciesDistribution,
       sexDistribution,
       vaccinationStatus,
-      stockByVaccine: Object.entries(stockMap).map(([name, quantity]) => ({ name, quantity }))
+      stockByVaccine: Object.entries(stockMap).map(([name, quantity]) => ({ name, quantity })),
+      mapLocations
     });
   } catch (error) {
     console.error('Error fetching admin dashboard:', error);

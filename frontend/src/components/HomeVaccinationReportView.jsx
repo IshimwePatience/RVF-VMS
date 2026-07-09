@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import minisanteLogo from '../assets/images/MINISANTE.png';
+import MapModal from './MapModal';
 
 export default function HomeVaccinationReportView({ report, onClose }) {
+  const [isMapOpen, setIsMapOpen] = useState(false);
   if (!report) return null;
 
   return (
@@ -14,6 +16,13 @@ export default function HomeVaccinationReportView({ report, onClose }) {
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             Back to Dashboard
+          </button>
+          <button
+            onClick={() => setIsMapOpen(true)}
+            className="flex items-center text-blue-600 hover:text-blue-700 bg-white px-4 py-2 rounded-lg shadow-sm font-medium transition-colors"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            View Map
           </button>
         </div>
 
@@ -118,6 +127,19 @@ export default function HomeVaccinationReportView({ report, onClose }) {
         <div className="mt-8 text-center text-sm text-slate-400">
           This is a read-only view of a submitted Home Vaccination Record.
         </div>
+
+        <MapModal
+          isOpen={isMapOpen}
+          onClose={() => setIsMapOpen(false)}
+          locationData={{
+            province: report.province,
+            district: report.district,
+            sector: report.sector,
+            cell: report.cell,
+            village: report.village
+          }}
+          title="Vaccination Location"
+        />
       </div>
     </div>
   );
