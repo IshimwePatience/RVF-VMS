@@ -17,30 +17,21 @@ export default function ViewResultsTab() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <button 
-          onClick={() => refetch()}
-          disabled={isFetching}
-          className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 font-medium transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
-      </div>
-
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
-          <thead className="border-b border-slate-200">
-            <tr>
-              <th className="py-4 px-6 font-semibold text-slate-800">Date Uploaded</th>
-              <th className="py-4 px-6 font-semibold text-slate-800">Farmer</th>
-              <th className="py-4 px-6 font-semibold text-slate-800">Location</th>
-              <th className="py-4 px-6 font-semibold text-slate-800">Animal ID</th>
-              <th className="py-4 px-6 font-semibold text-slate-800">Specie</th>
-              <th className="py-4 px-6 font-semibold text-slate-800">PCR Result</th>
-            </tr>
-          </thead>
+          {(!isLoading && results.length > 0) && (
+            <thead className="border-b border-slate-200">
+              <tr>
+                <th className="py-4 px-6 font-semibold text-slate-800">Date Uploaded</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Farmer</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Location</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Animal ID</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Specie</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">PCR Result</th>
+              </tr>
+            </thead>
+          )}
           <tbody className="divide-y divide-slate-100">
             {isLoading ? (
               <tr>
