@@ -243,7 +243,7 @@ export default function UploadResultsTab() {
                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
                       {row.map((cell, cIdx) => (
                         <td key={cIdx} className={`py-2 px-3 border-r border-slate-200 last:border-r-0 ${
-                          idx < 5 || (typeof cell === 'string' && cell.toLowerCase().includes('prepared by') || cell.toLowerCase().includes('operator')) ? 'font-bold text-slate-900 bg-slate-100/50' : ''
+                          idx < 5 || (typeof cell === 'string' && (cell.toLowerCase().includes('prepared by') || cell.toLowerCase().includes('operator'))) ? 'font-bold text-slate-900 bg-slate-100/50' : ''
                         }`}>
                           {cell}
                         </td>
