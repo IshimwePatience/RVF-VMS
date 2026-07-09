@@ -103,9 +103,9 @@ export default function VeterinaryPortal() {
 
         {/* Tab Content */}
         <div>
-          {activeTab === 'overview' && <OverviewTab email={email} />}
-          {activeTab === 'vaccination' && <HomeVaccinationTab email={email} onSubmissionComplete={() => setActiveTab('overview')} />}
-          {activeTab === 'sample_test' && <SampleTestFormTab email={email} />}
+          {activeTab === 'overview' && <OverviewTab phone={phone} />}
+          {activeTab === 'vaccination' && <HomeVaccinationTab phone={phone} onSubmissionComplete={() => setActiveTab('overview')} />}
+          {activeTab === 'sample_test' && <SampleTestFormTab phone={phone} />}
         </div>
       </div>
     </div>

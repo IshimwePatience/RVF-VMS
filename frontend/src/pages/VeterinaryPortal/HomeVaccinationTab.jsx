@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
 
-export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
+export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
   const queryClient = useQueryClient();
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -35,12 +35,12 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
   }, [homes]);
 
   const { data: availableVaccines = [], isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['available-vaccines', email],
+    queryKey: ['available-vaccines', phone],
     queryFn: async () => {
-      const res = await axios.get(`/rvf-api/veterinary-portal/available-vaccines?email=${encodeURIComponent(email)}`);
+      const res = await axios.get(`/rvf-api/veterinary-portal/available-vaccines?phone=${encodeURIComponent(phone)}`);
       return res.data;
     },
-    enabled: !!email
+    enabled: !!phone
   });
 
   if (queryError && !error) {
@@ -130,31 +130,6 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
     setSuccess(false);
 
     try {
-      // We will send each animal as a separate record, including its home info
-      let allAnimals = [];
-      
-      for (const home of homes) {
-        for (const animal of home.animals) {
-          const selectedVaccine = availableVaccines.find(v => v.display_name === animal.vaccine_selection);
-          allAnimals.push({
-            owner_name: home.owner_name,
-            owner_phone: home.owner_phone,
-            owner_national_id: home.owner_national_id,
-            animal_type: animal.animal_type,
-            vaccine_name: selectedVaccine ? selectedVaccine.vaccine_name : '',
-            batch_number: selectedVaccine ? selectedVaccine.batch_number : '',
-            dose_given: parseInt(animal.dose_given) || 0,
-            damages: parseInt(animal.damages) || 0,
-          });
-        }
-      }
-
-      // Instead of the previous payload where there was 1 home and N animals, 
-      // the backend controller we wrote expects: { email, owner_name, owner_phone, owner_national_id, home_identifier, animals: [...] }
-      // Wait, our backend controller assumes ONE home per payload! 
-      // Let's modify the backend controller to just accept an array of fully populated records if we want to submit multiple homes at once.
-      // Or we can just fire multiple requests, one per home. Let's do one request per home to be safe without changing backend right now.
-      
       const promises = homes.map(home => {
         const formattedAnimals = [];
         home.animals.forEach(a => {
@@ -173,7 +148,7 @@ export default function HomeVaccinationTab({ email, onSubmissionComplete }) {
         });
 
         return axios.post('/rvf-api/veterinary-portal/vaccination', {
-          email,
+          phone,
           owner_name: home.owner_name,
           owner_phone: home.owner_phone,
           owner_national_id: home.owner_national_id,

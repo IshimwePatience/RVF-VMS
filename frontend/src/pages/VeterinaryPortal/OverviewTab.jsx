@@ -4,14 +4,14 @@ import { useQuery } from '@tanstack/react-query';
 import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/Pagination';
 
-export default function OverviewTab({ email }) {
+export default function OverviewTab({ phone }) {
   const { data, isLoading: loading, error } = useQuery({
-    queryKey: ['veterinary-overview', email],
+    queryKey: ['veterinary-overview', phone],
     queryFn: async () => {
-      const res = await axios.get(`/rvf-api/veterinary-portal/overview?email=${encodeURIComponent(email)}`);
+      const res = await axios.get(`/rvf-api/veterinary-portal/overview?phone=${encodeURIComponent(phone)}`);
       return res.data;
     },
-    enabled: !!email,
+    enabled: !!phone,
   });
 
   const vaccineKeys = data ? Object.keys(data) : [];

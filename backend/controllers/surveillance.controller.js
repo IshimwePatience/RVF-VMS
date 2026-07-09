@@ -4,7 +4,7 @@ exports.submitForm = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const {
-      veterinary_email,
+      veterinary_phone,
       district,
       province,
       sector,
@@ -20,13 +20,13 @@ exports.submitForm = async (req, res) => {
       samples
     } = req.body;
 
-    if (!veterinary_email) {
+    if (!veterinary_phone) {
       await t.rollback();
-      return res.status(400).json({ message: 'Veterinary email is required' });
+      return res.status(400).json({ message: 'Veterinary phone is required' });
     }
 
     const form = await SurveillanceForm.create({
-      veterinary_email,
+      veterinary_email: veterinary_phone, // Store phone in the veterinary_email column
       district,
       province,
       sector,
@@ -76,7 +76,13 @@ exports.submitForm = async (req, res) => {
 
 exports.getForms = async (req, res) => {
   try {
+    const { phone } = req.query;
+    let whereClause = {};
+    if (phone) {
+      whereClause.veterinary_email = phone;
+    }
     const forms = await SurveillanceForm.findAll({
+      where: whereClause,
       include: [
         {
           model: SurveillanceSample,

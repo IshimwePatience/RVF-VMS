@@ -12,7 +12,7 @@ const RWANDA_DISTRICTS = [
   "Rulindo", "Rusizi", "Rutsiro", "Rwamagana"
 ];
 
-export default function SampleTestFormTab({ email }) {
+export default function SampleTestFormTab({ phone }) {
   const [headerData, setHeaderData] = useState(() => {
     const saved = localStorage.getItem('rvf_sample_form_header_draft');
     if (saved) {
@@ -141,7 +141,7 @@ export default function SampleTestFormTab({ email }) {
 
     try {
       const payload = {
-        veterinary_email: email,
+        veterinary_phone: phone,
         district: headerData.district,
         from_abattoir: headerData.fromAbattoir,
         samples_type: headerData.samplesType,

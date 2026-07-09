@@ -2,14 +2,14 @@ const { AdministrationRecord, HomeVaccinationRecord, Batch, Vaccine, Stock, Stoc
 
 exports.getOverview = async (req, res) => {
   try {
-    const { email, province, district, sector } = req.query;
+    const { phone, province, district, sector } = req.query;
 
     const allocWhere = {};
     const usageWhere = {};
 
-    if (email) {
-      allocWhere.email = email;
-      usageWhere.veterinary_email = email;
+    if (phone) {
+      allocWhere.email = phone; // Store phone in email column
+      usageWhere.veterinary_email = phone; // Store phone in veterinary_email column
     }
     if (province) {
       allocWhere.province = province;
@@ -86,11 +86,11 @@ exports.getOverview = async (req, res) => {
 
 exports.getAvailableVaccines = async (req, res) => {
   try {
-    const { email } = req.query;
-    if (!email) return res.status(400).json({ message: 'Email is required' });
+    const { phone } = req.query;
+    if (!phone) return res.json([]);
 
     const allocations = await AdministrationRecord.findAll({
-      where: { email },
+      where: { email: phone },
       include: [
         {
           model: Batch,
@@ -123,12 +123,12 @@ exports.getAvailableVaccines = async (req, res) => {
   }
 };
 
-exports.recordVaccination = async (req, res) => {
+exports.submitVaccination = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { email, owner_name, owner_phone, owner_national_id, home_identifier, animals, province, district, sector, cell, village } = req.body;
+    const { phone, owner_name, owner_phone, owner_national_id, home_identifier, animals, province, district, sector, cell, village } = req.body;
     
-    if (!email || !owner_name || !home_identifier || !animals || animals.length === 0 || !district || !sector) {
+    if (!phone || !owner_name || !home_identifier || !animals || animals.length === 0 || !district || !sector) {
       return res.status(400).json({ message: 'Missing required fields, including District and Sector' });
     }
 
@@ -167,7 +167,7 @@ exports.recordVaccination = async (req, res) => {
     }
 
     const recordsToCreate = animals.map(animal => ({
-      veterinary_email: email,
+      veterinary_email: phone, // Store phone in the DB column named veterinary_email
       owner_name,
       owner_phone,
       owner_national_id,
