@@ -27,9 +27,12 @@ export default function OverviewTab({ phone }) {
 
   if (vaccineKeys.length === 0) {
     return (
-      <div className="bg-white shadow-sm border border-slate-200 p-12 text-center">
-        <h3 className="text-lg font-medium text-slate-900">No vaccines found</h3>
-        <p className="text-slate-500 mt-2">It looks like you haven't received any vaccines yet.</p>
+      <div className="py-20 flex flex-col items-center justify-center text-center mt-2">
+        <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
+        <p className="text-[15px] font-medium text-slate-500">No vaccines found</p>
+        <p className="text-slate-500 text-sm mt-1 max-w-sm">
+          It looks like you haven't received any vaccines yet.
+        </p>
       </div>
     );
   }

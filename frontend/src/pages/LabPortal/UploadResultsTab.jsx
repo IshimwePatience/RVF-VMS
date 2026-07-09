@@ -8,6 +8,7 @@ export default function UploadResultsTab() {
   const [file, setFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [parsedData, setParsedData] = useState(null);
+  const [rawData, setRawData] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
   const fileInputRef = useRef(null);
@@ -114,10 +115,12 @@ export default function UploadResultsTab() {
         if (processedData.length === 0) {
            addToast('Could not find recognizable data in this file. Please use the standard template.', 'error');
            setParsedData(null);
+           setRawData(null);
            return;
         }
 
         setParsedData(processedData);
+        setRawData(standardData.filter(row => row.some(cell => cell !== undefined && cell !== null && cell !== '')));
 
       } catch (err) {
         console.error(err);
@@ -167,30 +170,13 @@ export default function UploadResultsTab() {
   const clearFile = () => {
     setFile(null);
     setParsedData(null);
+    setRawData(null);
     setUploadResult(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      
-      {uploadResult && (
-        <div className="mb-8 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-4">
-          <div className="p-2 bg-green-100 text-green-700 rounded-full shrink-0">
-            <CheckCircle className="w-6 h-6" />
-          </div>
-          <div>
-            <h3 className="text-green-800 font-bold text-lg">Upload Successful!</h3>
-            <p className="text-green-700 mt-1">
-              Successfully processed {uploadResult.created + uploadResult.updated} records.
-            </p>
-            <ul className="list-disc list-inside mt-2 text-sm text-green-700 font-medium space-y-1">
-              <li>{uploadResult.created} new records added</li>
-              <li>{uploadResult.updated} existing records updated</li>
-            </ul>
-          </div>
-        </div>
-      )}
+    <div className="max-w-6xl mx-auto text-slate-800">
 
       {/* Upload Dropzone */}
       {!parsedData && (
@@ -235,9 +221,6 @@ export default function UploadResultsTab() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-300">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 text-green-700 rounded-xl">
-                <FileSpreadsheet className="w-8 h-8" />
-              </div>
               <div>
                 <h3 className="font-bold text-slate-900 text-lg">{file?.name}</h3>
                 <p className="text-sm text-slate-500 font-medium">{parsedData.length} valid records found</p>
@@ -253,38 +236,18 @@ export default function UploadResultsTab() {
           </div>
           
           <div className="p-6">
-            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-start gap-3 mb-6">
-              <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-yellow-800">
-                Please review the extracted data below. Clicking upload will automatically add new records and update any existing records with matching Animal IDs.
-              </p>
-            </div>
-
-            <div className="overflow-x-auto rounded-xl border border-slate-200 mb-6 max-h-[400px] overflow-y-auto">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 mb-6 max-h-[600px] overflow-y-auto">
               <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
-                <thead className="bg-white border-b border-slate-200 sticky top-0">
-                  <tr>
-                    <th className="py-3 px-4 font-semibold text-slate-800">Farmer</th>
-                    <th className="py-3 px-4 font-semibold text-slate-800">Location</th>
-                    <th className="py-3 px-4 font-semibold text-slate-800">Animal ID</th>
-                    <th className="py-3 px-4 font-semibold text-slate-800">Result</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {parsedData.slice(0, 100).map((row, idx) => (
-                    <tr key={idx} className="hover:bg-slate-100">
-                      <td className="py-3 px-4 font-medium text-slate-900">{row.farmer_name}</td>
-                      <td className="py-3 px-4">{row.animal_district_origin} - {row.sector}</td>
-                      <td className="py-3 px-4 text-slate-600">{row.animal_id}</td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-flex px-2 py-1 rounded-md text-xs font-bold ${
-                          row.rvf_pcr_results.toUpperCase().includes('POSITIVE') 
-                            ? 'bg-red-100 text-red-700' 
-                            : 'bg-green-100 text-green-700'
+                <tbody className="divide-y divide-slate-200">
+                  {rawData && rawData.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                      {row.map((cell, cIdx) => (
+                        <td key={cIdx} className={`py-2 px-3 border-r border-slate-200 last:border-r-0 ${
+                          idx < 5 || (typeof cell === 'string' && cell.toLowerCase().includes('prepared by') || cell.toLowerCase().includes('operator')) ? 'font-bold text-slate-900 bg-slate-100/50' : ''
                         }`}>
-                          {row.rvf_pcr_results || 'UNKNOWN'}
-                        </span>
-                      </td>
+                          {cell}
+                        </td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>

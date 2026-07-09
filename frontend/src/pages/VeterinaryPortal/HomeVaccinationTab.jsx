@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
+import { ToastContext } from '../../context/ToastContext';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
 
 export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
   const queryClient = useQueryClient();
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  const { addToast } = useContext(ToastContext);
   const [expandedAnimals, setExpandedAnimals] = useState({});
 
   const [homes, setHomes] = useState(() => {
@@ -43,8 +43,8 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
     enabled: !!phone
   });
 
-  if (queryError && !error) {
-    setError('Failed to fetch available vaccines.');
+  if (queryError) {
+    addToast('Failed to fetch available vaccines.', 'error');
   }
 
   const addHome = () => {
@@ -113,21 +113,19 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
         owner_name: '', owner_phone: '', owner_national_id: '',
         animals: [{ id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }]
       }]);
-      setSuccess(true);
+      addToast('Vaccination records submitted successfully!', 'success');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (onSubmissionComplete) onSubmissionComplete();
       queryClient.invalidateQueries({ queryKey: ['overview-stats'] });
     },
     onError: (err) => {
       console.error(err);
-      setError(err.response?.data?.message || 'Failed to submit records.');
+      addToast(err.response?.data?.message || 'Failed to submit records.', 'error');
     }
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(false);
 
     try {
       const promises = homes.map(home => {
@@ -160,7 +158,7 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
       submitMutation.mutate(promises);
     } catch (err) {
       console.error(err);
-      setError('Failed to build records payload.');
+      addToast('Failed to build records payload.', 'error');
     }
   };
 
@@ -170,20 +168,6 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-12">
-      {success && (
-        <div className="bg-green-50 text-green-800 rounded-xl p-6 border border-green-200 shadow-sm">
-          <h3 className="font-semibold text-lg mb-2">Vaccination Records Submitted!</h3>
-          <p className="text-sm">Thank you for submitting the vaccination records. The overview has been updated.</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 text-red-800 rounded-xl p-6 border border-red-200 shadow-sm">
-          <h3 className="font-semibold text-lg mb-2">Error Submitting Records</h3>
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
-
       {/* Header Form Card */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="h-3 bg-blue-600"></div>

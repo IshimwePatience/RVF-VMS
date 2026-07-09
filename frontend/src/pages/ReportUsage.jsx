@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import minisanteLogo from '../assets/images/MINISANTE.png';
 import { ChevronRight, Syringe } from 'lucide-react';
 import LoginSkeleton from '../components/LoginSkeleton';
+import { ToastContext } from '../context/ToastContext';
+import { useContext } from 'react';
 
 export default function ReportUsage({ mode = 'login' }) {
   const { token } = useParams();
@@ -12,9 +14,8 @@ export default function ReportUsage({ mode = 'login' }) {
 
   const queryClient = useQueryClient();
   const [phone, setPhone] = useState('');
-  const [phoneError, setPhoneError] = useState('');
   const [district, setDistrict] = useState('');
-  const [success, setSuccess] = useState(false);
+  const { addToast } = useContext(ToastContext);
 
   const [formData, setFormData] = useState({
     doses_used: '',
@@ -77,22 +78,21 @@ export default function ReportUsage({ mode = 'login' }) {
     },
     onError: (err) => {
       if (err.response?.status === 404 && mode === 'login') {
-        setPhoneError('This phone number is not registered. Please register first.');
+        addToast('This phone number is not registered. Please register first.', 'error');
       } else {
-        setPhoneError(err.response?.data?.message || 'Failed to login. Please try again.');
+        addToast(err.response?.data?.message || 'Failed to login. Please try again.', 'error');
       }
     }
   });
 
   const handleVerifyPhone = (e) => {
     e.preventDefault();
-    setPhoneError('');
     
     // Clean the phone number (remove spaces)
     const cleanPhone = phone.replace(/\s+/g, '').trim();
 
     if (!/^07[23489]\d{7}$/.test(cleanPhone)) {
-      setPhoneError('Invalid Rwandan phone number. Format should be 078xxxxxxx');
+      addToast('Invalid Rwandan phone number. Format should be 078xxxxxxx', 'error');
       return;
     }
     loginMutation.mutate({ 
@@ -106,11 +106,11 @@ export default function ReportUsage({ mode = 'login' }) {
     mutationFn: async (payload) => axios.post(`/rvf-api/administrations/report/${token}`, payload),
     onSuccess: (res) => {
       queryClient.setQueryData(['report', token], res.data.record);
-      setSuccess(true);
+      addToast('Response recorded successfully!', 'success');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     onError: (err) => {
-      alert(err.response?.data?.message || 'Failed to submit report');
+      addToast(err.response?.data?.message || 'Failed to submit report', 'error');
     }
   });
 
@@ -211,8 +211,6 @@ export default function ReportUsage({ mode = 'login' }) {
               </div>
             )}
 
-            {phoneError && <p className="text-[#C02B0A] text-sm mb-4">{phoneError}</p>}
-
             <button
               type="submit"
               disabled={loginMutation.isPending}
@@ -248,19 +246,6 @@ export default function ReportUsage({ mode = 'login' }) {
   return (
     <div className="min-h-screen bg-blue-50 py-8 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto space-y-4">
-
-        {success && (
-          <div className="bg-green-50 text-green-800 rounded-xl p-6 border border-green-200 shadow-sm">
-            <h3 className="font-semibold text-lg mb-2">Response recorded successfully!</h3>
-            <p className="text-sm mb-4">Thank you for submitting your usage report. You can safely close this page, or you may continue to edit your response below if you need to make changes.</p>
-            <button
-              onClick={() => navigate('/veterinary-signup')}
-              className="text-sm font-medium text-green-700 hover:text-green-900 underline"
-            >
-              ← Back to my reports
-            </button>
-          </div>
-        )}
 
         {/* Header Form Card */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">

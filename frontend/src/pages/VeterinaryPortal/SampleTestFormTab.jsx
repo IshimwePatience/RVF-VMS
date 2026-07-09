@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { ToastContext } from '../../context/ToastContext';
 import LocationDropdown from '../../components/LocationDropdown';
 import SearchableDropdown from '../../components/SearchableDropdown';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
@@ -67,9 +68,8 @@ export default function SampleTestFormTab({ phone }) {
     localStorage.setItem('rvf_sample_form_rows_draft', JSON.stringify(rows));
   }, [rows]);
 
+  const { addToast } = useContext(ToastContext);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState(null);
 
   const handleHeaderChange = (field, value) => {
     setHeaderData(prev => ({ ...prev, [field]: value }));
@@ -109,15 +109,14 @@ export default function SampleTestFormTab({ phone }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
-    setSuccess(false);
+    setLoading(true);
 
     const filledRows = rows.filter(row => {
       return Object.entries(row).some(([key, value]) => key !== 'sn' && value.toString().trim() !== '');
     });
 
     if (filledRows.length === 0) {
-      setError('Please fill in at least one sample row.');
+      addToast('Please fill in at least one sample row.', 'error');
       setLoading(false);
       return;
     }
@@ -132,7 +131,7 @@ export default function SampleTestFormTab({ phone }) {
       const row = filledRows[i];
       for (const field of requiredRowFields) {
         if (!row[field] || row[field].toString().trim() === '') {
-          setError(`Please complete all fields for Sample #${row.sn}. Row must be fully filled.`);
+          addToast(`Please complete all fields for Sample #${row.sn}. Row must be fully filled.`, 'error');
           setLoading(false);
           return;
         }
@@ -154,7 +153,7 @@ export default function SampleTestFormTab({ phone }) {
       };
 
       await axios.post('/rvf-api/surveillance', payload);
-      setSuccess(true);
+      addToast('Form submitted successfully!', 'success');
       localStorage.removeItem('rvf_sample_form_header_draft');
       localStorage.removeItem('rvf_sample_form_rows_draft');
       setCurrentPage(1);
@@ -166,7 +165,7 @@ export default function SampleTestFormTab({ phone }) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error(err);
-      setError('Failed to submit surveillance form. Please try again.');
+      addToast('Failed to submit surveillance form. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -174,18 +173,6 @@ export default function SampleTestFormTab({ phone }) {
 
   return (
     <div className="bg-white text-slate-900 p-4 sm:p-8 rounded-lg shadow-sm border border-slate-200">
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-6 shadow-sm">
-          <h3 className="font-semibold text-lg mb-1">Form submitted successfully!</h3>
-          <p className="text-sm">The surveillance sampling form has been saved.</p>
-        </div>
-      )}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6 shadow-sm">
-          {error}
-        </div>
-      )}
-
       {/* Header section */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6 md:gap-0">
         <div className="w-full md:w-32 flex justify-center md:justify-start">
@@ -247,7 +234,7 @@ export default function SampleTestFormTab({ phone }) {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
               <label className="font-bold mr-2 whitespace-nowrap text-blue-700">Phone Number:</label>
-              <input type="tel" required pattern="^250\d{7}$" minLength="10" maxLength="10" title="Must start with 250 and be exactly 10 digits" value={headerData.phoneNumber} onChange={(e) => handleHeaderChange('phoneNumber', e.target.value.replace(/\D/g, ''))} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" />
+              <input type="tel" required pattern="^07[23489]\d{7}$" minLength="10" maxLength="10" title="Must be a valid 10-digit Rwandan phone number starting with 07" value={headerData.phoneNumber} onChange={(e) => handleHeaderChange('phoneNumber', e.target.value.replace(/\D/g, ''))} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" />
             </div>
           </div>
         </div>
@@ -268,7 +255,7 @@ export default function SampleTestFormTab({ phone }) {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Phone</label>
-                  <input type="tel" pattern="^250\d{7}$" minLength="10" maxLength="10" title="Must start with 250 and be exactly 10 digits" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
+                  <input type="tel" pattern="^07[23489]\d{7}$" minLength="10" maxLength="10" title="Must be a valid 10-digit Rwandan phone number starting with 07" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Animal District Origin</label>
@@ -445,7 +432,7 @@ export default function SampleTestFormTab({ phone }) {
                     <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.farmer_name} onChange={(e) => handleRowChange(index, 'farmer_name', e.target.value)} />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="tel" pattern="^250\d{7}$" minLength="10" maxLength="10" title="Must start with 250 and be exactly 10 digits" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
+                    <input type="tel" pattern="^07[23489]\d{7}$" minLength="10" maxLength="10" title="Must be a valid 10-digit Rwandan phone number starting with 07" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.phone} onChange={(e) => handleRowChange(index, 'phone', e.target.value.replace(/\D/g, ''))} />
                   </td>
                   <td className="border border-slate-300 p-0">
                     <LocationDropdown type="districts" value={row.district_origin} onChange={(val) => handleRowChange(index, 'district_origin', val)} placeholder="District" />
