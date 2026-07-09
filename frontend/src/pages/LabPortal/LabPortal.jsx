@@ -78,7 +78,7 @@ export default function LabPortal() {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'upload' ? <UploadResultsTab /> : <ViewResultsTab />}
+        {activeTab === 'upload' ? <UploadResultsTab /> : <ViewResultsTab isLabPortal={true} />}
       </main>
     </div>
   );

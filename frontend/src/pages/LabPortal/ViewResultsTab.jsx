@@ -3,10 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { RefreshCw, MapPin, Pencil, Trash2, X } from 'lucide-react';
 import MapModal from '../../components/MapModal';
+import { usePagination } from '../../hooks/usePagination';
+import Pagination from '../../components/Pagination';
 import { AuthContext } from '../../context/AuthContext';
 import { ToastContext } from '../../context/ToastContext';
 
-export default function ViewResultsTab() {
+export default function ViewResultsTab({ isLabPortal }) {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const [mapLocationData, setMapLocationData] = useState(null);
@@ -19,6 +21,8 @@ export default function ViewResultsTab() {
       return res.data;
     }
   });
+
+  const pagination = usePagination(results || [], 10);
 
   return (
     <>
@@ -40,7 +44,7 @@ export default function ViewResultsTab() {
                 <th className="py-4 px-6 font-semibold text-slate-800">Purpose</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Health Status</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">PCR Result</th>
-                {user?.role === 'Lab User' && (
+                {isLabPortal && (
                   <th className="py-4 px-6 font-semibold text-slate-800 text-right">Actions</th>
                 )}
               </tr>
@@ -68,8 +72,8 @@ export default function ViewResultsTab() {
                   </div>
                 </td>
               </tr>
-            ) : (
-              results.map((r) => (
+              ) : (
+              pagination.currentData.map((r) => (
                 <tr key={r.id} className="hover:bg-slate-100 transition-colors group">
                   <td className="py-4 px-6 text-slate-600">
                     {new Date(r.createdAt).toLocaleDateString()}
@@ -119,7 +123,7 @@ export default function ViewResultsTab() {
                       {r.rvf_pcr_results || 'UNKNOWN'}
                     </span>
                   </td>
-                  {user?.role === 'Lab User' && (
+                  {isLabPortal && (
                     <td className="py-4 px-6 text-right">
                       <div className="flex justify-end gap-2">
                         <button 
@@ -155,6 +159,10 @@ export default function ViewResultsTab() {
           </tbody>
         </table>
       </div>
+
+      {!isLoading && results.length > 0 && (
+        <Pagination {...pagination} />
+      )}
 
       {mapLocationData && (
         <MapModal
