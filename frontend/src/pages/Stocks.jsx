@@ -191,7 +191,7 @@ export default function Stocks() {
                   </th>
                   <th className="py-3 font-semibold text-slate-800">Parent Stock</th>
                   <th className="py-3 font-semibold text-slate-800 w-24">More</th>
-                  <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>
+                  {canEdit && <th className="py-3 font-semibold text-slate-800 w-24">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -216,8 +216,8 @@ export default function Stocks() {
                       View
                     </button>
                   </td>
-                  <td className="py-4">
-                    {canEdit ? (
+                  {canEdit && (
+                    <td className="py-4">
                       <div className="flex items-center gap-3">
                         <button onClick={() => handleEdit(stock)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
                           <Pencil className="w-4 h-4" />
@@ -226,10 +226,8 @@ export default function Stocks() {
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                    ) : (
-                      <span className="text-xs text-slate-400">View Only</span>
-                    )}
-                  </td>
+                    </td>
+                  )}
                 </tr>
               ))}
               </tbody>
