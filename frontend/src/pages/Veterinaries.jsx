@@ -261,17 +261,7 @@ export default function Veterinaries() {
                   />
                 </div>
 
-                {user?.stock?.sector ? (
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Sector</label>
-                    <input
-                      type="text"
-                      value={user.stock.sector}
-                      readOnly
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed outline-none text-sm"
-                    />
-                  </div>
-                ) : user?.stock?.district ? (
+                {user?.stock?.district && (
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">District</label>
                     <input
@@ -281,7 +271,7 @@ export default function Veterinaries() {
                       className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed outline-none text-sm"
                     />
                   </div>
-                ) : null}
+                )}
               </div>
 
               <div className="mt-6 flex justify-end gap-3">
