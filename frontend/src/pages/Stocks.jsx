@@ -37,6 +37,8 @@ export default function Stocks() {
     localStorage.setItem('stocksSortBy', sortBy);
   }, [filterBy, sortBy]);
 
+  const canEdit = user?.role === 'Admin' || user?.is_central || user?.stock?.is_central;
+
   const { data: stocks = [], isLoading: loading } = useQuery({
     queryKey: ['stocks'],
     queryFn: async () => {
@@ -215,14 +217,18 @@ export default function Stocks() {
                     </button>
                   </td>
                   <td className="py-4">
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => handleEdit(stock)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(stock.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {canEdit ? (
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => handleEdit(stock)} className="text-slate-400 hover:text-blue-600 transition-colors" title="Edit">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(stock.id)} className="text-slate-400 hover:text-red-600 transition-colors" title="Delete">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400">View Only</span>
+                    )}
                   </td>
                 </tr>
               ))}

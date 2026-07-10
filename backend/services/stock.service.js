@@ -13,7 +13,11 @@ exports.getStocks = async (user) => {
     ]
   };
   if (user && user.role !== 'Admin' && !user.is_central && user.district) {
-    options.where = { district: user.district };
+    const { Op } = require('sequelize');
+    options.where = { 
+      district: user.district,
+      sector: { [Op.not]: null }
+    };
   }
   return await Stock.findAll(options);
 };
