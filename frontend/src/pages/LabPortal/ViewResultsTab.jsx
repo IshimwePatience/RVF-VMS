@@ -85,8 +85,12 @@ export default function ViewResultsTab({ isLabPortal }) {
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium text-slate-800">{r.sector || r.animal_district_origin}</span>
-                        <span className="text-xs text-slate-500">{r.animal_district_origin}</span>
+                        <span className="text-sm font-medium text-slate-800">
+                          {r.village || r.cell || r.sector || r.animal_district_origin || 'Unknown Location'}
+                        </span>
+                        <span className="text-xs text-slate-500">
+                          {[r.animal_district_origin, r.sector, r.cell].filter(Boolean).filter(x => x !== (r.village || r.cell || r.sector || r.animal_district_origin)).join(' / ')}
+                        </span>
                       </div>
                     </div>
                   </td>

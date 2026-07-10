@@ -161,6 +161,13 @@ export default function DashboardMap({ locations }) {
         
         const fullLocationQuery = qParts.join(', ');
         
+        const originalLevel = [
+          { level: 'village', val: village },
+          { level: 'cell', val: cell },
+          { level: 'sector', val: sector },
+          { level: 'district', val: district }
+        ].find(x => x.val)?.level || 'district';
+
         const searchLevels = [
           { level: 'village', val: village, arr: [village, cell, sector, district, province, 'Rwanda'] },
           { level: 'cell', val: cell, arr: [cell, sector, district, province, 'Rwanda'] },
@@ -221,15 +228,17 @@ export default function DashboardMap({ locations }) {
         if (geoData) {
           // Jitter to spread overlapping markers slightly if it is a point
           const isPoint = geoData.geojson?.type === 'Point';
-          const lat = geoData.coords[0] + (isPoint ? (Math.random() - 0.5) * 0.005 : 0);
-          const lon = geoData.coords[1] + (isPoint ? (Math.random() - 0.5) * 0.005 : 0);
+          // Add jitter if it's a fallback point so multiple villages in same sector don't overlap perfectly
+          const lat = geoData.coords[0] + (Math.random() - 0.5) * 0.005;
+          const lon = geoData.coords[1] + (Math.random() - 0.5) * 0.005;
           
           newMarkers.push({
             id: loc.id,
             coords: [lat, lon],
             geojson: geoData.geojson,
             popup: [village, cell, sector, district, province].filter(Boolean).join(', ') || 'Unknown Area',
-            level: resolvedLevel
+            level: originalLevel, // Use ORIGINAL level for coloring, regardless of fallback
+            resolvedLevel: resolvedLevel // Keep track of what we actually found
           });
         }
       }

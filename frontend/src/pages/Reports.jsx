@@ -350,8 +350,12 @@ export default function Reports() {
                             </td>
                             <td className="py-4 px-3">
                               <div className="flex flex-col">
-                                <span className="text-sm font-medium text-slate-800">{r.sector}</span>
-                                <span className="text-xs text-slate-500">{r.province} / {r.district}</span>
+                                <span className="text-sm font-medium text-slate-800">
+                                  {r.village || r.cell || r.sector || r.district || 'Unknown Location'}
+                                </span>
+                                <span className="text-xs text-slate-500">
+                                  {[r.province, r.district, r.sector, r.cell].filter(Boolean).filter(x => x !== (r.village || r.cell || r.sector || r.district)).join(' / ')}
+                                </span>
                               </div>
                             </td>
                             <td className="py-4 px-3">
@@ -417,8 +421,12 @@ export default function Reports() {
                         </td>
                         <td className="py-4">
                           <div className="flex flex-col">
-                            <span className="text-sm font-medium text-slate-800">{r.sector || r.district}</span>
-                            <span className="text-xs text-slate-500">{r.province} / {r.district}</span>
+                            <span className="text-sm font-medium text-slate-800">
+                              {r.village || r.cell || r.sector || r.district || 'Unknown Location'}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {[r.province, r.district, r.sector, r.cell].filter(Boolean).filter(x => x !== (r.village || r.cell || r.sector || r.district)).join(' / ')}
+                            </span>
                           </div>
                         </td>
                         <td className="py-4">

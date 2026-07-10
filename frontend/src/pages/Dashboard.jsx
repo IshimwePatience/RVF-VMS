@@ -368,22 +368,17 @@ export default function Dashboard() {
       </div>
 
       {isMapModalOpen && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-white animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center px-4 h-16 border-b border-slate-100 shadow-sm relative shrink-0">
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <h2 className="text-lg font-bold text-slate-900">Map Overview</h2>
-                <p className="text-xs text-slate-500">Showing origins of cases</p>
-              </div>
-              <button 
-                onClick={() => setIsMapModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors ml-auto relative z-10"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="w-full flex-1">
+        <div className="fixed inset-0 z-[100] bg-slate-50 animate-in fade-in zoom-in duration-200">
+            <button 
+              onClick={() => setIsMapModalOpen(false)}
+              className="absolute top-4 right-4 z-[500] p-2 bg-white/90 text-slate-700 hover:text-slate-900 hover:bg-white rounded-full shadow-lg border border-slate-200 transition-all"
+              title="Close Map"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="w-full h-full relative">
                <DashboardMap locations={d.mapLocations} />
             </div>
         </div>
