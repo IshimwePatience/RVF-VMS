@@ -263,7 +263,7 @@ export default function Layout() {
                     <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Suppliers</NavLink>
                   </>
                 )}
-                {(user?.role === 'Admin' || user?.stock?.is_endpoint) && (
+                {(user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && (
                   <NavLink to="/veterinaries" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Veterinaries</NavLink>
                 )}
               </nav>
