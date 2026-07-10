@@ -12,6 +12,7 @@ export default function Inventory() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('inventoryActiveTab') || 'batches');
   
   const { data: inventoryItems = [], isLoading: loading } = useQuery({
     queryKey: ['inventory', activeTab === 'sectors_stock' ? 'children' : 'self'],
@@ -30,7 +31,6 @@ export default function Inventory() {
   const [filterBy, setFilterBy] = useState(() => localStorage.getItem('inventoryFilterBy') || 'All');
   const [sortBy, setSortBy] = useState(() => localStorage.getItem('inventorySortBy') || 'Name A-Z');
   const [editingId, setEditingId] = useState(null);
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('inventoryActiveTab') || 'batches');
 
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('inventoryViewMode') || 'grid');
 
