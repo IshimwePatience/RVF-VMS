@@ -200,10 +200,10 @@ export default function SampleTestReportView({ report, onClose }) {
           onClose={() => setIsMapOpen(false)}
           locationData={{
             province: report.province,
-            district: report.district,
-            sector: report.sector,
-            cell: report.cell,
-            village: report.village
+            district: report.district || (report.samples?.[0]?.district_origin),
+            sector: report.sector || (report.samples?.[0]?.sector),
+            cell: report.cell || (report.samples?.[0]?.cell),
+            village: report.village || (report.samples?.[0]?.village)
           }}
           title="Sample Collection Location"
         />

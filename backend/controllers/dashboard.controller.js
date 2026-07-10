@@ -1,4 +1,4 @@
-const { AdministrationRecord, StockInventory, Batch, Stock, Vaccine, SurveillanceForm, SurveillanceSample } = require('../models');
+const { AdministrationRecord, StockInventory, Batch, Vaccine, Stock, SurveillanceForm, SurveillanceSample } = require('../models');
 const { Sequelize, Op } = require('sequelize');
 
 exports.getAdminDashboard = async (req, res) => {
@@ -131,10 +131,41 @@ exports.getAdminDashboard = async (req, res) => {
     });
 
     // 9. Locations for Map
-    const survLocations = await SurveillanceForm.findAll({
-      attributes: ['id', 'province', 'district', 'sector', 'cell', 'village', 'createdAt'],
+    const survForms = await SurveillanceForm.findAll({
       where: whereSurvForm,
+      include: [{
+        model: SurveillanceSample,
+        as: 'samples',
+        attributes: ['id', 'district_origin', 'sector', 'cell', 'village']
+      }],
       order: [['createdAt', 'DESC']]
+    });
+
+    const survLocations = [];
+    survForms.forEach(form => {
+      if (form.samples && form.samples.length > 0) {
+        form.samples.forEach(sample => {
+          survLocations.push({
+            id: `surv-${form.id}-samp-${sample.id}`,
+            province: form.province, // Form province
+            district: sample.district_origin || form.district, // Prefer sample's district
+            sector: sample.sector || form.sector,
+            cell: sample.cell || form.cell,
+            village: sample.village || form.village,
+            createdAt: form.createdAt
+          });
+        });
+      } else {
+        survLocations.push({
+          id: `surv-${form.id}`,
+          province: form.province,
+          district: form.district,
+          sector: form.sector,
+          cell: form.cell,
+          village: form.village,
+          createdAt: form.createdAt
+        });
+      }
     });
     const adminLocations = await AdministrationRecord.findAll({
       attributes: ['id', 'province', 'district', 'sector', 'cell', 'village', 'createdAt'],
