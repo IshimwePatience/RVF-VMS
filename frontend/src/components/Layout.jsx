@@ -253,7 +253,7 @@ export default function Layout() {
             <div className="px-6 mb-2">
               <h3 className="text-sm font-medium text-slate-900 mb-2">Management</h3>
               <nav className="space-y-0.5 flex flex-col">
-                {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
+                {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || user?.stock?.district) && (
                   <NavLink to="/stocks" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Stock Overview</NavLink>
                 )}
                 <NavLink to="/inventory" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Current Inventory</NavLink>
@@ -281,8 +281,10 @@ export default function Layout() {
                   <NavLink to="/administrations" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Administer Vaccines</NavLink>
                 )}
                 <NavLink to="/transfers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Transfers</NavLink>
-                {(user?.is_central || user?.stock?.is_central) && (
-                  <NavLink to="/reports" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Reports</NavLink>
+                {(user?.is_central || user?.stock?.is_central || user?.stock?.district || user?.role === 'Admin') && (
+                  <NavLink to="/reports" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>
+                    {(user?.role === 'Admin' || user?.is_central || user?.stock?.is_central) ? 'Reports' : 'Usage Reports'}
+                  </NavLink>
                 )}
               </nav>
             </div>

@@ -14,9 +14,10 @@ export default function Inventory() {
   const queryClient = useQueryClient();
   
   const { data: inventoryItems = [], isLoading: loading } = useQuery({
-    queryKey: ['inventory'],
+    queryKey: ['inventory', activeTab === 'sectors_stock' ? 'children' : 'self'],
     queryFn: async () => {
-      const res = await axios.get('/rvf-api/inventory');
+      const url = activeTab === 'sectors_stock' ? '/rvf-api/inventory?view_children=true' : '/rvf-api/inventory';
+      const res = await axios.get(url);
       return res.data;
     }
   });
@@ -249,6 +250,14 @@ export default function Inventory() {
         >
           Vaccine Balances
         </button>
+        {user?.stock?.district && !user?.stock?.is_endpoint && (
+          <button
+            onClick={() => setActiveTab('sectors_stock')}
+            className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${activeTab === 'sectors_stock' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+          >
+            Sectors' Stock
+          </button>
+        )}
       </div>
 
       <div className="mt-4">
@@ -298,6 +307,30 @@ export default function Inventory() {
               </tbody>
             </table>
             <Pagination {...balancesPagination} onPageChange={balancesPagination.jump} />
+          </>
+        ) : activeTab === 'sectors_stock' ? (
+          <>
+            <table className="w-full text-left text-sm text-slate-700">
+              <thead className="border-b border-slate-200 bg-slate-50">
+                <tr>
+                  <th className="py-3 px-4 font-semibold text-slate-800">Sector Stock</th>
+                  <th className="py-3 px-4 font-semibold text-slate-800">Vaccine</th>
+                  <th className="py-3 px-4 font-semibold text-slate-800">Batch Number</th>
+                  <th className="py-3 px-4 font-semibold text-slate-800">Current Balance</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {inventoryPagination.currentData.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-4 px-4 font-medium text-slate-900">{item.Stock?.name || 'Unknown'}</td>
+                    <td className="py-4 px-4 text-slate-700">{item.Batch?.Vaccine?.name}</td>
+                    <td className="py-4 px-4 text-slate-600">{item.Batch?.batch_number}</td>
+                    <td className="py-4 px-4 font-bold text-slate-900">{item.quantity_available.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <Pagination {...inventoryPagination} onPageChange={inventoryPagination.jump} />
           </>
         ) : viewMode === 'grid' ? (
           <>

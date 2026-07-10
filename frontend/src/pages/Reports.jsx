@@ -79,6 +79,7 @@ export default function Reports() {
   const filteredReports = useMemo(() => {
     return reports.filter(r => {
       if (filters.province && r.province !== filters.province) return false;
+      if (user?.role !== 'Admin' && user?.stock?.district && r.district !== user.stock.district) return false;
       if (filters.district && r.district !== filters.district) return false;
       if (filters.sector && r.sector !== filters.sector) return false;
       if (filters.status && r.report_status !== filters.status) return false;
@@ -93,6 +94,7 @@ export default function Reports() {
   const filteredSurveillance = useMemo(() => {
     return surveillanceReports.filter(r => {
       if (filters.province && r.province !== filters.province) return false;
+      if (user?.role !== 'Admin' && user?.stock?.district && r.district !== user.stock.district) return false;
       if (filters.district && r.district !== filters.district) return false;
       if (filters.sector && r.sector !== filters.sector) return false;
       if (filters.veterinary_name && r.veterinary_email && !r.veterinary_email.toLowerCase().includes(filters.veterinary_name.toLowerCase())) return false;
@@ -129,7 +131,9 @@ export default function Reports() {
     <div className="pb-12 max-w-7xl mx-auto">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Veterinary Reports</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            {(user?.role === 'Admin' || user?.is_central || user?.stock?.is_central) ? 'Veterinary Reports' : 'Usage Reports'}
+          </h1>
           <p className="text-slate-500 mt-1">All forms submitted by veterinarians in the field.</p>
         </div>
 

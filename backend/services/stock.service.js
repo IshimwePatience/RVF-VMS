@@ -5,13 +5,17 @@ exports.createStock = async (data) => {
   return await Stock.create(data);
 };
 
-exports.getStocks = async () => {
-  return await Stock.findAll({
+exports.getStocks = async (user) => {
+  const options = {
     include: [
       { model: Stock, as: 'ParentStock' },
       { model: Stock, as: 'ChildStocks' }
     ]
-  });
+  };
+  if (user && user.role !== 'Admin' && !user.is_central && user.district) {
+    options.where = { district: user.district };
+  }
+  return await Stock.findAll(options);
 };
 exports.updateStock = async (id, data) => {
   const { Stock } = require('../models');

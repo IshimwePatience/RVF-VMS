@@ -64,7 +64,12 @@ exports.createAdministration = async (req, res) => {
 exports.getAdministrations = async (req, res) => {
   try {
     const { stock_id } = req.query;
-    const whereClause = stock_id ? { stock_id } : {};
+    let whereClause = {};
+    if (req.user && req.user.role !== 'Admin' && !req.user.is_central && req.user.district) {
+      whereClause.district = req.user.district;
+    } else if (stock_id) {
+      whereClause.stock_id = stock_id;
+    }
 
     const records = await AdministrationRecord.findAll({
       where: whereClause,

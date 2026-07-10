@@ -21,7 +21,9 @@ exports.receiveCentralStock = async (req, res) => {
 exports.getInventory = async (req, res) => {
   try {
     const viewParent = req.query.view_parent === 'true';
-    const inventory = await inventoryService.getInventory(req.user, viewParent);
+    const viewChildren = req.query.view_children === 'true';
+    const userContext = { ...req.user, view_children: viewChildren };
+    const inventory = await inventoryService.getInventory(userContext, viewParent);
     res.json(inventory);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

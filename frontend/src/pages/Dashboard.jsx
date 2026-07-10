@@ -54,7 +54,7 @@ export default function Dashboard() {
     queryKey: ['dashboard', user?.id, queryParams.toString()],
     queryFn: async () => {
       let endpoint = '';
-      if (user.role === 'Admin' || user.is_central) {
+      if (user.role === 'Admin' || user.is_central || user?.stock?.district) {
         endpoint = `/rvf-api/dashboard/admin?${queryParams.toString()}`;
       } else if (user?.stock?.is_endpoint) {
         endpoint = '/rvf-api/dashboard/endpoint';
@@ -72,7 +72,7 @@ export default function Dashboard() {
   if (!data) return <div className="p-8 text-center text-slate-500">No data available</div>;
 
   // Non-admin fallback
-  if (user.role !== 'Admin' && !user.is_central) {
+  if (user.role !== 'Admin' && !user.is_central && !user?.stock?.district) {
     return (
       <div className="p-8 text-center">
         <h2 className="text-xl font-bold mb-4">Stock Dashboard</h2>

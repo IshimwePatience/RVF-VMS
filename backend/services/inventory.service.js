@@ -78,17 +78,28 @@ exports.getInventory = async (user, viewParent) => {
     if (userStock && userStock.parent_stock_id) {
       query = { stock_id: userStock.parent_stock_id };
     }
+  } else if (user.view_children) {
+    const childStocks = await Stock.findAll({ where: { parent_stock_id: user.stock_id } });
+    const childStockIds = childStocks.map(s => s.id);
+    if (childStockIds.length > 0) {
+      query = { stock_id: childStockIds };
+    } else {
+      return [];
+    }
   }
 
   const inventory = await StockInventory.findAll({
     where: query,
-    include: [{ 
-      model: Batch, 
-      include: [
-         { model: Vaccine },
-         ...(user.is_central ? [{ model: Supplier }] : [])
-      ] 
-    }]
+    include: [
+      { model: Stock },
+      { 
+        model: Batch, 
+        include: [
+           { model: Vaccine },
+           ...(user.is_central ? [{ model: Supplier }] : [])
+        ] 
+      }
+    ]
   });
 
   const { Transfer } = require('../models');

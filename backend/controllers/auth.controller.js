@@ -58,6 +58,7 @@ exports.login = async (req, res) => {
         role: user.role,
         stock_id: user.stock_id,
         is_central: user.Stock ? user.Stock.is_central : false,
+        district: user.Stock ? user.Stock.district : null,
         sessionId
       },
       JWT_SECRET,
@@ -112,6 +113,7 @@ exports.verifyOTP = async (req, res) => {
         role: user.role,
         stock_id: user.stock_id,
         is_central: user.Stock ? user.Stock.is_central : false,
+        district: user.Stock ? user.Stock.district : null,
         sessionId
       },
       JWT_SECRET,

@@ -13,7 +13,10 @@ exports.getAdminDashboard = async (req, res) => {
       whereAdmin.province = province;
       whereSurvForm.province = province;
     }
-    if (district) {
+    if (req.user && req.user.role !== 'Admin' && !req.user.is_central && req.user.district) {
+      whereAdmin.district = req.user.district;
+      whereSurvForm.district = req.user.district;
+    } else if (district) {
       whereAdmin.district = district;
       whereSurvForm.district = district;
     }

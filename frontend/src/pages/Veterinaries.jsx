@@ -123,7 +123,7 @@ export default function Veterinaries() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Veterinaries</h1>
-          <p className="text-slate-500 mt-1">Manage veterinary personnel in your sector</p>
+          <p className="text-slate-500 mt-1">Manage veterinary personnel in your jurisdiction</p>
         </div>
 
         <div className="flex items-center gap-4">

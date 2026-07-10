@@ -325,6 +325,19 @@ export default function Administration() {
                     <div className="col-span-2"><span className="text-xs text-slate-500">Village:</span> <span className="text-sm">{viewRecord.village}</span></div>
                   </div>
                 </div>
+                {viewRecord.report_status === 'submitted' && (
+                  <div className="pt-4 border-t border-slate-100">
+                    <span className="block text-xs font-semibold text-slate-500 uppercase mb-2">Usage Report</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><span className="text-xs text-slate-500">Doses Used:</span> <span className="text-sm font-medium text-slate-900">{viewRecord.doses_used || 0}</span></div>
+                      <div><span className="text-xs text-slate-500">Doses Wasted:</span> <span className="text-sm font-medium text-slate-900">{viewRecord.doses_wasted || 0}</span></div>
+                      <div><span className="text-xs text-slate-500">Animals Vaccinated:</span> <span className="text-sm font-medium text-slate-900">{viewRecord.domestic_animals_vaccinated || 0}</span></div>
+                      <div><span className="text-xs text-slate-500">Animals Affected:</span> <span className="text-sm font-medium text-slate-900">{viewRecord.animals_affected || 0}</span></div>
+                      <div><span className="text-xs text-slate-500">Animals Healed:</span> <span className="text-sm font-medium text-slate-900">{viewRecord.animals_healed || 0}</span></div>
+                      <div><span className="text-xs text-slate-500">Animals Died:</span> <span className="text-sm font-medium text-slate-900">{viewRecord.animals_died || 0}</span></div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

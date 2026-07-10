@@ -31,6 +31,14 @@ const CentralOnlyRoute = ({ children }) => {
   return children;
 };
 
+const DistrictOrCentralRoute = ({ children }) => {
+  const { user } = React.useContext(AuthContext);
+  if (!user?.is_central && !user?.stock?.is_central && user?.role !== 'Admin' && !user?.stock?.district) {
+    return <Navigate to="/inventory" replace />;
+  }
+  return children;
+};
+
 const AdminOnlyRoute = ({ children }) => {
   const { user } = React.useContext(AuthContext);
   if (user?.role !== 'Admin' && !user?.is_central) {
@@ -101,10 +109,10 @@ function App() {
               <Route path="transfers" element={<Transfers />} />
               <Route path="administrations" element={<EndpointOnlyRoute><Administration /></EndpointOnlyRoute>} />
               <Route path="veterinaries" element={<Veterinaries />} />
-              <Route path="stocks" element={<CentralOnlyRoute><Stocks /></CentralOnlyRoute>} />
+              <Route path="stocks" element={<DistrictOrCentralRoute><Stocks /></DistrictOrCentralRoute>} />
               <Route path="vaccines" element={<CentralOnlyRoute><Vaccines /></CentralOnlyRoute>} />
               <Route path="suppliers" element={<CentralOnlyRoute><Suppliers /></CentralOnlyRoute>} />
-              <Route path="reports" element={<CentralOnlyRoute><Reports /></CentralOnlyRoute>} />
+              <Route path="reports" element={<DistrictOrCentralRoute><Reports /></DistrictOrCentralRoute>} />
               <Route path="users" element={<AdminOnlyRoute><Users /></AdminOnlyRoute>} />
               <Route path="settings" element={<AdminOnlyRoute><Settings /></AdminOnlyRoute>} />
             </Route>

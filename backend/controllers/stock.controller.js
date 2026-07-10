@@ -11,7 +11,7 @@ exports.createStock = async (req, res) => {
 
 exports.getStocks = async (req, res) => {
   try {
-    const stocks = await stockService.getStocks();
+    const stocks = await stockService.getStocks(req.user);
     res.json(stocks);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
