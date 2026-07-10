@@ -77,6 +77,18 @@ export default function Veterinaries() {
     setFormData({ name: '', email: '', phone_number: '', national_id: '', province: '', district: '', sector: '', cell: '', village: '' });
   };
 
+  const handleAdd = () => {
+    setEditingId(null);
+    setFormData({ 
+      name: '', email: '', phone_number: '', national_id: '', 
+      province: user?.stock?.province || '', 
+      district: user?.stock?.district || '', 
+      sector: user?.stock?.sector || '', 
+      cell: '', village: '' 
+    });
+    setShowModal(true);
+  };
+
   const handleEdit = (v) => {
     setEditingId(v.id);
     setFormData({
@@ -146,7 +158,7 @@ export default function Veterinaries() {
 
           {user?.stock?.is_endpoint && (
             <button
-              onClick={() => setShowModal(true)}
+              onClick={handleAdd}
               className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" />
@@ -219,128 +231,76 @@ export default function Veterinaries() {
       </div>
 
       {showModal && user?.stock?.is_endpoint && (
-        <div className="fixed inset-0 bg-slate-900/20 z-50 overflow-y-auto transition-opacity" onClick={closeModal}>
-          <div className="min-h-full flex items-start justify-center p-4 sm:p-6">
-            <div className="bg-white rounded-sm w-full max-w-[1100px] my-4 sm:my-8 shadow-xl flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">{editingId ? 'Edit Veterinary' : 'Add New Veterinary'}</h2>
+            </div>
 
-              <div className="px-6 pt-6 pb-4 shrink-0 relative">
-                <h2 className="text-[22px] font-bold text-[#0f172a] tracking-tight">{editingId ? 'Edit Veterinary' : 'Add New Veterinary'}</h2>
-                <p className="text-[15px] text-slate-500 mt-1">{editingId ? 'Update veterinary personnel details' : 'Register a new veterinary personnel'}</p>
+            <form onSubmit={handleSubmit} className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
+                  <input
+                    type="text" required
+                    placeholder="e.g. John Doe"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
+                  />
+                </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number *</label>
+                  <input
+                    type="text" required
+                    placeholder="e.g. 0783202922"
+                    value={formData.phone_number}
+                    onChange={(e) => setFormData({ ...formData, phone_number: e.target.value.replace(/\D/g, '') })}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
+                  />
+                </div>
+
+                {user?.stock?.sector ? (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Sector</label>
+                    <input
+                      type="text"
+                      value={user.stock.sector}
+                      readOnly
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed outline-none text-sm"
+                    />
+                  </div>
+                ) : user?.stock?.district ? (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">District</label>
+                    <input
+                      type="text"
+                      value={user.stock.district}
+                      readOnly
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed outline-none text-sm"
+                    />
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
                 <button
+                  type="button"
                   onClick={closeModal}
-                  className="absolute top-10 right-8 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 6 6 18" /><path d="m6 6 12 12" />
-                  </svg>
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saveMutation.isPending}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {saveMutation.isPending ? 'Saving...' : (editingId ? 'Update' : 'Save')}
                 </button>
               </div>
-
-              <div className="px-6 pb-6">
-                <form onSubmit={handleSubmit} className="space-y-8">
-
-                  <div className="space-y-8">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Veterinary Name *</label>
-                      <input
-                        type="text" required
-                        placeholder="e.g. Dr. John Doe"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-
-
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Phone Number *</label>
-                      <div className="flex items-center">
-                        <span className="text-slate-900 font-medium mr-2 text-[17px] border-b border-slate-200 pb-2">RW +250</span>
-                        <input
-                          type="text" required
-                          placeholder="788 000 000"
-                          value={formData.phone_number}
-                          onChange={(e) => setFormData({ ...formData, phone_number: e.target.value.replace(/\D/g, '') })}
-                          className="flex-1 px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                        />
-                      </div>
-                    </div>
-
-
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Province *</label>
-                      <input
-                        type="text" required
-                        placeholder="Province"
-                        value={formData.province}
-                        onChange={(e) => setFormData({ ...formData, province: e.target.value })}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">District *</label>
-                      <input
-                        type="text" required
-                        placeholder="District"
-                        value={formData.district}
-                        onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Sector *</label>
-                      <input
-                        type="text" required
-                        placeholder="Sector"
-                        value={formData.sector}
-                        onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Cell</label>
-                      <input
-                        type="text"
-                        placeholder="Cell"
-                        value={formData.cell}
-                        onChange={(e) => setFormData({ ...formData, cell: e.target.value })}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-2">Village</label>
-                      <input
-                        type="text"
-                        placeholder="Village"
-                        value={formData.village}
-                        onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                        className="w-full px-0 pb-2 border-b border-slate-200 bg-transparent outline-none focus:border-blue-500 transition-colors text-[17px] text-slate-900 font-medium placeholder:text-slate-300 placeholder:font-normal"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-8 flex justify-end gap-6 items-center">
-                    <button
-                      type="button"
-                      onClick={closeModal}
-                      className="text-[13px] font-bold text-slate-500 hover:text-slate-800 tracking-wider transition-colors"
-                    >
-                      CANCEL
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={saveMutation.isPending}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[13px] tracking-wider rounded transition-colors disabled:opacity-50"
-                    >
-                      {saveMutation.isPending ? 'SAVING...' : (editingId ? 'UPDATE RECORD' : 'SAVE RECORD')}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
