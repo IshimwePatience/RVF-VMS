@@ -14,15 +14,21 @@ let DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-// Custom red icon for cases
-const redIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+const createIcon = (color) => new L.Icon({
+  iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41]
 });
+
+const icons = {
+  village: createIcon('red'),
+  cell: createIcon('orange'),
+  sector: createIcon('gold'),
+  district: createIcon('blue')
+};
 
 // Component to recenter map based on bounds
 function MapBounds({ markers }) {
@@ -66,34 +72,35 @@ export default function DashboardMap({ locations }) {
         
         const fullLocationQuery = qParts.join(', ');
         
-        // Search queries from most specific fallback
-        const searchQueries = [
-            [sector, district, province, 'Rwanda'].filter(Boolean).join(', '),
-            [district, province, 'Rwanda'].filter(Boolean).join(', '),
-            [province, 'Rwanda'].filter(Boolean).join(', ')
+        const searchLevels = [
+          { level: 'village', val: village, arr: [village, cell, sector, district, province, 'Rwanda'] },
+          { level: 'cell', val: cell, arr: [cell, sector, district, province, 'Rwanda'] },
+          { level: 'sector', val: sector, arr: [sector, district, province, 'Rwanda'] },
+          { level: 'district', val: district, arr: [district, province, 'Rwanda'] }
         ];
 
         let coords = null;
+        let resolvedLevel = 'district';
 
-        for (const sq of searchQueries) {
-            if (!sq || sq === 'Rwanda') continue;
+        for (const item of searchLevels) {
+            if (!item.val) continue;
+            const sq = item.arr.filter(Boolean).join(', ');
             
             const cacheKey = `geo_${sq}`;
-            // check memory
             if (cache[cacheKey]) {
                 coords = cache[cacheKey];
+                resolvedLevel = item.level;
                 break;
             }
-            // check localstorage
             const lsCache = localStorage.getItem(cacheKey);
             if (lsCache) {
                 coords = JSON.parse(lsCache);
                 cache[cacheKey] = coords;
+                resolvedLevel = item.level;
                 break;
             }
             
-            // fetch
-            await new Promise(r => setTimeout(r, 1200)); 
+            await new Promise(r => setTimeout(r, 1000)); // Rate limit 1 req/sec for Nominatim
             try {
               const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sq)}&format=json&limit=1`);
               const data = await res.json();
@@ -101,7 +108,8 @@ export default function DashboardMap({ locations }) {
                 coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
                 localStorage.setItem(cacheKey, JSON.stringify(coords));
                 cache[cacheKey] = coords;
-                break; // found!
+                resolvedLevel = item.level;
+                break; 
               }
             } catch (err) {
               console.error("Geocoding err:", err);
@@ -115,7 +123,8 @@ export default function DashboardMap({ locations }) {
           newMarkers.push({
             id: loc.id,
             coords: [jitterLat, jitterLon],
-            popup: [village, cell, sector, district, province].filter(Boolean).join(', ') || 'Unknown Area'
+            popup: [village, cell, sector, district, province].filter(Boolean).join(', ') || 'Unknown Area',
+            level: resolvedLevel
           });
         }
       }
@@ -150,9 +159,11 @@ export default function DashboardMap({ locations }) {
         />
         <MapBounds markers={markers} />
         {markers.map(m => (
-          <Marker key={m.id} position={m.coords} icon={redIcon}>
+          <Marker key={m.id} position={m.coords} icon={icons[m.level] || icons.district}>
             <Popup>
-              <div className="font-bold text-slate-900 text-xs mb-1">Disease Case Origin</div>
+              <div className="font-bold text-slate-900 text-xs mb-1 flex justify-between items-center">
+                Case Origin <span className="text-[9px] uppercase bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-semibold">{m.level}</span>
+              </div>
               <div className="text-[10px] text-slate-600 leading-tight">{m.popup}</div>
             </Popup>
           </Marker>
