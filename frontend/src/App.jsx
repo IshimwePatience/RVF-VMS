@@ -33,7 +33,17 @@ const CentralOnlyRoute = ({ children }) => {
 
 const DistrictOrCentralRoute = ({ children }) => {
   const { user } = React.useContext(AuthContext);
-  if (!user?.is_central && !user?.stock?.is_central && user?.role !== 'Admin' && !user?.stock?.district) {
+  const isDistrict = user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint;
+  if (!user?.is_central && !user?.stock?.is_central && user?.role !== 'Admin' && !isDistrict) {
+    return <Navigate to="/inventory" replace />;
+  }
+  return children;
+};
+
+const ReportAccessRoute = ({ children }) => {
+  const { user } = React.useContext(AuthContext);
+  const isDistrictOrSector = user?.stock?.district && !user?.stock?.is_endpoint;
+  if (!user?.is_central && !user?.stock?.is_central && user?.role !== 'Admin' && !isDistrictOrSector) {
     return <Navigate to="/inventory" replace />;
   }
   return children;
@@ -112,7 +122,7 @@ function App() {
               <Route path="stocks" element={<DistrictOrCentralRoute><Stocks /></DistrictOrCentralRoute>} />
               <Route path="vaccines" element={<CentralOnlyRoute><Vaccines /></CentralOnlyRoute>} />
               <Route path="suppliers" element={<CentralOnlyRoute><Suppliers /></CentralOnlyRoute>} />
-              <Route path="reports" element={<DistrictOrCentralRoute><Reports /></DistrictOrCentralRoute>} />
+              <Route path="reports" element={<ReportAccessRoute><Reports /></ReportAccessRoute>} />
               <Route path="users" element={<AdminOnlyRoute><Users /></AdminOnlyRoute>} />
               <Route path="settings" element={<AdminOnlyRoute><Settings /></AdminOnlyRoute>} />
             </Route>
