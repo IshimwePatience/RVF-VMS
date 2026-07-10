@@ -131,6 +131,27 @@ function InteractiveFeature({ m }) {
   }
 }
 
+function Legend() {
+  const map = useMap();
+  useEffect(() => {
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div', 'info legend bg-white p-3 rounded shadow-md text-xs font-medium text-slate-700 border border-slate-200');
+      div.innerHTML = `
+        <h4 class="font-bold text-slate-900 mb-2">Location Levels</h4>
+        <div class="flex items-center mb-1"><span class="w-4 h-4 rounded-sm inline-block mr-2" style="background-color: ${levelColors.village}; opacity: 0.5"></span> Village</div>
+        <div class="flex items-center mb-1"><span class="w-4 h-4 rounded-sm inline-block mr-2" style="background-color: ${levelColors.cell}; opacity: 0.4"></span> Cell</div>
+        <div class="flex items-center mb-1"><span class="w-4 h-4 rounded-sm inline-block mr-2" style="background-color: ${levelColors.sector}; opacity: 0.3"></span> Sector</div>
+        <div class="flex items-center"><span class="w-4 h-4 rounded-sm inline-block mr-2" style="background-color: ${levelColors.district}; opacity: 0.2"></span> District</div>
+      `;
+      return div;
+    };
+    legend.addTo(map);
+    return () => map.removeControl(legend);
+  }, [map]);
+  return null;
+}
+
 export default function DashboardMap({ locations }) {
   const [markers, setMarkers] = useState([]);
   const [geocoding, setGeocoding] = useState(false);
@@ -175,71 +196,63 @@ export default function DashboardMap({ locations }) {
           { level: 'district', val: district, arr: [district, province, 'Rwanda'] }
         ];
 
-        let geoData = null;
-        let resolvedLevel = 'district';
-
         for (const item of searchLevels) {
             if (!item.val) continue;
             const sq = item.arr.filter(Boolean).join(', ');
             
+            let geoData = null;
             const cacheKey = `geo_${sq}`;
             if (cache[cacheKey] && cache[cacheKey].coords) {
                 geoData = cache[cacheKey];
-                resolvedLevel = item.level;
-                break;
-            }
-            const lsCache = localStorage.getItem(cacheKey);
-            if (lsCache) {
-                try {
-                  const parsed = JSON.parse(lsCache);
-                  if (parsed && parsed.coords) {
-                    geoData = parsed;
-                    cache[cacheKey] = parsed;
-                    resolvedLevel = item.level;
-                    break;
-                  }
-                } catch(e) {}
+            } else {
+                const lsCache = localStorage.getItem(cacheKey);
+                if (lsCache) {
+                    try {
+                      const parsed = JSON.parse(lsCache);
+                      if (parsed && parsed.coords) {
+                        geoData = parsed;
+                        cache[cacheKey] = parsed;
+                      }
+                    } catch(e) {}
+                }
             }
             
-            await new Promise(r => setTimeout(r, 1200)); // Rate limit 1 req/sec for Nominatim
-            try {
-              const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sq)}&format=json&polygon_geojson=1&polygon_threshold=0.01&limit=1`, {
-                headers: { 'User-Agent': 'RVF-VMS/1.0' }
-              });
-              const data = await res.json();
-              if (data && data.length > 0) {
-                const newGeo = {
-                  coords: [parseFloat(data[0].lat), parseFloat(data[0].lon)],
-                  geojson: data[0].geojson
-                };
-                try {
-                  localStorage.setItem(cacheKey, JSON.stringify(newGeo));
-                } catch(e) {} // ignore localstorage quota full
-                cache[cacheKey] = newGeo;
-                geoData = newGeo;
-                resolvedLevel = item.level;
-                break; 
+            if (!geoData) {
+              await new Promise(r => setTimeout(r, 1200)); // Rate limit 1 req/sec for Nominatim
+              try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sq)}&format=json&polygon_geojson=1&polygon_threshold=0.01&limit=1`, {
+                  headers: { 'User-Agent': 'RVF-VMS/1.0' }
+                });
+                const data = await res.json();
+                if (data && data.length > 0) {
+                  const newGeo = {
+                    coords: [parseFloat(data[0].lat), parseFloat(data[0].lon)],
+                    geojson: data[0].geojson
+                  };
+                  try {
+                    localStorage.setItem(cacheKey, JSON.stringify(newGeo));
+                  } catch(e) {} // ignore localstorage quota full
+                  cache[cacheKey] = newGeo;
+                  geoData = newGeo;
+                }
+              } catch (err) {
+                console.error("Geocoding err:", err);
               }
-            } catch (err) {
-              console.error("Geocoding err:", err);
             }
-        }
 
-        if (geoData) {
-          // Jitter to spread overlapping markers slightly if it is a point
-          const isPoint = geoData.geojson?.type === 'Point';
-          // Add jitter if it's a fallback point so multiple villages in same sector don't overlap perfectly
-          const lat = geoData.coords[0] + (Math.random() - 0.5) * 0.005;
-          const lon = geoData.coords[1] + (Math.random() - 0.5) * 0.005;
-          
-          newMarkers.push({
-            id: loc.id,
-            coords: [lat, lon],
-            geojson: geoData.geojson,
-            popup: [village, cell, sector, district, province].filter(Boolean).join(', ') || 'Unknown Area',
-            level: originalLevel, // Use ORIGINAL level for coloring, regardless of fallback
-            resolvedLevel: resolvedLevel // Keep track of what we actually found
-          });
+            if (geoData) {
+              const lat = geoData.coords[0] + (Math.random() - 0.5) * 0.005;
+              const lon = geoData.coords[1] + (Math.random() - 0.5) * 0.005;
+              
+              newMarkers.push({
+                id: `${loc.id}-${item.level}`,
+                coords: [lat, lon],
+                geojson: geoData.geojson,
+                popup: [village, cell, sector, district, province].filter(Boolean).join(', ') || 'Unknown Area',
+                level: item.level, // Color by current level
+                resolvedLevel: item.level
+              });
+            }
         }
       }
       
@@ -272,14 +285,15 @@ export default function DashboardMap({ locations }) {
         style={{ height: '100%', width: '100%', zIndex: 10 }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <MapBounds markers={markers} />
-        {markers.map(m => (
-          <InteractiveFeature key={`feat-${m.id}`} m={m} />
-        ))}
-      </MapContainer>
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <MapBounds markers={markers} />
+      {markers.map((m) => (
+        <InteractiveFeature key={m.id} m={m} />
+      ))}
+      <Legend />
+    </MapContainer>
     </div>
   );
 }
