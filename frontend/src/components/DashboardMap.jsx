@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -30,6 +30,13 @@ const icons = {
   district: createIcon('blue')
 };
 
+const levelColors = {
+  village: '#ef4444',
+  cell: '#f97316',
+  sector: '#eab308',
+  district: '#3b82f6'
+};
+
 // Component to recenter map based on bounds
 function MapBounds({ markers }) {
   const map = useMap();
@@ -40,6 +47,88 @@ function MapBounds({ markers }) {
     }
   }, [markers, map]);
   return null;
+}
+
+// Interactive Feature for "gaming-style" hover and zoom
+function InteractiveFeature({ m }) {
+  const map = useMap();
+  const isPolygon = m.geojson && (m.geojson.type === 'Polygon' || m.geojson.type === 'MultiPolygon');
+
+  const handleMouseOver = (e) => {
+    const layer = e.target;
+    if (layer.setStyle) {
+      layer.setStyle({
+        weight: 3,
+        fillOpacity: 0.6,
+        color: '#ffffff', // Bright border highlight
+      });
+      if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        layer.bringToFront();
+      }
+    }
+  };
+
+  const handleMouseOut = (e) => {
+    const layer = e.target;
+    if (layer.setStyle) {
+      layer.setStyle({
+        weight: 2,
+        fillOpacity: 0.25,
+        color: levelColors[m.level] || levelColors.district
+      });
+    }
+  };
+
+  const handleClick = (e) => {
+    const layer = e.target;
+    if (layer.getBounds) {
+      // Cinematic gaming zoom to bounds
+      map.flyToBounds(layer.getBounds(), { duration: 1.2, easeLinearity: 0.25 });
+    } else if (layer.getLatLng) {
+      map.flyTo(layer.getLatLng(), 14, { duration: 1.2 });
+    }
+  };
+
+  if (isPolygon) {
+    return (
+      <GeoJSON 
+        data={m.geojson} 
+        style={{
+          color: levelColors[m.level] || levelColors.district,
+          weight: 2,
+          fillColor: levelColors[m.level] || levelColors.district,
+          fillOpacity: 0.25
+        }}
+        eventHandlers={{
+          mouseover: handleMouseOver,
+          mouseout: handleMouseOut,
+          click: handleClick
+        }}
+      >
+        <Popup>
+          <div className="font-bold text-slate-900 text-xs mb-1 flex justify-between items-center">
+            Case Origin <span className="text-[9px] uppercase bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-semibold">{m.level}</span>
+          </div>
+          <div className="text-[10px] text-slate-600 leading-tight">{m.popup}</div>
+        </Popup>
+      </GeoJSON>
+    );
+  } else {
+    return (
+      <Marker 
+        position={m.coords} 
+        icon={icons[m.level] || icons.district}
+        eventHandlers={{ click: handleClick }}
+      >
+        <Popup>
+          <div className="font-bold text-slate-900 text-xs mb-1 flex justify-between items-center">
+            Case Origin <span className="text-[9px] uppercase bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-semibold">{m.level}</span>
+          </div>
+          <div className="text-[10px] text-slate-600 leading-tight">{m.popup}</div>
+        </Popup>
+      </Marker>
+    );
+  }
 }
 
 export default function DashboardMap({ locations }) {
@@ -79,7 +168,7 @@ export default function DashboardMap({ locations }) {
           { level: 'district', val: district, arr: [district, province, 'Rwanda'] }
         ];
 
-        let coords = null;
+        let geoData = null;
         let resolvedLevel = 'district';
 
         for (const item of searchLevels) {
@@ -87,27 +176,40 @@ export default function DashboardMap({ locations }) {
             const sq = item.arr.filter(Boolean).join(', ');
             
             const cacheKey = `geo_${sq}`;
-            if (cache[cacheKey]) {
-                coords = cache[cacheKey];
+            if (cache[cacheKey] && cache[cacheKey].coords) {
+                geoData = cache[cacheKey];
                 resolvedLevel = item.level;
                 break;
             }
             const lsCache = localStorage.getItem(cacheKey);
             if (lsCache) {
-                coords = JSON.parse(lsCache);
-                cache[cacheKey] = coords;
-                resolvedLevel = item.level;
-                break;
+                try {
+                  const parsed = JSON.parse(lsCache);
+                  if (parsed && parsed.coords) {
+                    geoData = parsed;
+                    cache[cacheKey] = parsed;
+                    resolvedLevel = item.level;
+                    break;
+                  }
+                } catch(e) {}
             }
             
-            await new Promise(r => setTimeout(r, 1000)); // Rate limit 1 req/sec for Nominatim
+            await new Promise(r => setTimeout(r, 1200)); // Rate limit 1 req/sec for Nominatim
             try {
-              const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sq)}&format=json&limit=1`);
+              const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(sq)}&format=json&polygon_geojson=1&polygon_threshold=0.01&limit=1`, {
+                headers: { 'User-Agent': 'RVF-VMS/1.0' }
+              });
               const data = await res.json();
               if (data && data.length > 0) {
-                coords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-                localStorage.setItem(cacheKey, JSON.stringify(coords));
-                cache[cacheKey] = coords;
+                const newGeo = {
+                  coords: [parseFloat(data[0].lat), parseFloat(data[0].lon)],
+                  geojson: data[0].geojson
+                };
+                try {
+                  localStorage.setItem(cacheKey, JSON.stringify(newGeo));
+                } catch(e) {} // ignore localstorage quota full
+                cache[cacheKey] = newGeo;
+                geoData = newGeo;
                 resolvedLevel = item.level;
                 break; 
               }
@@ -116,13 +218,16 @@ export default function DashboardMap({ locations }) {
             }
         }
 
-        if (coords) {
-          // Jitter to spread overlapping markers slightly
-          const jitterLat = coords[0] + (Math.random() - 0.5) * 0.005;
-          const jitterLon = coords[1] + (Math.random() - 0.5) * 0.005;
+        if (geoData) {
+          // Jitter to spread overlapping markers slightly if it is a point
+          const isPoint = geoData.geojson?.type === 'Point';
+          const lat = geoData.coords[0] + (isPoint ? (Math.random() - 0.5) * 0.005 : 0);
+          const lon = geoData.coords[1] + (isPoint ? (Math.random() - 0.5) * 0.005 : 0);
+          
           newMarkers.push({
             id: loc.id,
-            coords: [jitterLat, jitterLon],
+            coords: [lat, lon],
+            geojson: geoData.geojson,
             popup: [village, cell, sector, district, province].filter(Boolean).join(', ') || 'Unknown Area',
             level: resolvedLevel
           });
@@ -130,6 +235,10 @@ export default function DashboardMap({ locations }) {
       }
       
       if (isMounted) {
+        // Sort so that larger areas (districts) render first, and smaller areas (villages) render on top!
+        const levelOrder = { district: 4, sector: 3, cell: 2, village: 1 };
+        newMarkers.sort((a, b) => (levelOrder[b.level] || 4) - (levelOrder[a.level] || 4));
+        
         setMarkers(newMarkers);
         setGeocoding(false);
       }
@@ -159,14 +268,7 @@ export default function DashboardMap({ locations }) {
         />
         <MapBounds markers={markers} />
         {markers.map(m => (
-          <Marker key={m.id} position={m.coords} icon={icons[m.level] || icons.district}>
-            <Popup>
-              <div className="font-bold text-slate-900 text-xs mb-1 flex justify-between items-center">
-                Case Origin <span className="text-[9px] uppercase bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-semibold">{m.level}</span>
-              </div>
-              <div className="text-[10px] text-slate-600 leading-tight">{m.popup}</div>
-            </Popup>
-          </Marker>
+          <InteractiveFeature key={`feat-${m.id}`} m={m} />
         ))}
       </MapContainer>
     </div>
