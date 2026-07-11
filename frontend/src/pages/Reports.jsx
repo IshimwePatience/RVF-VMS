@@ -83,7 +83,7 @@ export default function Reports() {
       if (filters.district && r.district !== filters.district) return false;
       if (filters.sector && r.sector !== filters.sector) return false;
       if (filters.status && r.report_status !== filters.status) return false;
-      if (filters.veterinary_name && !r.veterinary_name.toLowerCase().includes(filters.veterinary_name.toLowerCase())) return false;
+      if (filters.veterinary_name && !r.veterinary_name?.toLowerCase().includes(filters.veterinary_name.toLowerCase()) && !r.veterinary_email?.toLowerCase().includes(filters.veterinary_name.toLowerCase())) return false;
       if (filters.dateFrom && new Date(r.date_administered) < new Date(filters.dateFrom)) return false;
       if (filters.dateTo && new Date(r.date_administered) > new Date(filters.dateTo)) return false;
       return true;
@@ -97,7 +97,7 @@ export default function Reports() {
       if (user?.role !== 'Admin' && user?.stock?.district && r.district !== user.stock.district) return false;
       if (filters.district && r.district !== filters.district) return false;
       if (filters.sector && r.sector !== filters.sector) return false;
-      if (filters.veterinary_name && r.veterinary_email && !r.veterinary_email.toLowerCase().includes(filters.veterinary_name.toLowerCase())) return false;
+      if (filters.veterinary_name && (!r.veterinary_email || !r.veterinary_email.toLowerCase().includes(filters.veterinary_name.toLowerCase())) && (!r.veterinary_name || !r.veterinary_name.toLowerCase().includes(filters.veterinary_name.toLowerCase()))) return false;
       if (filters.dateFrom && new Date(r.collection_date || r.createdAt) < new Date(filters.dateFrom)) return false;
       if (filters.dateTo && new Date(r.collection_date || r.createdAt) > new Date(filters.dateTo)) return false;
       return true;
@@ -140,7 +140,7 @@ export default function Reports() {
         {user?.role === 'Admin' && (
           <div className="flex flex-wrap justify-end items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Email</span>
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Phone Number</span>
               <input 
                 type="text"
                 placeholder="Search..."
@@ -305,7 +305,7 @@ export default function Reports() {
           </div>
         </div>
       ) : activeTab === 'lab_results' && user?.role === 'Admin' ? (
-        <ViewResultsTab />
+        <ViewResultsTab filters={filters} />
       ) : (
         <>
           {loading ? (

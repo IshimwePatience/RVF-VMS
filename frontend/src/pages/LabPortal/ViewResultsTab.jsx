@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { RefreshCw, MapPin, Pencil, Trash2, X } from 'lucide-react';
@@ -8,7 +8,7 @@ import Pagination from '../../components/Pagination';
 import { AuthContext } from '../../context/AuthContext';
 import { ToastContext } from '../../context/ToastContext';
 
-export default function ViewResultsTab({ isLabPortal }) {
+export default function ViewResultsTab({ isLabPortal, filters }) {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const [mapLocationData, setMapLocationData] = useState(null);
@@ -22,7 +22,19 @@ export default function ViewResultsTab({ isLabPortal }) {
     }
   });
 
-  const pagination = usePagination(results || [], 10);
+  const filteredResults = useMemo(() => {
+    return results.filter(r => {
+      if (filters?.province && r.animal_province !== filters.province && r.province !== filters.province) return false;
+      if (filters?.district && r.animal_district_origin !== filters.district && r.district !== filters.district) return false;
+      if (filters?.sector && r.sector !== filters.sector) return false;
+      if (filters?.veterinary_name && r.phone && !r.phone.includes(filters.veterinary_name)) return false;
+      if (filters?.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
+      if (filters?.dateTo && new Date(r.createdAt) > new Date(filters.dateTo)) return false;
+      return true;
+    });
+  }, [results, filters]);
+
+  const pagination = usePagination(filteredResults || [], 10);
 
   return (
     <>

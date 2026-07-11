@@ -216,7 +216,8 @@ export default function SampleTestFormTab({ phone }) {
               <label className="font-bold mr-2 whitespace-nowrap">Sample Source:</label>
               <select value={headerData.fromAbattoir} onChange={(e) => handleHeaderChange('fromAbattoir', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600 appearance-none cursor-pointer">
                 <option value=""></option>
-                <option value="Home">Home</option>
+                <option value="Home Control">Home Control</option>
+                <option value="Home Sampling">Home Sampling</option>
                 <option value="Market">Market</option>
                 <option value="Abattoir">Abattoir</option>
               </select>

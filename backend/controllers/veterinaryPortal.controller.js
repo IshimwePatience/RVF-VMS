@@ -1,4 +1,5 @@
-const { AdministrationRecord, HomeVaccinationRecord, Batch, Vaccine, Stock, StockInventory, sequelize } = require('../models');
+const { AdministrationRecord, HomeVaccinationRecord, Batch, Vaccine, Stock, StockInventory, sequelize, Veterinary } = require('../models');
+const { Op } = require('sequelize');
 
 exports.getOverview = async (req, res) => {
   try {
@@ -197,7 +198,7 @@ exports.getAllVaccinations = async (req, res) => {
   try {
     const { email, province, district, sector } = req.query;
     const where = {};
-    if (email) where.veterinary_email = email;
+    if (email) where.veterinary_email = { [Op.like]: `%${email}%` };
     if (province) where.province = province;
     if (district) where.district = district;
     if (sector) where.sector = sector;
