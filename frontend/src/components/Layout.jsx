@@ -5,7 +5,7 @@ import { Search, MoreVertical, Grid, LogOut, Bell, CheckCircle2, Clock } from 'l
 import { Outlet, Navigate, NavLink } from 'react-router-dom';
 import axios from 'axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import minisanteLogo from '../assets/images/MINISANTE.png';
+import minisanteLogo from '../assets/images/RAB_Logo2.png';
 import GlobalSearch from './GlobalSearch';
 
 export default function Layout() {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import minisanteLogo from '../../assets/images/MINISANTE.png';
+import minisanteLogo from '../../assets/images/RAB_Logo2.png';
 import OverviewTab from './OverviewTab';
 import HomeVaccinationTab from './HomeVaccinationTab';
 import SampleTestFormTab from './SampleTestFormTab';

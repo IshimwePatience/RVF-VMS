@@ -4,7 +4,7 @@ import { UploadCloud, List } from 'lucide-react';
 import UploadResultsTab from './UploadResultsTab';
 import ViewResultsTab from './ViewResultsTab';
 import { useNavigate } from 'react-router-dom';
-import minisanteLogo from '../../assets/images/MINISANTE.png';
+import minisanteLogo from '../../assets/images/RAB_Logo2.png';
 
 export default function LabPortal() {
   const { user, logout } = useContext(AuthContext);

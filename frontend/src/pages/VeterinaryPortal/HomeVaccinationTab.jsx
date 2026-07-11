@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
 import { ToastContext } from '../../context/ToastContext';
 import minisanteLogo from '../../assets/images/MINISANTE.png';
+import LocationDropdown from '../../components/LocationDropdown';
 
 export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
   const queryClient = useQueryClient();
@@ -23,6 +24,7 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
         owner_name: '',
         owner_phone: '',
         owner_national_id: '',
+        district: '', sector: '', cell: '', village: '',
         animals: [
           { id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }
         ]
@@ -55,6 +57,7 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
         owner_name: '',
         owner_phone: '',
         owner_national_id: '',
+        district: '', sector: '', cell: '', village: '',
         animals: [
           { id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }
         ]
@@ -111,6 +114,7 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
       setHomes([{
         id: Date.now(),
         owner_name: '', owner_phone: '', owner_national_id: '',
+        district: '', sector: '', cell: '', village: '',
         animals: [{ id: Date.now() + 1, animal_type: '', vaccine_selection: [], dose_given: 1, damages: 0 }]
       }]);
       addToast('Vaccination records submitted successfully!', 'success');
@@ -150,6 +154,10 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
           owner_name: home.owner_name,
           owner_phone: home.owner_phone,
           owner_national_id: home.owner_national_id,
+          district: home.district,
+          sector: home.sector,
+          cell: home.cell,
+          village: home.village,
           home_identifier: home.id.toString(),
           animals: formattedAnimals
         });
@@ -245,6 +253,72 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
                       placeholder="Your answer"
                       className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px]"
                     />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <label className="block text-[15px] font-medium text-[#202124] mb-4">
+                        District <span className="text-red-500">*</span>
+                      </label>
+                      <LocationDropdown 
+                        type="districts" 
+                        value={home.district} 
+                        onChange={(val) => {
+                          updateHome(home.id, 'district', val);
+                          updateHome(home.id, 'sector', '');
+                          updateHome(home.id, 'cell', '');
+                          updateHome(home.id, 'village', '');
+                        }} 
+                        placeholder="Select District" 
+                        className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[15px] font-medium text-[#202124] mb-4">
+                        Sector <span className="text-red-500">*</span>
+                      </label>
+                      <LocationDropdown 
+                        type="sectors" 
+                        params={{ district: home.district }}
+                        value={home.sector} 
+                        onChange={(val) => {
+                          updateHome(home.id, 'sector', val);
+                          updateHome(home.id, 'cell', '');
+                          updateHome(home.id, 'village', '');
+                        }} 
+                        placeholder="Select Sector" 
+                        className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[15px] font-medium text-[#202124] mb-4">
+                        Cell <span className="text-red-500">*</span>
+                      </label>
+                      <LocationDropdown 
+                        type="cells" 
+                        params={{ sector: home.sector }}
+                        value={home.cell} 
+                        onChange={(val) => {
+                          updateHome(home.id, 'cell', val);
+                          updateHome(home.id, 'village', '');
+                        }} 
+                        placeholder="Select Cell" 
+                        className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[15px] font-medium text-[#202124] mb-4">
+                        Village <span className="text-red-500">*</span>
+                      </label>
+                      <LocationDropdown 
+                        type="villages" 
+                        params={{ cell: home.cell }}
+                        value={home.village} 
+                        onChange={(val) => updateHome(home.id, 'village', val)} 
+                        placeholder="Select Village" 
+                        className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
