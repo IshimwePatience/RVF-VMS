@@ -231,10 +231,16 @@ exports.vetLogin = async (req, res) => {
       }
       
       // Name and district provided -> Create new self-registered vet
+      const stock = await Stock.findOne({ where: { district } });
+      if (!stock) {
+        return res.status(400).json({ message: 'No active stock found for this district. Cannot register.' });
+      }
+
       vet = await Veterinary.create({
         phone_number,
         name,
         district,
+        stock_id: stock.id,
         is_self_registered: true
       });
     }
