@@ -83,8 +83,8 @@ Transfer.belongsTo(User, { as: 'Shipper', foreignKey: 'shipped_by' });
 Transfer.belongsTo(User, { as: 'Receiver', foreignKey: 'received_by' });
 
 if (db.LabResult && LabTechnician) {
-  LabTechnician.hasMany(db.LabResult, { foreignKey: 'uploaded_by' });
-  db.LabResult.belongsTo(LabTechnician, { foreignKey: 'uploaded_by', as: 'uploader' });
+  LabTechnician.hasMany(db.LabResult, { foreignKey: 'uploaded_by', constraints: false });
+  db.LabResult.belongsTo(LabTechnician, { foreignKey: 'uploaded_by', as: 'uploader', constraints: false });
 }
 
 db.sequelize = sequelize;
