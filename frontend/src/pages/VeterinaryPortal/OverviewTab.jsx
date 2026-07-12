@@ -53,8 +53,10 @@ export default function OverviewTab({ phone }) {
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200 bg-slate-100/50">Summary</th>
-              {pagination.currentData.map(key => (
-                <th key={key} className="py-4 px-6 font-semibold text-slate-800 border-r border-slate-200 whitespace-nowrap">
+              {vaccineKeys.length === 0 ? (
+                <th className="py-4 px-6 font-semibold text-slate-800 border-r border-slate-200 text-center">Total</th>
+              ) : pagination.currentData.map(key => (
+                <th key={key} className="py-4 px-6 font-semibold text-slate-800 border-r border-slate-200 whitespace-nowrap text-center">
                   {key}
                 </th>
               ))}
@@ -63,43 +65,55 @@ export default function OverviewTab({ phone }) {
           <tbody className="divide-y divide-slate-100">
             <tr className="hover:bg-slate-50/50">
               <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Starting Balance</td>
-              {pagination.currentData.map(key => (
+              {vaccineKeys.length === 0 ? (
+                <td className="py-3 px-6 border-r border-slate-200 text-center">0</td>
+              ) : pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center">{data[key].startingBalance}</td>
               ))}
             </tr>
             <tr className="hover:bg-slate-50/50">
               <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">New Received</td>
-              {pagination.currentData.map(key => (
+              {vaccineKeys.length === 0 ? (
+                <td className="py-3 px-6 border-r border-slate-200 text-center text-blue-600 font-medium">+0</td>
+              ) : pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center text-blue-600 font-medium">+{data[key].newReceived}</td>
               ))}
             </tr>
             <tr className="hover:bg-slate-50/50 bg-slate-50/50">
-              <td className="py-3 px-6 font-bold text-slate-900 border-r border-slate-200">Total</td>
-              {pagination.currentData.map(key => (
+              <td className="py-3 px-6 font-bold text-slate-900 border-r border-slate-200 bg-slate-50/30">Total</td>
+              {vaccineKeys.length === 0 ? (
+                <td className="py-3 px-6 border-r border-slate-200 text-center font-bold">0</td>
+              ) : pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center font-bold">{data[key].total}</td>
               ))}
             </tr>
             <tr className="hover:bg-slate-50/50">
               <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Used Vaccines</td>
-              {pagination.currentData.map(key => (
+              {vaccineKeys.length === 0 ? (
+                <td className="py-3 px-6 border-r border-slate-200 text-center text-green-600 font-medium">-0</td>
+              ) : pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center text-green-600 font-medium">-{data[key].usedVaccines}</td>
               ))}
             </tr>
             <tr className="hover:bg-slate-50/50">
               <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Damages</td>
-              {pagination.currentData.map(key => (
+              {vaccineKeys.length === 0 ? (
+                <td className="py-3 px-6 border-r border-slate-200 text-center text-red-600 font-medium">-0</td>
+              ) : pagination.currentData.map(key => (
                 <td key={key} className="py-3 px-6 border-r border-slate-200 text-center text-red-600 font-medium">-{data[key].damages}</td>
               ))}
             </tr>
             <tr className="bg-slate-100 hover:bg-slate-200 transition-colors">
               <td className="py-4 px-6 font-bold text-slate-900 border-r border-slate-300">Total Balance</td>
-                  {pagination.currentData.map(key => (
-                    <td key={key} className="py-4 px-6 border-r border-slate-300 text-center font-bold text-lg text-slate-900">
-                      {data[key].totalBalance}
-                    </td>
-                  ))}
-                </tr>
-              </tbody>
+              {vaccineKeys.length === 0 ? (
+                <td className="py-4 px-6 border-r border-slate-300 text-center font-bold text-lg text-slate-900">0</td>
+              ) : pagination.currentData.map(key => (
+                <td key={key} className="py-4 px-6 border-r border-slate-300 text-center font-bold text-lg text-slate-900">
+                  {data[key].totalBalance}
+                </td>
+              ))}
+            </tr>
+          </tbody>
             </table>
           </div>
           {vaccineKeys.length > 0 && <Pagination {...pagination} onPageChange={pagination.jump} />}

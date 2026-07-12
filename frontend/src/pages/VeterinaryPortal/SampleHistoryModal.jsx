@@ -1,9 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { X, Calendar } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Calendar, Search } from 'lucide-react';
 
 export default function SampleHistoryModal({ isOpen, onClose, forms }) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredSamples = useMemo(() => {
     let allSamples = [];
@@ -24,20 +27,65 @@ export default function SampleHistoryModal({ isOpen, onClose, forms }) {
       const sDate = new Date(s.createdAt);
       if (dateFrom && sDate < new Date(dateFrom)) return false;
       if (dateTo && sDate > new Date(dateTo + 'T23:59:59')) return false;
+
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matchesName = (s.farmer_name || '').toLowerCase().includes(q);
+        const matchesPhone = (s.phone || '').toLowerCase().includes(q);
+        const matchesAnimal = (s.animal_id || '').toLowerCase().includes(q);
+        if (!matchesName && !matchesPhone && !matchesAnimal) return false;
+      }
+
+      if (activeTab === 'pending' && s.has_result) return false;
+      if (activeTab === 'tested' && !s.has_result) return false;
+
       return true;
     }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [forms, dateFrom, dateTo]);
+  }, [forms, dateFrom, dateTo, activeTab, searchQuery]);
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center p-6 border-b border-slate-100">
+        <div className="flex justify-between items-center p-6 pb-4">
           <h3 className="text-lg font-bold text-slate-800">Samples History</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        <div className="flex justify-between items-end px-6 border-b border-slate-100">
+          <div className="flex space-x-6">
+            <button 
+              onClick={() => setActiveTab('all')}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'all' ? 'border-slate-800 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+            >
+              All Samples
+            </button>
+            <button 
+              onClick={() => setActiveTab('pending')}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'pending' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+            >
+              Pending
+            </button>
+            <button 
+              onClick={() => setActiveTab('tested')}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'tested' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+            >
+              Tested
+            </button>
+          </div>
+          <div className="relative mb-2">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search farmer or animal..." 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+              className="pl-9 pr-4 py-1.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 w-64 bg-slate-50 focus:bg-white transition-colors" 
+            />
+          </div>
         </div>
         
         <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center gap-4">
@@ -108,6 +156,7 @@ export default function SampleHistoryModal({ isOpen, onClose, forms }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
