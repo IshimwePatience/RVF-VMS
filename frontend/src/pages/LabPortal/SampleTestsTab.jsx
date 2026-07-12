@@ -59,14 +59,16 @@ export default function SampleTestsTab() {
   const pagination = usePagination(filteredSamples, 10);
 
   const handleSelectAll = () => {
-    if (selectedIds.size === filteredSamples.length) {
+    const selectableSamples = filteredSamples.filter(s => !s.has_result);
+    if (selectedIds.size === selectableSamples.length && selectableSamples.length > 0) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(filteredSamples.map(s => s.id)));
+      setSelectedIds(new Set(selectableSamples.map(s => s.id)));
     }
   };
 
-  const toggleSelect = (id) => {
+  const toggleSelect = (id, hasResult) => {
+    if (hasResult) return;
     const newSet = new Set(selectedIds);
     if (newSet.has(id)) {
       newSet.delete(id);
@@ -135,7 +137,7 @@ export default function SampleTestsTab() {
           }`}
         >
           <Download className="w-4 h-4" />
-          Download Selected ({selectedIds.size})
+          Download Samples ({selectedIds.size})
         </button>
       </div>
 
@@ -143,8 +145,8 @@ export default function SampleTestsTab() {
         <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="py-3 px-4 w-12 text-center cursor-pointer" onClick={handleSelectAll}>
-                {selectedIds.size === filteredSamples.length && filteredSamples.length > 0 ? (
+              <th className="py-3 px-4 w-24 text-center cursor-pointer" onClick={handleSelectAll}>
+                {selectedIds.size === filteredSamples.filter(s => !s.has_result).length && filteredSamples.filter(s => !s.has_result).length > 0 ? (
                   <CheckSquare className="w-5 h-5 text-blue-600 mx-auto" />
                 ) : (
                   <Square className="w-5 h-5 text-slate-400 mx-auto" />
@@ -179,17 +181,21 @@ export default function SampleTestsTab() {
               pagination.currentData.map(sample => (
                 <tr 
                   key={sample.id} 
-                  className={`hover:bg-blue-50/50 transition-colors cursor-pointer ${selectedIds.has(sample.id) ? 'bg-blue-50/50' : ''}`}
-                  onClick={() => toggleSelect(sample.id)}
+                  className={`transition-colors ${sample.has_result ? 'bg-slate-50 opacity-75' : 'hover:bg-blue-50/50 cursor-pointer'} ${selectedIds.has(sample.id) ? 'bg-blue-50/50' : ''}`}
+                  onClick={() => toggleSelect(sample.id, sample.has_result)}
                 >
                   <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => toggleSelect(sample.id)} className="focus:outline-none mt-1">
-                      {selectedIds.has(sample.id) ? (
-                        <CheckSquare className="w-5 h-5 text-blue-600" />
-                      ) : (
-                        <Square className="w-5 h-5 text-slate-400" />
-                      )}
-                    </button>
+                    {sample.has_result ? (
+                      <span className="text-[10px] bg-slate-200 text-slate-600 font-bold px-2 py-1 rounded whitespace-nowrap">Got Result</span>
+                    ) : (
+                      <button onClick={() => toggleSelect(sample.id, sample.has_result)} className="focus:outline-none mt-1">
+                        {selectedIds.has(sample.id) ? (
+                          <CheckSquare className="w-5 h-5 text-blue-600 mx-auto" />
+                        ) : (
+                          <Square className="w-5 h-5 text-slate-400 mx-auto" />
+                        )}
+                      </button>
+                    )}
                   </td>
                   <td className="py-3 px-4 text-slate-600">
                     {sample.collection_date ? new Date(sample.collection_date).toLocaleDateString() : 'N/A'}

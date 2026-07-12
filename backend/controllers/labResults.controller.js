@@ -17,7 +17,7 @@ exports.uploadResults = async (req, res) => {
     }
 
     // Validation 2: Check if Animal IDs exist in SurveillanceSample
-    const uploadedAnimalIds = results.map(r => r.animal_id).filter(Boolean);
+    const uploadedAnimalIds = results.map(r => r.animal_id ? String(r.animal_id).trim() : null).filter(Boolean);
     if (uploadedAnimalIds.length === 0) {
       return res.status(400).json({ message: 'Upload rejected. No Animal IDs found in the file.' });
     }
@@ -50,6 +50,7 @@ exports.uploadResults = async (req, res) => {
     for (const item of results) {
       await LabResult.create({
         ...item,
+        animal_id: item.animal_id ? String(item.animal_id).trim() : null,
         uploaded_by
       });
       createdCount++;

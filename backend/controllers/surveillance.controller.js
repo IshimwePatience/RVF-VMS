@@ -1,4 +1,4 @@
-const { SurveillanceForm, SurveillanceSample, sequelize } = require('../models');
+const { SurveillanceForm, SurveillanceSample, LabResult, sequelize } = require('../models');
 
 exports.submitForm = async (req, res) => {
   const t = await sequelize.transaction();
@@ -91,7 +91,22 @@ exports.getForms = async (req, res) => {
       ],
       order: [['createdAt', 'DESC']]
     });
-    res.json(forms);
+
+    const labResults = await LabResult.findAll({ attributes: ['animal_id'] });
+    const resultAnimalIds = new Set(labResults.map(lr => String(lr.animal_id).trim().toLowerCase()));
+
+    const formsWithFlags = forms.map(form => {
+      const formJSON = form.toJSON();
+      if (formJSON.samples) {
+        formJSON.samples = formJSON.samples.map(sample => ({
+          ...sample,
+          has_result: sample.animal_id ? resultAnimalIds.has(String(sample.animal_id).trim().toLowerCase()) : false
+        }));
+      }
+      return formJSON;
+    });
+
+    res.json(formsWithFlags);
   } catch (error) {
     console.error('Error fetching surveillance forms:', error);
     res.status(500).json({ message: 'Server error' });
