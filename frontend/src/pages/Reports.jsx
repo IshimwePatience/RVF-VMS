@@ -88,24 +88,31 @@ export default function Reports() {
 
       if (status === 'reported') {
         if (type === 'home_vaccination') {
-          headers = ['Date', 'Veterinary Phone', 'District', 'Sector', 'Vaccine', 'Doses'];
-          rows = recordsInRange.map(r => [
-            new Date(r.createdAt).toLocaleDateString(),
-            r.veterinary_email || 'N/A',
-            r.district || 'N/A',
-            r.sector || 'N/A',
-            r.vaccine_name || 'N/A',
-            r.dose_given || '0'
-          ]);
+          headers = ['Date', 'Veterinary Name', 'Veterinary Phone', 'District', 'Vaccine', 'Doses'];
+          rows = recordsInRange.map(r => {
+            const vet = allVets.find(v => v.phone_number === r.veterinary_email || v.email === r.veterinary_email);
+            return [
+              new Date(r.createdAt).toLocaleDateString(),
+              vet?.name || vet?.full_name || 'N/A',
+              r.veterinary_email || 'N/A',
+              r.district || 'N/A',
+              r.vaccine_name || 'N/A',
+              r.dose_given || '0'
+            ];
+          });
         } else if (type === 'surveillance') {
-          headers = ['Date', 'Veterinary Phone', 'District', 'Sector', 'Samples'];
-          rows = recordsInRange.map(r => [
-            new Date(r.createdAt).toLocaleDateString(),
-            r.veterinary_email || r.phone_number || 'N/A',
-            r.district || 'N/A',
-            r.sector || 'N/A',
-            r.samples?.length || '0'
-          ]);
+          headers = ['Date', 'Veterinary Name', 'Veterinary Phone', 'District', 'Samples'];
+          rows = recordsInRange.map(r => {
+            const vetPhone = r.veterinary_email || r.phone_number;
+            const vet = allVets.find(v => v.phone_number === vetPhone || v.email === vetPhone);
+            return [
+              new Date(r.createdAt).toLocaleDateString(),
+              r.submitted_by || vet?.name || vet?.full_name || 'N/A',
+              vetPhone || 'N/A',
+              r.district || 'N/A',
+              r.samples?.length || '0'
+            ];
+          });
         } else if (type === 'lab_results') {
           headers = ['Date Uploaded', 'Farmer', 'District', 'Specie', 'PCR Result'];
           rows = recordsInRange.map(r => [
@@ -695,7 +702,7 @@ export default function Reports() {
                   <thead className="border-b border-slate-200">
                     <tr>
                       <th className="py-3 font-semibold text-slate-800">Date Submitted</th>
-                      <th className="py-3 font-semibold text-slate-800">Veterinary Email</th>
+                      <th className="py-3 font-semibold text-slate-800">Veterinary Phone</th>
                       <th className="py-3 font-semibold text-slate-800">Location</th>
                       <th className="py-3 font-semibold text-slate-800">Vaccine</th>
                       <th className="py-3 font-semibold text-slate-800">Animal Type</th>
@@ -762,7 +769,7 @@ export default function Reports() {
                   <thead className="border-b border-slate-200">
                     <tr>
                       <th className="py-3 font-semibold text-slate-800">Date Submitted</th>
-                      <th className="py-3 font-semibold text-slate-800">Veterinary Email</th>
+                      <th className="py-3 font-semibold text-slate-800">Veterinary Phone</th>
                       <th className="py-3 font-semibold text-slate-800">Location</th>
                       <th className="py-3 font-semibold text-slate-800">Samples</th>
                       <th className="py-3 font-semibold text-slate-800">Action</th>
