@@ -253,7 +253,7 @@ exports.vetLogin = async (req, res) => {
     // Vet found or newly created -> issue token directly
     const token = jwt.sign(
       { phone_number: vet.phone_number, name: vet.name, role: 'Veterinary', id: vet.id, stock_id: vet.stock_id },
-      process.env.JWT_SECRET || 'your-secret-key',
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
@@ -303,7 +303,7 @@ exports.labTechLogin = async (req, res) => {
     // Tech found or newly created -> issue token directly
     const token = jwt.sign(
       { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district },
-      process.env.JWT_SECRET || 'your-secret-key',
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
