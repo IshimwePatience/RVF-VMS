@@ -105,6 +105,13 @@ async function startServer() {
     await sequelize.sync({ alter: true });
     console.log('Database synced successfully');
     
+    try {
+      await sequelize.query('ALTER TABLE "LabResults" DROP CONSTRAINT IF EXISTS "LabResults_uploaded_by_fkey" CASCADE;');
+      console.log('Successfully dropped restrictive uploaded_by constraint');
+    } catch (e) {
+      // Ignore if constraint doesn't exist
+    }
+    
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
