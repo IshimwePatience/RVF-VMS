@@ -153,23 +153,6 @@ export default function ViewResultsTab({ isLabPortal, filters }) {
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button 
-                          onClick={async () => {
-                            if (window.confirm('Are you sure you want to delete this result?')) {
-                              try {
-                                await axios.delete(`/rvf-api/lab-results/${r.id}`);
-                                addToast('success', 'Result deleted successfully');
-                                refetch();
-                              } catch (err) {
-                                addToast('error', 'Failed to delete result');
-                              }
-                            }
-                          }}
-                          className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
                       </div>
                     </td>
                   )}
@@ -207,8 +190,8 @@ export default function ViewResultsTab({ isLabPortal, filters }) {
                 <input 
                   type="text" 
                   value={editingResult.animal_id || ''}
-                  onChange={e => setEditingResult({...editingResult, animal_id: e.target.value})}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                  disabled
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
                 />
               </div>
               <div>
