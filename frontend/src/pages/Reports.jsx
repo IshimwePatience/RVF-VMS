@@ -179,7 +179,6 @@ export default function Reports() {
             'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
             'Veterinary Phone': form.veterinary_email || form.phone_number,
             'Test Requested': form.test_requested,
-            'Province': sample.province || form.province || '',
             'District': sample.district_origin || sample.district || form.district || '',
             'Sector': sample.sector || form.sector || '',
             'Cell': sample.cell || form.cell || '',
@@ -195,8 +194,7 @@ export default function Reports() {
             'Age': sample.age,
             'Vaccination Status': sample.vaccination_status,
             'Purpose': sample.purpose,
-            'Health Status': sample.health_status,
-            'Status': form.report_status
+            'Health Status': sample.health_status
           });
         });
       } else {
@@ -204,12 +202,10 @@ export default function Reports() {
            'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
            'Veterinary Phone': form.veterinary_email || form.phone_number,
            'Test Requested': form.test_requested,
-           'Province': form.province,
            'District': form.district,
            'Sector': form.sector,
            'Cell': form.cell,
-           'Village': form.village,
-           'Status': form.report_status
+           'Village': form.village
          });
       }
     });

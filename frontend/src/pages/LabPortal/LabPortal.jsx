@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { UploadCloud, List, TestTube } from 'lucide-react';
 import UploadResultsTab from './UploadResultsTab';
@@ -9,9 +9,13 @@ import minisanteLogo from '../../assets/images/RAB_Logo2.png';
 
 export default function LabPortal() {
   const { user, logout } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState('samples');
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('rvf_lab_active_tab') || 'samples');
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.setItem('rvf_lab_active_tab', activeTab);
+  }, [activeTab]);
 
   const handleLogout = () => {
     logout();

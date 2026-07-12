@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Download, CheckSquare, Square, Search } from 'lucide-react';
@@ -9,7 +9,12 @@ import { ToastContext } from '../../context/ToastContext';
 import Dropdown from '../../components/Dropdown';
 
 export default function SampleTestsTab() {
+  const [activeSubTab, setActiveSubTab] = useState(() => localStorage.getItem('rvf_lab_sample_subtab') || 'pending');
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('rvf_lab_sample_subtab', activeSubTab);
+  }, [activeSubTab]);
   const [filterDistrict, setFilterDistrict] = useState('All');
   const [filterSector, setFilterSector] = useState('All');
   const [filterCell, setFilterCell] = useState('All');
@@ -55,7 +60,7 @@ export default function SampleTestsTab() {
   const cells = useMemo(() => ['All', ...new Set(flattenedSamples.filter(s => filterSector === 'All' || (s.form_sector || s.sector) === filterSector).map(s => s.form_cell || s.cell).filter(Boolean))].sort(), [flattenedSamples, filterSector]);
   const villages = useMemo(() => ['All', ...new Set(flattenedSamples.filter(s => filterCell === 'All' || (s.form_cell || s.cell) === filterCell).map(s => s.form_village || s.village).filter(Boolean))].sort(), [flattenedSamples, filterCell]);
 
-  const filteredSamples = useMemo(() => {
+  const searchedSamples = useMemo(() => {
     return flattenedSamples.filter(s => {
       if (searchTerm) {
         const search = searchTerm.toLowerCase();
@@ -86,6 +91,13 @@ export default function SampleTestsTab() {
       return true;
     });
   }, [flattenedSamples, searchTerm, filterDistrict, filterSector, filterCell, filterVillage, dateFrom, dateTo]);
+
+  const pendingCount = searchedSamples.filter(s => !s.has_result).length;
+  const testedCount = searchedSamples.filter(s => s.has_result).length;
+
+  const filteredSamples = useMemo(() => {
+    return searchedSamples.filter(s => activeSubTab === 'pending' ? !s.has_result : s.has_result);
+  }, [searchedSamples, activeSubTab]);
 
   const pagination = usePagination(filteredSamples, 10);
 
@@ -146,6 +158,29 @@ export default function SampleTestsTab() {
 
   return (
     <div className="flex flex-col h-full space-y-6">
+      <div className="flex space-x-6 border-b border-slate-200">
+        <button
+          onClick={() => { setActiveSubTab('pending'); pagination.jump(1); setSelectedIds(new Set()); }}
+          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
+            activeSubTab === 'pending'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+          }`}
+        >
+          Pending Samples ({pendingCount})
+        </button>
+        <button
+          onClick={() => { setActiveSubTab('tested'); pagination.jump(1); setSelectedIds(new Set()); }}
+          className={`pb-3 text-sm font-medium transition-colors border-b-2 ${
+            activeSubTab === 'tested'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+          }`}
+        >
+          Tested Samples ({testedCount})
+        </button>
+      </div>
+
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center">
           <div className="relative w-80">
