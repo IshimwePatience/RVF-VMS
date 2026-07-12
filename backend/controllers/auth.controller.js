@@ -282,6 +282,10 @@ exports.labTechLogin = async (req, res) => {
 
     let tech = await LabTechnician.findOne({ where: { phone_number } });
     
+    if (tech && tech.is_active === false) {
+      return res.status(403).json({ message: 'Your account has been deactivated. Please contact support.' });
+    }
+    
     // If tech exists and they are trying to register (name provided), throw error
     if (tech && name) {
       return res.status(400).json({ message: 'This phone number is already registered. Please login instead.' });
@@ -316,10 +320,83 @@ exports.labTechLogin = async (req, res) => {
 
 exports.getLabTechs = async (req, res) => {
   try {
-    const techs = await LabTechnician.findAll();
+    const techs = await LabTechnician.findAll({
+      order: [['createdAt', 'DESC']]
+    });
     res.json(techs);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.createLabTech = async (req, res) => {
+  try {
+    const { name, phone_number, is_active } = req.body;
+    if (!name || !phone_number) {
+      return res.status(400).json({ error: 'Name and Phone Number are required.' });
+    }
+
+    const cleanPhone = phone_number.replace(/\s+/g, '').trim();
+
+    const existing = await LabTechnician.findOne({ where: { phone_number: cleanPhone } });
+    if (existing) {
+      return res.status(400).json({ error: 'This phone number is already registered to a Lab Technician.' });
+    }
+
+    const tech = await LabTechnician.create({
+      name,
+      phone_number: cleanPhone,
+      is_active: is_active !== undefined ? is_active : true
+    });
+
+    res.status(201).json(tech);
+  } catch (error) {
+    console.error('Error creating lab tech:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.updateLabTech = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, phone_number, is_active } = req.body;
+
+    const tech = await LabTechnician.findByPk(id);
+    if (!tech) return res.status(404).json({ error: 'Lab Technician not found' });
+
+    if (phone_number) {
+      const cleanPhone = phone_number.replace(/\s+/g, '').trim();
+      if (cleanPhone !== tech.phone_number) {
+        const existing = await LabTechnician.findOne({ where: { phone_number: cleanPhone } });
+        if (existing) {
+          return res.status(400).json({ error: 'This phone number is already registered to another Lab Technician.' });
+        }
+        tech.phone_number = cleanPhone;
+      }
+    }
+
+    if (name) tech.name = name;
+    if (is_active !== undefined) tech.is_active = is_active;
+
+    await tech.save();
+    res.json(tech);
+  } catch (error) {
+    console.error('Error updating lab tech:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.deleteLabTech = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tech = await LabTechnician.findByPk(id);
+    if (!tech) return res.status(404).json({ error: 'Lab Technician not found' });
+
+    await tech.destroy();
+    res.json({ message: 'Lab Technician deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting lab tech:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 };

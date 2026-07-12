@@ -20,6 +20,7 @@ import ReportUsage from './pages/ReportUsage';
 import Reports from './pages/Reports';
 import VeterinaryPortal from './pages/VeterinaryPortal/VeterinaryPortal';
 import Veterinaries from './pages/Veterinaries';
+import LabTechnicians from './pages/LabTechnicians';
 import LabPortal from './pages/LabPortal/LabPortal';
 import LabAuth from './pages/LabAuth';
 import { AuthContext } from './context/AuthContext';
@@ -120,6 +121,7 @@ function App() {
               <Route path="transfers" element={<Transfers />} />
               <Route path="administrations" element={<EndpointOnlyRoute><Administration /></EndpointOnlyRoute>} />
               <Route path="veterinaries" element={<Veterinaries />} />
+              <Route path="lab-technicians" element={<LabTechnicians />} />
               <Route path="stocks" element={<DistrictOrCentralRoute><Stocks /></DistrictOrCentralRoute>} />
               <Route path="vaccines" element={<CentralOnlyRoute><Vaccines /></CentralOnlyRoute>} />
               <Route path="suppliers" element={<CentralOnlyRoute><Suppliers /></CentralOnlyRoute>} />

@@ -14,6 +14,9 @@ router.post('/vet/login', authController.vetLogin);
 
 // Lab Technician Passwordless Auth
 router.post('/lab-tech/login', authController.labTechLogin);
-router.get('/lab-techs', authController.getLabTechs);
+router.get('/lab-techs', authenticate, authController.getLabTechs);
+router.post('/lab-techs', authenticate, authController.createLabTech);
+router.put('/lab-techs/:id', authenticate, authController.updateLabTech);
+router.delete('/lab-techs/:id', authenticate, authController.deleteLabTech);
 
 module.exports = router;
