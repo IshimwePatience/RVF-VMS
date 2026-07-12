@@ -6,7 +6,7 @@ const { authenticate, requireAdmin } = require('../middleware/auth.middleware');
 router.get('/exchange-rates', authenticate, settingsController.getExchangeRates);
 router.put('/exchange-rates/:currency', authenticate, requireAdmin, settingsController.updateExchangeRate);
 
-router.get('/system', authenticate, settingsController.getSystemSettings);
+router.get('/system', settingsController.getSystemSettings);
 router.put('/system/:key', authenticate, requireAdmin, settingsController.updateSystemSetting);
 
 module.exports = router;

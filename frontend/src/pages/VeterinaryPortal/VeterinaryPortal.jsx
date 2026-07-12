@@ -106,7 +106,7 @@ export default function VeterinaryPortal() {
             >
               Overview
             </button>
-            {settings.show_home_vaccination !== false && (
+            {settings.show_home_vaccination !== false && settings.show_home_vaccination !== 'false' && (
               <button
                 onClick={() => setActiveTab('vaccination')}
                 className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
@@ -149,7 +149,7 @@ export default function VeterinaryPortal() {
         {/* Tab Content */}
         <div>
           {activeTab === 'overview' && <OverviewTab phone={phone} />}
-          {activeTab === 'vaccination' && settings.show_home_vaccination !== false && <HomeVaccinationTab phone={phone} onSubmissionComplete={() => setActiveTab('overview')} />}
+          {activeTab === 'vaccination' && settings.show_home_vaccination !== false && settings.show_home_vaccination !== 'false' && <HomeVaccinationTab phone={phone} onSubmissionComplete={() => setActiveTab('overview')} />}
           {activeTab === 'sample_test' && <SampleTestFormTab phone={phone} />}
           {activeTab === 'lab_results' && <VetLabResultsTab phone={phone} />}
         </div>

@@ -285,8 +285,12 @@ export default function SampleTestsTab() {
               </tr>
             ) : filteredSamples.length === 0 ? (
               <tr>
-                <td colSpan="8" className="py-16 text-center text-slate-500">
-                  No sample tests found.
+                <td colSpan="8" className="py-16">
+                  <div className="flex flex-col items-center justify-center text-slate-500">
+                    <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No sample tests found" className="w-48 h-48 mb-4 object-contain opacity-75" />
+                    <p className="text-lg font-medium text-slate-600">No sample tests found.</p>
+                    <p className="text-sm mt-1">There are no samples matching your criteria.</p>
+                  </div>
                 </td>
               </tr>
             ) : (

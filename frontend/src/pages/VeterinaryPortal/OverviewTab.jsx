@@ -52,7 +52,7 @@ export default function OverviewTab({ phone }) {
   return (
     <div className="space-y-8">
       {/* Vaccines Overview Table */}
-      {settings.show_vaccines_overview !== false && (
+      {settings.show_vaccines_overview !== false && settings.show_vaccines_overview !== 'false' && (
       <div className="bg-white shadow-sm border border-slate-200 overflow-hidden rounded-xl">
         <div className="p-4 bg-white border-b border-slate-200 flex justify-between items-center">
           <h2 className="text-lg font-bold text-slate-900">Vaccines Overview</h2>
