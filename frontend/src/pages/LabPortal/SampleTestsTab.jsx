@@ -253,98 +253,98 @@ export default function SampleTestsTab() {
         </div>
       </div>
 
-      <div className="overflow-x-auto border border-slate-200 rounded-xl">
-        <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="py-3 px-4 w-24 text-center cursor-pointer" onClick={handleSelectAll}>
-                {selectedIds.size === filteredSamples.filter(s => !s.has_result).length && filteredSamples.filter(s => !s.has_result).length > 0 ? (
-                  <CheckSquare className="w-5 h-5 text-blue-600 mx-auto" />
-                ) : (
-                  <Square className="w-5 h-5 text-slate-400 mx-auto" />
-                )}
-              </th>
-              <th className="py-3 px-4 font-semibold text-slate-800">Date Collected</th>
-              <th className="py-3 px-4 font-semibold text-slate-800">Animal ID</th>
-              <th className="py-3 px-4 font-semibold text-slate-800">Farmer</th>
-              <th className="py-3 px-4 font-semibold text-slate-800">District</th>
-              <th className="py-3 px-4 font-semibold text-slate-800">Specie / Sex / Age</th>
-              <th className="py-3 px-4 font-semibold text-slate-800">Health Status</th>
-              <th className="py-3 px-4 font-semibold text-slate-800">Submitted By</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200">
-            {isLoading ? (
+      {filteredSamples.length === 0 && !isLoading ? (
+        <div className="py-20 flex flex-col items-center justify-center text-center mt-4 border border-slate-200 rounded-xl bg-white">
+          <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No sample tests found" className="w-48 h-48 mb-6 object-contain opacity-75" />
+          <p className="text-[17px] font-semibold text-slate-700">No sample tests found.</p>
+          <p className="text-slate-500 text-sm mt-1 max-w-sm">There are no samples matching your criteria.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+          <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <td colSpan="8" className="py-12 text-center text-slate-500">
-                  <div className="flex justify-center mb-4">
-                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                  Loading sample tests...
-                </td>
+                <th className="py-3 px-4 w-24 text-center cursor-pointer" onClick={handleSelectAll}>
+                  {selectedIds.size === filteredSamples.filter(s => !s.has_result).length && filteredSamples.filter(s => !s.has_result).length > 0 ? (
+                    <CheckSquare className="w-5 h-5 text-blue-600 mx-auto" />
+                  ) : (
+                    <Square className="w-5 h-5 text-slate-400 mx-auto" />
+                  )}
+                </th>
+                <th className="py-3 px-4 font-semibold text-slate-800">Date Collected</th>
+                <th className="py-3 px-4 font-semibold text-slate-800">Animal ID</th>
+                <th className="py-3 px-4 font-semibold text-slate-800">Farmer</th>
+                <th className="py-3 px-4 font-semibold text-slate-800">District</th>
+                <th className="py-3 px-4 font-semibold text-slate-800">Specie / Sex / Age</th>
+                <th className="py-3 px-4 font-semibold text-slate-800">Health Status</th>
+                <th className="py-3 px-4 font-semibold text-slate-800">Submitted By</th>
               </tr>
-            ) : filteredSamples.length === 0 ? (
-              <tr>
-                <td colSpan="8" className="py-16">
-                  <div className="flex flex-col items-center justify-center text-slate-500">
-                    <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No sample tests found" className="w-48 h-48 mb-4 object-contain opacity-75" />
-                    <p className="text-lg font-medium text-slate-600">No sample tests found.</p>
-                    <p className="text-sm mt-1">There are no samples matching your criteria.</p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              pagination.currentData.map(sample => (
-                <tr 
-                  key={sample.id} 
-                  className={`transition-colors ${sample.has_result ? 'bg-slate-50 opacity-75' : 'hover:bg-blue-50/50 cursor-pointer'} ${selectedIds.has(sample.id) ? 'bg-blue-50/50' : ''}`}
-                  onClick={() => toggleSelect(sample.id, sample.has_result)}
-                >
-                  <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                    {sample.has_result ? (
-                      <span className="text-[10px] bg-slate-200 text-slate-600 font-bold px-2 py-1 rounded whitespace-nowrap">Got Result</span>
-                    ) : (
-                      <button onClick={() => toggleSelect(sample.id, sample.has_result)} className="focus:outline-none mt-1">
-                        {selectedIds.has(sample.id) ? (
-                          <CheckSquare className="w-5 h-5 text-blue-600 mx-auto" />
-                        ) : (
-                          <Square className="w-5 h-5 text-slate-400 mx-auto" />
-                        )}
-                      </button>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">
-                    {sample.collection_date ? new Date(sample.collection_date).toLocaleDateString() : 'N/A'}
-                  </td>
-                  <td className="py-3 px-4 font-medium text-slate-900">
-                    {sample.animal_id || 'N/A'}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="text-slate-900">{sample.farmer_name || 'N/A'}</div>
-                    <div className="text-xs text-slate-500">{sample.phone}</div>
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">
-                    {sample.district_origin || sample.form_district}
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">
-                    {sample.specie} / {sample.sex} / {sample.age}
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">
-                    {sample.health_status || 'N/A'}
-                  </td>
-                  <td className="py-3 px-4 text-slate-600">
-                    <div className="font-medium text-slate-900">{sample.submitted_by || 'Unknown'}</div>
-                    <div className="text-xs text-slate-500">{sample.veterinary_email}</div>
+            </thead>
+            <tbody className="divide-y divide-slate-200">
+              {isLoading ? (
+                <tr>
+                  <td colSpan="8" className="py-12 text-center text-slate-500">
+                    <div className="flex justify-center mb-4">
+                      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                    Loading sample tests...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-      <div className="mt-4">
-        <Pagination {...pagination} onPageChange={pagination.jump} />
-      </div>
+              ) : (
+                pagination.currentData.map(sample => (
+                  <tr 
+                    key={sample.id} 
+                    className={`transition-colors ${sample.has_result ? 'bg-slate-50 opacity-75' : 'hover:bg-blue-50/50 cursor-pointer'} ${selectedIds.has(sample.id) ? 'bg-blue-50/50' : ''}`}
+                    onClick={() => toggleSelect(sample.id, sample.has_result)}
+                  >
+                    <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                      {sample.has_result ? (
+                        <span className="text-[10px] bg-slate-200 text-slate-600 font-bold px-2 py-1 rounded whitespace-nowrap">Got Result</span>
+                      ) : (
+                        <button onClick={() => toggleSelect(sample.id, sample.has_result)} className="focus:outline-none mt-1">
+                          {selectedIds.has(sample.id) ? (
+                            <CheckSquare className="w-5 h-5 text-blue-600 mx-auto" />
+                          ) : (
+                            <Square className="w-5 h-5 text-slate-400 mx-auto" />
+                          )}
+                        </button>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-slate-600">
+                      {sample.collection_date ? new Date(sample.collection_date).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="py-3 px-4 font-medium text-slate-900">
+                      {sample.animal_id || 'N/A'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="text-slate-900">{sample.farmer_name || 'N/A'}</div>
+                      <div className="text-xs text-slate-500">{sample.phone}</div>
+                    </td>
+                    <td className="py-3 px-4 text-slate-600">
+                      {sample.district_origin || sample.form_district}
+                    </td>
+                    <td className="py-3 px-4 text-slate-600">
+                      {sample.specie} / {sample.sex} / {sample.age}
+                    </td>
+                    <td className="py-3 px-4 text-slate-600">
+                      {sample.health_status || 'N/A'}
+                    </td>
+                    <td className="py-3 px-4 text-slate-600">
+                      <div className="font-medium text-slate-900">{sample.submitted_by || 'Unknown'}</div>
+                      <div className="text-xs text-slate-500">{sample.veterinary_email}</div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {filteredSamples.length > 0 && (
+        <div className="mt-4">
+          <Pagination {...pagination} onPageChange={pagination.jump} />
+        </div>
+      )}
     </div>
   );
 }
