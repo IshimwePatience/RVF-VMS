@@ -58,27 +58,8 @@ export default function LabPortal() {
         </div>
       </header>
 
-      {/* Main Content Wrapper */}
-      <div className="flex-1 max-w-7xl mx-auto w-full flex overflow-hidden">
-        
-        {/* Sidebar styled exactly like Layout.jsx */}
-        <div className="w-[280px] shrink-0 overflow-y-auto flex flex-col py-8 border-r border-slate-100 hidden md:flex">
-          <div className="px-6 mb-2">
-            <h3 className="text-sm font-medium text-slate-900 mb-4">Lab Operations</h3>
-            <nav className="space-y-1 flex flex-col">
-              <button
-                onClick={() => setActiveTab('samples')}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-full transition-colors ${activeTab === 'samples' ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}
-              >
-                <TestTube className="w-4 h-4 shrink-0" />
-                Sample Tests
-              </button>
-            </nav>
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto w-full">
+      {/* Main Content */}
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
           {/* Top Horizontal Tabs */}
           <div className="flex mb-8">
             <button
@@ -108,7 +89,6 @@ export default function LabPortal() {
           {activeTab === 'upload' && <UploadResultsTab />}
           {activeTab === 'view' && <ViewResultsTab isLabPortal={true} />}
         </main>
-      </div>
     </div>
   );
 }
