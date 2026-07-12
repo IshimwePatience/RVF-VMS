@@ -32,7 +32,13 @@ exports.uploadResults = async (req, res) => {
 
 exports.getResults = async (req, res) => {
   try {
+    const whereClause = {};
+    if (req.user && req.user.role === 'Lab User') {
+      whereClause.uploaded_by = req.user.id;
+    }
+
     const results = await LabResult.findAll({
+      where: whereClause,
       include: [
         { model: LabTechnician, as: 'uploader', attributes: ['id', 'name', 'phone_number'] }
       ],
