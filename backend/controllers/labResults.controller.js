@@ -80,6 +80,25 @@ exports.getResults = async (req, res) => {
       whereClause.uploaded_by = req.user.id;
     }
 
+    const { vet_phone } = req.query;
+    if (vet_phone) {
+      const { SurveillanceForm, SurveillanceSample } = require('../models');
+      const forms = await SurveillanceForm.findAll({
+        where: { veterinary_email: vet_phone },
+        include: [{ model: SurveillanceSample, as: 'samples' }]
+      });
+      const animalIds = [];
+      forms.forEach(f => {
+        if (f.samples) {
+          f.samples.forEach(s => {
+            if (s.animal_id) animalIds.push(String(s.animal_id).trim());
+          });
+        }
+      });
+      // If no samples found for this vet, ensure it returns empty array
+      whereClause.animal_id = animalIds.length > 0 ? animalIds : ['__NO_MATCH__'];
+    }
+
     const results = await LabResult.findAll({
       where: whereClause,
       include: [

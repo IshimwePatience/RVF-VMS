@@ -4,12 +4,26 @@ import minisanteLogo from '../../assets/images/RAB_Logo2.png';
 import OverviewTab from './OverviewTab';
 import HomeVaccinationTab from './HomeVaccinationTab';
 import SampleTestFormTab from './SampleTestFormTab';
+import VetLabResultsTab from './VetLabResultsTab';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 
 export default function VeterinaryPortal() {
   const { phone } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem(`vetPortalActiveTab_${phone}`) || 'overview');
   const [showDropdown, setShowDropdown] = useState(false);
+
+  const { data: todayResultsCount = 0 } = useQuery({
+    queryKey: ['vet-today-results', phone],
+    queryFn: async () => {
+      const res = await axios.get(`/rvf-api/lab-results?vet_phone=${encodeURIComponent(phone)}`);
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
+      return res.data.filter(r => r.createdAt && r.createdAt.startsWith(todayStr)).length;
+    },
+    enabled: !!phone
+  });
 
   React.useEffect(() => {
     if (phone) {
@@ -98,6 +112,21 @@ export default function VeterinaryPortal() {
             >
               Sample Test Form
             </button>
+            <button
+              onClick={() => setActiveTab('lab_results')}
+              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                activeTab === 'lab_results'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Lab Results
+              {todayResultsCount > 0 && (
+                <span className="bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-xs font-bold">
+                  {todayResultsCount} New Today
+                </span>
+              )}
+            </button>
           </nav>
         </div>
 
@@ -106,6 +135,7 @@ export default function VeterinaryPortal() {
           {activeTab === 'overview' && <OverviewTab phone={phone} />}
           {activeTab === 'vaccination' && <HomeVaccinationTab phone={phone} onSubmissionComplete={() => setActiveTab('overview')} />}
           {activeTab === 'sample_test' && <SampleTestFormTab phone={phone} />}
+          {activeTab === 'lab_results' && <VetLabResultsTab phone={phone} />}
         </div>
       </div>
     </div>

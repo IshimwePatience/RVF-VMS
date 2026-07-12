@@ -42,9 +42,18 @@ export default function ViewResultsTab({ isLabPortal, filters }) {
 
   return (
     <>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
+      {(!isLoading && filteredResults.length === 0) ? (
+        <div className="py-20 flex flex-col items-center justify-center text-center mt-2">
+          <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
+          <p className="text-[15px] font-medium text-slate-500">No reports found</p>
+          <p className="text-slate-500 text-sm mt-1 max-w-sm">
+            {results.length === 0 ? "You don't have any lab results yet." : "Try adjusting your filters to see more results."}
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white shadow-sm border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
           {(!isLoading && results.length > 0) && (
             <thead className="border-b border-slate-200">
               <tr>
@@ -76,19 +85,7 @@ export default function ViewResultsTab({ isLabPortal, filters }) {
                   Loading results...
                 </td>
               </tr>
-            ) : results.length === 0 ? (
-              <tr>
-                <td colSpan={user?.role === 'Lab User' ? 13 : 12} className="py-20 text-center">
-                  <div className="flex flex-col items-center justify-center">
-                    <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
-                    <p className="text-[15px] font-medium text-slate-500">No reports found</p>
-                    <p className="text-slate-500 text-sm mt-1 max-w-sm">
-                      Try adjusting your filters to see more results.
-                    </p>
-                  </div>
-                </td>
-              </tr>
-              ) : (
+            ) : (
               pagination.currentData.map((r) => (
                 <tr key={r.id} className="hover:bg-slate-100 transition-colors group">
                   <td className="py-4 px-6 text-slate-600">
@@ -162,6 +159,8 @@ export default function ViewResultsTab({ isLabPortal, filters }) {
           </tbody>
         </table>
       </div>
+      </div>
+      )}
 
       {!isLoading && results.length > 0 && (
         <Pagination {...pagination} />
