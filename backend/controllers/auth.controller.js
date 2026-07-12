@@ -268,7 +268,7 @@ const { LabTechnician } = require('../models');
 
 exports.labTechLogin = async (req, res) => {
   try {
-    const { name, district } = req.body;
+    const { name } = req.body;
     let { phone_number } = req.body;
     if (!phone_number) return res.status(400).json({ message: 'Phone number is required' });
     
@@ -282,22 +282,21 @@ exports.labTechLogin = async (req, res) => {
 
     let tech = await LabTechnician.findOne({ where: { phone_number } });
     
-    // If tech exists and they are trying to register (name/district provided), throw error
-    if (tech && (name || district)) {
+    // If tech exists and they are trying to register (name provided), throw error
+    if (tech && name) {
       return res.status(400).json({ message: 'This phone number is already registered. Please login instead.' });
     }
 
     if (!tech) {
-      if (!name || !district) {
-        // Not found, and no name/district provided -> tell frontend they need to register
+      if (!name) {
+        // Not found, and no name provided -> tell frontend they need to register
         return res.status(404).json({ message: 'Lab Technician not found. Registration required.' });
       }
       
-      // Name and district provided -> Create new self-registered tech
+      // Name provided -> Create new self-registered tech
       tech = await LabTechnician.create({
         phone_number,
-        name,
-        district
+        name
       });
     }
 

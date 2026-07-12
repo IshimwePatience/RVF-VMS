@@ -48,15 +48,14 @@ export default function LabAuth({ mode = 'login' }) {
       return;
     }
     
-    if (mode === 'register' && (!name || !district)) {
-      addToast('Name and district are required to register.', 'error');
+    if (mode === 'register' && !name) {
+      addToast('Name is required to register.', 'error');
       return;
     }
 
     loginMutation.mutate({ 
       phone_number: cleanPhone, 
-      name: mode === 'register' ? name : undefined,
-      district: mode === 'register' ? district : undefined
+      name: mode === 'register' ? name : undefined
     });
   };
 
@@ -102,25 +101,6 @@ export default function LabAuth({ mode = 'login' }) {
                 className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] placeholder-[#8A92A3] text-[#1F2432]"
                 placeholder="Enter your full name"
               />
-            </div>
-          )}
-
-          {mode === 'register' && (
-            <div className="mb-6">
-              <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
-                Working District <span className="text-[#C02B0A]">*</span>
-              </label>
-              <select
-                required
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] text-[#1F2432] bg-white"
-              >
-                <option value="">Select your district...</option>
-                {districts.map(d => (
-                  <option key={d.district} value={d.district}>{d.district}</option>
-                ))}
-              </select>
             </div>
           )}
 
