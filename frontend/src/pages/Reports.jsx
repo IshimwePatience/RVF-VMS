@@ -757,7 +757,7 @@ export default function Reports() {
                   <thead className="border-b border-slate-200">
                     <tr>
                       <th className="py-3 font-semibold text-slate-800">Date Submitted</th>
-                      <th className="py-3 font-semibold text-slate-800">Veterinary Phone</th>
+                      <th className="py-3 font-semibold text-slate-800">Veterinary</th>
                       <th className="py-3 font-semibold text-slate-800">Location</th>
                       <th className="py-3 font-semibold text-slate-800">Samples</th>
                       <th className="py-3 font-semibold text-slate-800">Action</th>
@@ -770,7 +770,7 @@ export default function Reports() {
                           {new Date(r.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
                         <td className="py-4">
-                          <span className="font-semibold text-slate-900">{r.veterinary_email}</span>
+                          <span className="font-semibold text-slate-900">{r.submitted_by || 'Unknown'}</span>
                         </td>
                         <td className="py-4">
                           <div className="flex flex-col">

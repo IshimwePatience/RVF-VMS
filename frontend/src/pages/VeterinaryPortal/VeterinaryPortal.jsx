@@ -7,12 +7,18 @@ import SampleTestFormTab from './SampleTestFormTab';
 import VetLabResultsTab from './VetLabResultsTab';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { useSearchParams } from 'react-router-dom';
 
 export default function VeterinaryPortal() {
   const { phone } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem(`vetPortalActiveTab_${phone}`) || 'overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || localStorage.getItem(`vetPortalActiveTab_${phone}`) || 'overview';
   const [showDropdown, setShowDropdown] = useState(false);
+
+  const setActiveTab = (tab) => {
+    setSearchParams({ tab });
+  };
 
   const { data: todayResultsCount = 0 } = useQuery({
     queryKey: ['vet-today-results', phone],

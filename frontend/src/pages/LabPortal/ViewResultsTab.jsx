@@ -57,6 +57,12 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
           {(!isLoading && results.length > 0) && (
             <thead className="border-b border-slate-200">
               <tr>
+                {!isLabPortal && (
+                  <>
+                    <th className="py-4 px-6 font-semibold text-slate-800">Lab Technician Name</th>
+                    <th className="py-4 px-6 font-semibold text-slate-800">Technician Number</th>
+                  </>
+                )}
                 <th className="py-4 px-6 font-semibold text-slate-800">Date Uploaded</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Farmer</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Location</th>
@@ -88,6 +94,16 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
             ) : (
               pagination.currentData.map((r) => (
                 <tr key={r.id} className="hover:bg-slate-100 transition-colors group">
+                  {!isLabPortal && (
+                    <>
+                      <td className="py-4 px-6 font-medium text-slate-900">
+                        {r.uploader?.name || 'N/A'}
+                      </td>
+                      <td className="py-4 px-6 text-slate-600">
+                        {r.uploader?.phone_number || 'N/A'}
+                      </td>
+                    </>
+                  )}
                   <td className="py-4 px-6 text-slate-600">
                     {new Date(r.createdAt).toLocaleDateString()}
                   </td>

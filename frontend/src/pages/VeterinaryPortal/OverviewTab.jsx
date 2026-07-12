@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/Pagination';
+import { MoreVertical } from 'lucide-react';
+import SampleHistoryModal from './SampleHistoryModal';
 
 export default function OverviewTab({ phone }) {
+  const [showSampleHistory, setShowSampleHistory] = useState(false);
+
   const { data, isLoading: loading, error } = useQuery({
     queryKey: ['veterinary-overview', phone],
     queryFn: async () => {
@@ -13,6 +17,18 @@ export default function OverviewTab({ phone }) {
     },
     enabled: !!phone,
   });
+
+  const { data: surveillanceForms = [] } = useQuery({
+    queryKey: ['vet-surveillance', phone],
+    queryFn: async () => {
+      const res = await axios.get(`/rvf-api/surveillance?phone=${encodeURIComponent(phone)}`);
+      return res.data;
+    },
+    enabled: !!phone,
+  });
+
+  const totalRecorded = surveillanceForms.reduce((sum, f) => sum + (f.samples ? f.samples.length : 0), 0);
+  const totalTested = surveillanceForms.reduce((sum, f) => sum + (f.samples ? f.samples.filter(s => s.has_result).length : 0), 0);
 
   const vaccineKeys = data ? Object.keys(data) : [];
   const pagination = usePagination(vaccineKeys, 12);
@@ -25,22 +41,24 @@ export default function OverviewTab({ phone }) {
     return <div className="p-4 bg-red-50 text-red-600 rounded-lg">Failed to fetch overview data.</div>;
   }
 
-  if (vaccineKeys.length === 0) {
-    return (
-      <div className="py-20 flex flex-col items-center justify-center text-center mt-2">
-        <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
-        <p className="text-[15px] font-medium text-slate-500">No vaccines found</p>
-        <p className="text-slate-500 text-sm mt-1 max-w-sm">
-          It looks like you haven't received any vaccines yet.
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-white shadow-sm border border-slate-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-slate-700">
+    <div className="space-y-8">
+      {/* Vaccines Overview Table */}
+      {vaccineKeys.length === 0 ? (
+        <div className="py-12 flex flex-col items-center justify-center text-center border border-slate-200 rounded-xl bg-white shadow-sm">
+          <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
+          <p className="text-[15px] font-medium text-slate-500">No vaccines found</p>
+          <p className="text-slate-500 text-sm mt-1 max-w-sm">
+            It looks like you haven't received any vaccines yet.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white shadow-sm border border-slate-200 overflow-hidden rounded-xl">
+          <div className="p-4 bg-white border-b border-slate-200 flex justify-between items-center">
+            <h2 className="text-lg font-bold text-slate-900">Vaccines Overview</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-700">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200 bg-slate-100/50">Summary</th>
@@ -84,16 +102,65 @@ export default function OverviewTab({ phone }) {
             </tr>
             <tr className="bg-slate-100 hover:bg-slate-200 transition-colors">
               <td className="py-4 px-6 font-bold text-slate-900 border-r border-slate-300">Total Balance</td>
-              {pagination.currentData.map(key => (
-                <td key={key} className="py-4 px-6 border-r border-slate-300 text-center font-bold text-lg text-slate-900">
-                  {data[key].totalBalance}
+                  {pagination.currentData.map(key => (
+                    <td key={key} className="py-4 px-6 border-r border-slate-300 text-center font-bold text-lg text-slate-900">
+                      {data[key].totalBalance}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          {vaccineKeys.length > 0 && <Pagination {...pagination} onPageChange={pagination.jump} />}
+        </div>
+      )}
+
+      {/* Samples Overview Table */}
+      <div className="bg-white shadow-sm border border-slate-200 overflow-hidden rounded-xl">
+        <div className="p-4 bg-white border-b border-slate-200 flex justify-between items-center">
+          <h2 className="text-lg font-bold text-slate-900">Samples Overview</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-700">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200">Total Recorded</th>
+                <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200">Total Tested (Has Results)</th>
+                <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200">Pending</th>
+                <th className="py-4 px-6 font-semibold text-slate-900">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              <tr className="hover:bg-slate-50/50">
+                <td className="py-4 px-6 border-r border-slate-200 text-center font-medium text-slate-800">{totalRecorded}</td>
+                <td className="py-4 px-6 border-r border-slate-200 text-center font-bold text-blue-600">{totalTested}</td>
+                <td className="py-4 px-6 border-r border-slate-200 text-center font-bold text-amber-500">{totalRecorded - totalTested}</td>
+                <td className="py-4 px-6 text-center">
+                  <div className="relative inline-block text-left group">
+                    <button className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
+                      <MoreVertical className="w-5 h-5" />
+                    </button>
+                    <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                      <button
+                        onClick={() => setShowSampleHistory(true)}
+                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  </div>
                 </td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <Pagination {...pagination} onPageChange={pagination.jump} />
+
+      <SampleHistoryModal 
+        isOpen={showSampleHistory} 
+        onClose={() => setShowSampleHistory(false)} 
+        forms={surveillanceForms} 
+      />
     </div>
   );
 }
