@@ -82,6 +82,13 @@ export default function LabPortal() {
           {/* Top Horizontal Tabs */}
           <div className="flex mb-8">
             <button
+              onClick={() => setActiveTab('samples')}
+              className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${activeTab === 'samples' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+            >
+              <TestTube className="w-4 h-4 shrink-0" />
+              Sample Tests
+            </button>
+            <button
               onClick={() => setActiveTab('upload')}
               className={`flex items-center gap-2 px-6 py-3 font-medium text-sm border-b-2 transition-colors ${activeTab === 'upload' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
             >
