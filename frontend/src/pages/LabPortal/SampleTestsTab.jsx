@@ -329,7 +329,8 @@ export default function SampleTestsTab() {
                     {sample.health_status || 'N/A'}
                   </td>
                   <td className="py-3 px-4 text-slate-600">
-                    {sample.veterinary_email}
+                    <div className="font-medium text-slate-900">{sample.submitted_by || 'Unknown'}</div>
+                    <div className="text-xs text-slate-500">{sample.veterinary_email}</div>
                   </td>
                 </tr>
               ))

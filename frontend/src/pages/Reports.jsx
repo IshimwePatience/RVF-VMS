@@ -309,6 +309,16 @@ export default function Reports() {
     enabled: user?.role === 'Admin'
   });
 
+  // 5. Central Lab Results Data
+  const { data: centralLabResults = [] } = useQuery({
+    queryKey: ['central-lab-results'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/lab-results');
+      return res.data;
+    },
+    enabled: user?.role === 'Admin'
+  });
+
   // Client-side filtering for old Vaccination Reports (Sector)
   const filteredReports = useMemo(() => {
     return reports.filter(r => {
@@ -337,6 +347,23 @@ export default function Reports() {
       return true;
     });
   }, [surveillanceReports, filters]);
+
+  // Client-side filtering for Lab Results
+  const filteredLabResults = useMemo(() => {
+    return centralLabResults.filter(r => {
+      if (filters.district && r.animal_district_origin !== filters.district && r.district !== filters.district) return false;
+      if (filters.sector && r.sector !== filters.sector) return false;
+      if (filters.veterinary_name) {
+        const searchVal = filters.veterinary_name.toLowerCase();
+        const rPhone = (r.phone || '').toLowerCase();
+        const rFarmer = (r.farmer_name || '').toLowerCase();
+        if (!rPhone.includes(searchVal) && !rFarmer.includes(searchVal)) return false;
+      }
+      if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
+      if (filters.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
+      return true;
+    });
+  }, [centralLabResults, filters]);
 
   // Determine which data to paginate based on active tab and role
   const getListData = () => {
@@ -587,6 +614,24 @@ export default function Reports() {
                     {homeVaccinations?.reduce((acc, r) => acc + (Number(r?.dose_given) || 0), 0).toLocaleString() || 0}
                   </td>
                 </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Lab Results</td>
+                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
+                    {filteredLabResults.length}
+                  </td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Positive Lab Results</td>
+                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-red-600">
+                    {filteredLabResults.filter(r => r.pcr_result === 'Positive' || r.rvf_pcr_results?.toUpperCase().includes('POSITIVE')).length}
+                  </td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Negative Lab Results</td>
+                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-green-600">
+                    {filteredLabResults.filter(r => r.pcr_result === 'Negative' || r.rvf_pcr_results?.toUpperCase().includes('NEGATIVE')).length}
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -770,7 +815,10 @@ export default function Reports() {
                           {new Date(r.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
                         <td className="py-4">
-                          <span className="font-semibold text-slate-900">{r.submitted_by || 'Unknown'}</span>
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-900">{r.submitted_by || 'Unknown'}</span>
+                            <span className="text-xs text-slate-500">{r.veterinary_email}</span>
+                          </div>
                         </td>
                         <td className="py-4">
                           <div className="flex flex-col">

@@ -14,6 +14,29 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
   const [mapLocationData, setMapLocationData] = useState(null);
   const [editingResult, setEditingResult] = useState(null);
 
+  const { data: surveillanceForms = [] } = useQuery({
+    queryKey: ['surveillance-forms-for-vets'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/surveillance');
+      return res.data;
+    },
+    enabled: !isLabPortal // Only fetch if we are in Reports
+  });
+
+  const animalIdToVetMap = useMemo(() => {
+    const map = {};
+    surveillanceForms.forEach(form => {
+      if (form.samples && Array.isArray(form.samples)) {
+        form.samples.forEach(sample => {
+          if (sample.animal_id) {
+            map[sample.animal_id] = { name: form.submitted_by, phone: form.veterinary_email || form.phone_number };
+          }
+        });
+      }
+    });
+    return map;
+  }, [surveillanceForms]);
+
   const { data: results = [], isLoading, refetch, isFetching } = useQuery({
     queryKey: ['lab-results', veterinaryPhone],
     queryFn: async () => {
@@ -64,6 +87,9 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
                   </>
                 )}
                 <th className="py-4 px-6 font-semibold text-slate-800">Date Uploaded</th>
+                {!isLabPortal && (
+                  <th className="py-4 px-6 font-semibold text-slate-800">Veterinary (Result Owner)</th>
+                )}
                 <th className="py-4 px-6 font-semibold text-slate-800">Farmer</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Location</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Animal ID</th>
@@ -107,6 +133,12 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
                   <td className="py-4 px-6 text-slate-600">
                     {new Date(r.createdAt).toLocaleDateString()}
                   </td>
+                  {!isLabPortal && (
+                    <td className="py-4 px-6">
+                      <div className="font-medium text-slate-900">{animalIdToVetMap[r.animal_id]?.name || 'N/A'}</div>
+                      <div className="text-xs text-slate-500">{animalIdToVetMap[r.animal_id]?.phone || ''}</div>
+                    </td>
+                  )}
                   <td className="py-4 px-6">
                     <div className="font-medium text-slate-900">{r.farmer_name || 'N/A'}</div>
                     <div className="text-xs text-slate-500">{r.phone}</div>

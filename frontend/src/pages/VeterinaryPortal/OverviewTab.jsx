@@ -44,21 +44,12 @@ export default function OverviewTab({ phone }) {
   return (
     <div className="space-y-8">
       {/* Vaccines Overview Table */}
-      {vaccineKeys.length === 0 ? (
-        <div className="py-12 flex flex-col items-center justify-center text-center border border-slate-200 rounded-xl bg-white shadow-sm">
-          <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
-          <p className="text-[15px] font-medium text-slate-500">No vaccines found</p>
-          <p className="text-slate-500 text-sm mt-1 max-w-sm">
-            It looks like you haven't received any vaccines yet.
-          </p>
+      <div className="bg-white shadow-sm border border-slate-200 overflow-hidden rounded-xl">
+        <div className="p-4 bg-white border-b border-slate-200 flex justify-between items-center">
+          <h2 className="text-lg font-bold text-slate-900">Vaccines Overview</h2>
         </div>
-      ) : (
-        <div className="bg-white shadow-sm border border-slate-200 overflow-hidden rounded-xl">
-          <div className="p-4 bg-white border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-slate-900">Vaccines Overview</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-700">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-700">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200 bg-slate-100/50">Summary</th>
@@ -113,7 +104,6 @@ export default function OverviewTab({ phone }) {
           </div>
           {vaccineKeys.length > 0 && <Pagination {...pagination} onPageChange={pagination.jump} />}
         </div>
-      )}
 
       {/* Samples Overview Table */}
       <div className="bg-white shadow-sm border border-slate-200 overflow-hidden rounded-xl">
@@ -124,32 +114,38 @@ export default function OverviewTab({ phone }) {
           <table className="w-full text-left text-sm text-slate-700">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200">Total Recorded</th>
-                <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200">Total Tested (Has Results)</th>
-                <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200">Pending</th>
-                <th className="py-4 px-6 font-semibold text-slate-900">Actions</th>
+                <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200 bg-slate-100/50 w-1/3">Summary</th>
+                <th className="py-4 px-6 font-semibold text-slate-800 border-r border-slate-200 text-center">Total</th>
+                <th className="py-4 px-6 font-semibold text-slate-800 text-center w-32">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               <tr className="hover:bg-slate-50/50">
-                <td className="py-4 px-6 border-r border-slate-200 text-center font-medium text-slate-800">{totalRecorded}</td>
-                <td className="py-4 px-6 border-r border-slate-200 text-center font-bold text-blue-600">{totalTested}</td>
-                <td className="py-4 px-6 border-r border-slate-200 text-center font-bold text-amber-500">{totalRecorded - totalTested}</td>
-                <td className="py-4 px-6 text-center">
+                <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Recorded</td>
+                <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">{totalRecorded}</td>
+                <td className="py-3 px-6 text-center align-middle" rowSpan={3}>
                   <div className="relative inline-block text-left group">
                     <button className="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
                       <MoreVertical className="w-5 h-5" />
                     </button>
-                    <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+                    <div className="absolute right-1/2 translate-x-1/2 mt-1 w-40 bg-white rounded-lg shadow-lg border border-slate-100 py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                       <button
                         onClick={() => setShowSampleHistory(true)}
-                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="w-full text-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                       >
                         View Details
                       </button>
                     </div>
                   </div>
                 </td>
+              </tr>
+              <tr className="hover:bg-slate-50/50">
+                <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Tested (Has Results)</td>
+                <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-blue-600">{totalTested}</td>
+              </tr>
+              <tr className="hover:bg-slate-50/50">
+                <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Pending</td>
+                <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-amber-500">{totalRecorded - totalTested}</td>
               </tr>
             </tbody>
           </table>
