@@ -20,6 +20,14 @@ export default function VeterinaryPortal() {
     setSearchParams({ tab });
   };
 
+  const { data: settings = {} } = useQuery({
+    queryKey: ['system-settings'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/settings/system');
+      return res.data;
+    }
+  });
+
   const { data: todayResultsCount = 0 } = useQuery({
     queryKey: ['vet-today-results', phone],
     queryFn: async () => {
@@ -98,16 +106,18 @@ export default function VeterinaryPortal() {
             >
               Overview
             </button>
-            <button
-              onClick={() => setActiveTab('vaccination')}
-              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'vaccination'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
-            >
-              Home Vaccination Records
-            </button>
+            {settings.show_home_vaccination !== false && (
+              <button
+                onClick={() => setActiveTab('vaccination')}
+                className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'vaccination'
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                }`}
+              >
+                Home Vaccination Records
+              </button>
+            )}
             <button
               onClick={() => setActiveTab('sample_test')}
               className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
@@ -139,7 +149,7 @@ export default function VeterinaryPortal() {
         {/* Tab Content */}
         <div>
           {activeTab === 'overview' && <OverviewTab phone={phone} />}
-          {activeTab === 'vaccination' && <HomeVaccinationTab phone={phone} onSubmissionComplete={() => setActiveTab('overview')} />}
+          {activeTab === 'vaccination' && settings.show_home_vaccination !== false && <HomeVaccinationTab phone={phone} onSubmissionComplete={() => setActiveTab('overview')} />}
           {activeTab === 'sample_test' && <SampleTestFormTab phone={phone} />}
           {activeTab === 'lab_results' && <VetLabResultsTab phone={phone} />}
         </div>

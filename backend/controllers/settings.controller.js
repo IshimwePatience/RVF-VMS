@@ -26,3 +26,35 @@ exports.updateExchangeRate = async (req, res) => {
     res.status(400).json({ message: error.message || 'Server error' });
   }
 };
+
+exports.getSystemSettings = async (req, res) => {
+  try {
+    const { SystemSetting } = require('../models');
+    const settings = await SystemSetting.findAll();
+    const settingsObj = {};
+    settings.forEach(s => settingsObj[s.key] = s.value);
+    res.json(settingsObj);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.updateSystemSetting = async (req, res) => {
+  const { key } = req.params;
+  const { value } = req.body;
+  try {
+    const { SystemSetting } = require('../models');
+    let setting = await SystemSetting.findOne({ where: { key } });
+    if (setting) {
+      setting.value = value;
+      await setting.save();
+    } else {
+      setting = await SystemSetting.create({ key, value });
+    }
+    res.json(setting);
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ message: error.message || 'Server error' });
+  }
+};

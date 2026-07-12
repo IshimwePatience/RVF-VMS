@@ -86,7 +86,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
     <>
       <div className="space-y-6">
         {isLabPortal && (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+        <div className="mb-2">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">

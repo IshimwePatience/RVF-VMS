@@ -33,6 +33,14 @@ export default function OverviewTab({ phone }) {
   const vaccineKeys = data ? Object.keys(data) : [];
   const pagination = usePagination(vaccineKeys, 12);
 
+  const { data: settings = {} } = useQuery({
+    queryKey: ['system-settings'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/settings/system');
+      return res.data;
+    }
+  });
+
   if (loading) {
     return <div className="py-12 flex justify-center text-slate-500">Loading overview...</div>;
   }
@@ -44,6 +52,7 @@ export default function OverviewTab({ phone }) {
   return (
     <div className="space-y-8">
       {/* Vaccines Overview Table */}
+      {settings.show_vaccines_overview !== false && (
       <div className="bg-white shadow-sm border border-slate-200 overflow-hidden rounded-xl">
         <div className="p-4 bg-white border-b border-slate-200 flex justify-between items-center">
           <h2 className="text-lg font-bold text-slate-900">Vaccines Overview</h2>
@@ -118,6 +127,7 @@ export default function OverviewTab({ phone }) {
           </div>
           {vaccineKeys.length > 0 && <Pagination {...pagination} onPageChange={pagination.jump} />}
         </div>
+      )}
 
       {/* Samples Overview Table */}
       <div className="bg-white shadow-sm border border-slate-200 overflow-hidden rounded-xl">

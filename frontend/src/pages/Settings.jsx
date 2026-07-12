@@ -95,6 +95,78 @@ export default function Settings() {
             </div>
           </div>
         </div>
+
+        <div className="mt-10">
+          <div className="py-2">
+            <h3 className="text-[14px] font-bold text-slate-700 uppercase tracking-wider">System Toggles</h3>
+          </div>
+          <div className="py-4">
+            <p className="text-sm text-slate-500 mb-6">
+              Enable or disable specific features globally across the application.
+            </p>
+            <div className="space-y-6">
+              <ToggleSetting 
+                settingKey="show_home_vaccination" 
+                label="Show Home Vaccination Records" 
+                description="When enabled, the Home Vaccination Records tab will be visible in the Veterinary Portal."
+              />
+              <ToggleSetting 
+                settingKey="show_vaccines_overview" 
+                label="Show Vaccines Overview" 
+                description="When enabled, the Vaccines Overview summary will be visible in the Veterinary Portal's Overview tab."
+              />
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function ToggleSetting({ settingKey, label, description }) {
+  const { addToast } = useContext(ToastContext);
+  const queryClient = useQueryClient();
+
+  const { data: settings = {}, isLoading } = useQuery({
+    queryKey: ['system-settings'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/settings/system');
+      return res.data;
+    }
+  });
+
+  const value = settings[settingKey] !== false; // default true if undefined
+
+  const mutation = useMutation({
+    mutationFn: async (newValue) => {
+      return axios.put(`/rvf-api/settings/system/${settingKey}`, { value: newValue });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['system-settings'] });
+      addToast('Setting updated successfully', 'success');
+    },
+    onError: () => {
+      addToast('Failed to update setting', 'error');
+    }
+  });
+
+  if (isLoading) return <div className="h-10 bg-slate-100 animate-pulse rounded-lg max-w-md"></div>;
+
+  return (
+    <div className="flex items-start justify-between max-w-2xl bg-white p-4 rounded-xl border border-slate-200">
+      <div>
+        <h4 className="text-[15px] font-semibold text-slate-800">{label}</h4>
+        <p className="text-sm text-slate-500 mt-1">{description}</p>
+      </div>
+      <div className="flex items-center h-full pt-1">
+        <input 
+          type="checkbox" 
+          className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" 
+          checked={value}
+          disabled={mutation.isPending}
+          onChange={(e) => mutation.mutate(e.target.checked)}
+        />
       </div>
     </div>
   );

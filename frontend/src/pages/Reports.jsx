@@ -176,7 +176,7 @@ export default function Reports() {
         surv.forEach(r => {
           r.samples?.forEach(s => {
             if (s.animal_id) {
-              vetMap[s.animal_id] = { name: r.veterinary_name, phone: r.phone_number || r.veterinary_email };
+              vetMap[s.animal_id] = { name: r.submitted_by || r.veterinary_name, phone: r.phone_number || r.veterinary_email };
             }
           });
         });
