@@ -179,11 +179,11 @@ export default function Reports() {
             'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
             'Veterinary Phone': form.veterinary_email || form.phone_number,
             'Test Requested': form.test_requested,
-            'Province': form.province,
-            'District': form.district,
-            'Sector': form.sector,
-            'Cell': form.cell,
-            'Village': form.village,
+            'Province': sample.province || form.province || '',
+            'District': sample.district_origin || sample.district || form.district || '',
+            'Sector': sample.sector || form.sector || '',
+            'Cell': sample.cell || form.cell || '',
+            'Village': sample.village || form.village || '',
             'From Abattoir': form.from_abattoir ? 'Yes' : 'No',
             'Sample SN': sample.sn,
             'Farmer Name': sample.farmer_name,
@@ -222,12 +222,16 @@ export default function Reports() {
       const res = await axios.get('/rvf-api/lab-results');
       const results = res.data;
       const filtered = results.filter(r => {
-        if (filters?.province && r.animal_province !== filters.province && r.province !== filters.province) return false;
         if (filters?.district && r.animal_district_origin !== filters.district && r.district !== filters.district) return false;
         if (filters?.sector && r.sector !== filters.sector) return false;
-        if (filters?.veterinary_name && r.phone && !r.phone.includes(filters.veterinary_name)) return false;
+        if (filters?.veterinary_name) {
+          const searchVal = filters.veterinary_name.toLowerCase();
+          const rPhone = (r.phone || '').toLowerCase();
+          const rFarmer = (r.farmer_name || '').toLowerCase();
+          if (!rPhone.includes(searchVal) && !rFarmer.includes(searchVal)) return false;
+        }
         if (filters?.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
-        if (filters?.dateTo && new Date(r.createdAt) > new Date(filters.dateTo)) return false;
+        if (filters?.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
         return true;
       });
 
@@ -385,18 +389,6 @@ export default function Reports() {
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Province</span>
-              <div className="w-36 border border-slate-300 rounded-full bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
-                <LocationDropdown 
-                  type="provinces"
-                  value={filters.province}
-                  onChange={(val) => setFilters({ ...filters, province: val, district: '', sector: '' })}
-                  placeholder="All"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">District</span>
               <div className="w-36 border border-slate-300 rounded-full bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
                 <LocationDropdown 
@@ -442,7 +434,7 @@ export default function Reports() {
               />
             </div>
 
-            {(filters.province || filters.district || filters.sector || filters.veterinary_name || filters.dateFrom || filters.dateTo || filters.status) && (
+            {(filters.district || filters.sector || filters.veterinary_name || filters.dateFrom || filters.dateTo || filters.status) && (
               <button 
                 onClick={() => setFilters({ province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '' })}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-full transition-colors border border-red-200"

@@ -6,9 +6,17 @@ import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/Pagination';
 import { exportToExcel } from '../../utils/exportExcel';
 import { ToastContext } from '../../context/ToastContext';
+import Dropdown from '../../components/Dropdown';
 
 export default function SampleTestsTab() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterDistrict, setFilterDistrict] = useState('All');
+  const [filterSector, setFilterSector] = useState('All');
+  const [filterCell, setFilterCell] = useState('All');
+  const [filterVillage, setFilterVillage] = useState('All');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  
   const [selectedIds, setSelectedIds] = useState(new Set());
   const { addToast } = useContext(ToastContext);
 
@@ -42,19 +50,42 @@ export default function SampleTestsTab() {
     return samples;
   }, [forms]);
 
+  const districts = useMemo(() => ['All', ...new Set(flattenedSamples.map(s => s.form_district || s.district_origin).filter(Boolean))].sort(), [flattenedSamples]);
+  const sectors = useMemo(() => ['All', ...new Set(flattenedSamples.filter(s => filterDistrict === 'All' || (s.form_district || s.district_origin) === filterDistrict).map(s => s.form_sector || s.sector).filter(Boolean))].sort(), [flattenedSamples, filterDistrict]);
+  const cells = useMemo(() => ['All', ...new Set(flattenedSamples.filter(s => filterSector === 'All' || (s.form_sector || s.sector) === filterSector).map(s => s.form_cell || s.cell).filter(Boolean))].sort(), [flattenedSamples, filterSector]);
+  const villages = useMemo(() => ['All', ...new Set(flattenedSamples.filter(s => filterCell === 'All' || (s.form_cell || s.cell) === filterCell).map(s => s.form_village || s.village).filter(Boolean))].sort(), [flattenedSamples, filterCell]);
+
   const filteredSamples = useMemo(() => {
     return flattenedSamples.filter(s => {
       if (searchTerm) {
         const search = searchTerm.toLowerCase();
-        return (
-          (s.animal_id && s.animal_id.toLowerCase().includes(search)) ||
-          (s.farmer_name && s.farmer_name.toLowerCase().includes(search)) ||
-          (s.district_origin && s.district_origin.toLowerCase().includes(search))
-        );
+        if (!((s.animal_id && s.animal_id.toLowerCase().includes(search)) ||
+             (s.farmer_name && s.farmer_name.toLowerCase().includes(search)) ||
+             ((s.district_origin || s.form_district || '') && (s.district_origin || s.form_district || '').toLowerCase().includes(search)))) {
+          return false;
+        }
       }
+
+      const sDistrict = s.district_origin || s.form_district;
+      const sSector = s.sector || s.form_sector;
+      const sCell = s.cell || s.form_cell;
+      const sVillage = s.village || s.form_village;
+
+      if (filterDistrict !== 'All' && sDistrict !== filterDistrict) return false;
+      if (filterSector !== 'All' && sSector !== filterSector) return false;
+      if (filterCell !== 'All' && sCell !== filterCell) return false;
+      if (filterVillage !== 'All' && sVillage !== filterVillage) return false;
+
+      if (dateFrom) {
+        if (!s.collection_date || new Date(s.collection_date) < new Date(dateFrom)) return false;
+      }
+      if (dateTo) {
+        if (!s.collection_date || new Date(s.collection_date) > new Date(dateTo + 'T23:59:59')) return false;
+      }
+
       return true;
     });
-  }, [flattenedSamples, searchTerm]);
+  }, [flattenedSamples, searchTerm, filterDistrict, filterSector, filterCell, filterVillage, dateFrom, dateTo]);
 
   const pagination = usePagination(filteredSamples, 10);
 
@@ -114,31 +145,77 @@ export default function SampleTestsTab() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative w-80">
-          <input
-            type="text"
-            placeholder="Search by Animal ID, Farmer, District..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+    <div className="flex flex-col h-full space-y-6">
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <div className="relative w-80">
+            <input
+              type="text"
+              placeholder="Search by Animal ID, Farmer, District..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          </div>
+
+          <button
+            onClick={handleDownload}
+            disabled={selectedIds.size === 0}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedIds.size > 0 
+                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm' 
+                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+            }`}
+          >
+            <Download className="w-4 h-4" />
+            Download Samples ({selectedIds.size})
+          </button>
         </div>
 
-        <button
-          onClick={handleDownload}
-          disabled={selectedIds.size === 0}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            selectedIds.size > 0 
-              ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm' 
-              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-          }`}
-        >
-          <Download className="w-4 h-4" />
-          Download Samples ({selectedIds.size})
-        </button>
+        <div className="flex flex-wrap items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 font-medium">District</span>
+            <Dropdown value={filterDistrict} options={districts} onChange={(val) => { setFilterDistrict(val); setFilterSector('All'); setFilterCell('All'); setFilterVillage('All'); }} />
+          </div>
+          {filterDistrict !== 'All' && sectors.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium">Sector</span>
+              <Dropdown value={filterSector} options={sectors} onChange={(val) => { setFilterSector(val); setFilterCell('All'); setFilterVillage('All'); }} />
+            </div>
+          )}
+          {filterSector !== 'All' && cells.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium">Cell</span>
+              <Dropdown value={filterCell} options={cells} onChange={(val) => { setFilterCell(val); setFilterVillage('All'); }} />
+            </div>
+          )}
+          {filterCell !== 'All' && villages.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium">Village</span>
+              <Dropdown value={filterVillage} options={villages} onChange={setFilterVillage} />
+            </div>
+          )}
+          <div className="h-6 w-px bg-slate-300 mx-2 hidden sm:block"></div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 font-medium">From</span>
+            <input 
+              type="date" 
+              value={dateFrom} 
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="text-sm border border-slate-300 rounded-full px-3 py-1.5 focus:outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 font-medium">To</span>
+            <input 
+              type="date" 
+              value={dateTo} 
+              onChange={(e) => setDateTo(e.target.value)}
+              className="text-sm border border-slate-300 rounded-full px-3 py-1.5 focus:outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="overflow-x-auto border border-slate-200 rounded-xl">
