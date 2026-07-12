@@ -1,4 +1,4 @@
-const { LabResult, User } = require('../models');
+const { LabResult, LabTechnician } = require('../models');
 
 exports.uploadResults = async (req, res) => {
   try {
@@ -34,7 +34,7 @@ exports.getResults = async (req, res) => {
   try {
     const results = await LabResult.findAll({
       include: [
-        { model: User, as: 'uploader', attributes: ['id', 'full_name', 'email'] }
+        { model: LabTechnician, as: 'uploader', attributes: ['id', 'name', 'phone_number'] }
       ],
       order: [['createdAt', 'DESC']]
     });

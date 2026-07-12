@@ -270,7 +270,7 @@ export default function Login() {
         )}
 
         {!requiresOtp && !requiresPasswordSet && !showForgotPassword && (
-          <div className="mt-6">
+          <div className="mt-6 flex flex-col gap-2">
             <a 
               href="#" 
               onClick={(e) => { e.preventDefault(); setShowForgotPassword(true); }}
@@ -278,10 +278,20 @@ export default function Login() {
             >
               Forgot password?
             </a>
+            <button
+              onClick={() => navigate('/lab-login')}
+              className="block text-left text-[#0056D2] text-[14px] hover:underline"
+            >
+              Are you a Lab Technician? Login here.
+            </button>
+            <button
+              onClick={() => navigate('/veterinary-login')}
+              className="block text-left text-[#0056D2] text-[14px] hover:underline"
+            >
+              Are you a Veterinary? Login here.
+            </button>
           </div>
         )}
-
-
         <div className="text-[12px] text-[#5E6D7E] leading-[1.5] mt-6">
           I accept rvf vaccine hub's <a href="#" className="underline hover:text-[#1F2432]">Terms of Use</a> and <a href="#" className="underline hover:text-[#1F2432]">Privacy Notice</a>. Having trouble logging in? <a href="#" className="underline hover:text-[#1F2432]">Help center</a>
           <br /><br />

@@ -44,12 +44,12 @@ export default function Reports() {
     
     try {
       // Fetch all veterinaries and users to know who didn't report
-      const [vetsRes, usersRes] = await Promise.all([
+      const [vetsRes, labTechsRes] = await Promise.all([
         axios.get('/rvf-api/veterinaries').catch(() => ({ data: [] })),
-        axios.get('/rvf-api/users').catch(() => ({ data: [] }))
+        axios.get('/rvf-api/auth/lab-techs').catch(() => ({ data: [] }))
       ]);
       const allVets = vetsRes.data || [];
-      const labUsers = (usersRes.data || []).filter(u => u.role === 'Lab User');
+      const labUsers = labTechsRes.data || [];
 
       let records = [];
       let allUsersToCheck = [];
@@ -118,7 +118,7 @@ export default function Reports() {
         }
       } else {
         // Missing Reports
-        headers = ['Name', 'Phone', 'District', 'Sector'];
+        headers = ['Name', 'Phone', 'District'];
         const missingUsers = allUsersToCheck.filter(u => {
           const identifier = type === 'lab_results' ? u.id : (u.phone_number || u.email);
           return !reportedIdentifiers.has(identifier);
@@ -127,8 +127,7 @@ export default function Reports() {
         rows = missingUsers.map(u => [
           u.name || u.full_name || 'N/A',
           u.phone_number || u.phone || u.email || 'N/A',
-          u.district || 'N/A',
-          u.sector || 'N/A'
+          u.district || 'N/A'
         ]);
       }
 

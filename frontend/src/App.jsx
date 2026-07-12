@@ -21,6 +21,7 @@ import Reports from './pages/Reports';
 import VeterinaryPortal from './pages/VeterinaryPortal/VeterinaryPortal';
 import Veterinaries from './pages/Veterinaries';
 import LabPortal from './pages/LabPortal/LabPortal';
+import LabAuth from './pages/LabAuth';
 import { AuthContext } from './context/AuthContext';
 
 const CentralOnlyRoute = ({ children }) => {
@@ -129,6 +130,8 @@ function App() {
             <Route path="/veterinary-login" element={<ReportUsage mode="login" />} />
             <Route path="/veterinary-signup" element={<ReportUsage mode="register" />} />
             <Route path="/veterinary-portal/:phone" element={<VeterinaryPortal />} />
+            <Route path="/lab-login" element={<LabAuth mode="login" />} />
+            <Route path="/lab-signup" element={<LabAuth mode="register" />} />
             <Route path="/lab-portal" element={<LabPortal />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

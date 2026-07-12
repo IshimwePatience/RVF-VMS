@@ -25,7 +25,7 @@ fs
     db[model.name] = model;
   });
 
-const { Stock, User, Batch, Vaccine, Supplier, StockInventory, Request, Transfer, AdministrationRecord, Notification, Veterinary, HomeVaccinationRecord } = db;
+const { Stock, User, Batch, Vaccine, Supplier, StockInventory, Request, Transfer, AdministrationRecord, Notification, Veterinary, HomeVaccinationRecord, LabTechnician } = db;
 
 Stock.belongsTo(Stock, { as: 'ParentStock', foreignKey: 'parent_stock_id' });
 Stock.hasMany(Stock, { as: 'ChildStocks', foreignKey: 'parent_stock_id' });
@@ -82,9 +82,9 @@ Transfer.belongsTo(Request, { foreignKey: 'request_id' });
 Transfer.belongsTo(User, { as: 'Shipper', foreignKey: 'shipped_by' });
 Transfer.belongsTo(User, { as: 'Receiver', foreignKey: 'received_by' });
 
-if (db.LabResult) {
-  User.hasMany(db.LabResult, { foreignKey: 'uploaded_by' });
-  db.LabResult.belongsTo(User, { foreignKey: 'uploaded_by', as: 'uploader' });
+if (db.LabResult && LabTechnician) {
+  LabTechnician.hasMany(db.LabResult, { foreignKey: 'uploaded_by' });
+  db.LabResult.belongsTo(LabTechnician, { foreignKey: 'uploaded_by', as: 'uploader' });
 }
 
 db.sequelize = sequelize;

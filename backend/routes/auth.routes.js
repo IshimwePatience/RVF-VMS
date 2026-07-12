@@ -12,4 +12,8 @@ router.put('/settings', authenticate, authController.updateSettings);
 // Veterinary Passwordless Auth
 router.post('/vet/login', authController.vetLogin);
 
+// Lab Technician Passwordless Auth
+router.post('/lab-tech/login', authController.labTechLogin);
+router.get('/lab-techs', authController.getLabTechs);
+
 module.exports = router;

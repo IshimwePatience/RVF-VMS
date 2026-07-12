@@ -263,3 +263,64 @@ exports.vetLogin = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+const { LabTechnician } = require('../models');
+
+exports.labTechLogin = async (req, res) => {
+  try {
+    const { name, district } = req.body;
+    let { phone_number } = req.body;
+    if (!phone_number) return res.status(400).json({ message: 'Phone number is required' });
+    
+    // Clean phone number (remove spaces)
+    phone_number = phone_number.replace(/\s+/g, '').trim();
+
+    // Optional basic validation for rwandan number format (078, 079, 072, 073, 074)
+    if (!/^07[23489]\d{7}$/.test(phone_number)) {
+      return res.status(400).json({ message: 'Invalid Rwandan phone number. Format should be 078xxxxxxx' });
+    }
+
+    let tech = await LabTechnician.findOne({ where: { phone_number } });
+    
+    // If tech exists and they are trying to register (name/district provided), throw error
+    if (tech && (name || district)) {
+      return res.status(400).json({ message: 'This phone number is already registered. Please login instead.' });
+    }
+
+    if (!tech) {
+      if (!name || !district) {
+        // Not found, and no name/district provided -> tell frontend they need to register
+        return res.status(404).json({ message: 'Lab Technician not found. Registration required.' });
+      }
+      
+      // Name and district provided -> Create new self-registered tech
+      tech = await LabTechnician.create({
+        phone_number,
+        name,
+        district
+      });
+    }
+
+    // Tech found or newly created -> issue token directly
+    const token = jwt.sign(
+      { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    res.json({ token, user: { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.getLabTechs = async (req, res) => {
+  try {
+    const techs = await LabTechnician.findAll();
+    res.json(techs);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
