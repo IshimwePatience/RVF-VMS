@@ -260,64 +260,68 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
                       <label className="block text-[15px] font-medium text-[#202124] mb-4">
                         District <span className="text-red-500">*</span>
                       </label>
-                      <LocationDropdown 
-                        type="districts" 
-                        value={home.district} 
-                        onChange={(val) => {
-                          updateHome(home.id, 'district', val);
-                          updateHome(home.id, 'sector', '');
-                          updateHome(home.id, 'cell', '');
-                          updateHome(home.id, 'village', '');
-                        }} 
-                        placeholder="Select District" 
-                        className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
-                      />
+                      <div className="w-full border-b border-slate-300 focus-within:border-blue-600 focus-within:border-b-2 transition-all pb-1">
+                        <LocationDropdown 
+                          type="districts" 
+                          value={home.district} 
+                          onChange={(val) => {
+                            updateHome(home.id, 'district', val);
+                            updateHome(home.id, 'sector', '');
+                            updateHome(home.id, 'cell', '');
+                            updateHome(home.id, 'village', '');
+                          }} 
+                          placeholder="Select District" 
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-[15px] font-medium text-[#202124] mb-4">
                         Sector <span className="text-red-500">*</span>
                       </label>
-                      <LocationDropdown 
-                        type="sectors" 
-                        params={{ district: home.district }}
-                        value={home.sector} 
-                        onChange={(val) => {
-                          updateHome(home.id, 'sector', val);
-                          updateHome(home.id, 'cell', '');
-                          updateHome(home.id, 'village', '');
-                        }} 
-                        placeholder="Select Sector" 
-                        className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
-                      />
+                      <div className="w-full border-b border-slate-300 focus-within:border-blue-600 focus-within:border-b-2 transition-all pb-1">
+                        <LocationDropdown 
+                          type="sectors" 
+                          params={{ district: home.district }}
+                          value={home.sector} 
+                          onChange={(val) => {
+                            updateHome(home.id, 'sector', val);
+                            updateHome(home.id, 'cell', '');
+                            updateHome(home.id, 'village', '');
+                          }} 
+                          placeholder="Select Sector" 
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-[15px] font-medium text-[#202124] mb-4">
                         Cell <span className="text-red-500">*</span>
                       </label>
-                      <LocationDropdown 
-                        type="cells" 
-                        params={{ sector: home.sector }}
-                        value={home.cell} 
-                        onChange={(val) => {
-                          updateHome(home.id, 'cell', val);
-                          updateHome(home.id, 'village', '');
-                        }} 
-                        placeholder="Select Cell" 
-                        className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
-                      />
+                      <div className="w-full border-b border-slate-300 focus-within:border-blue-600 focus-within:border-b-2 transition-all pb-1">
+                        <LocationDropdown 
+                          type="cells" 
+                          params={{ district: home.district, sector: home.sector }}
+                          value={home.cell} 
+                          onChange={(val) => {
+                            updateHome(home.id, 'cell', val);
+                            updateHome(home.id, 'village', '');
+                          }} 
+                          placeholder="Select Cell" 
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-[15px] font-medium text-[#202124] mb-4">
                         Village <span className="text-red-500">*</span>
                       </label>
-                      <LocationDropdown 
-                        type="villages" 
-                        params={{ cell: home.cell }}
-                        value={home.village} 
-                        onChange={(val) => updateHome(home.id, 'village', val)} 
-                        placeholder="Select Village" 
-                        className="w-full outline-none border-b border-slate-300 focus:border-blue-600 focus:border-b-2 transition-all pb-1 text-[15px] bg-transparent"
-                      />
+                      <div className="w-full border-b border-slate-300 focus-within:border-blue-600 focus-within:border-b-2 transition-all pb-1">
+                        <LocationDropdown 
+                          type="villages" 
+                          params={{ district: home.district, sector: home.sector, cell: home.cell }}
+                          value={home.village} 
+                          onChange={(val) => updateHome(home.id, 'village', val)} 
+                          placeholder="Select Village" 
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
