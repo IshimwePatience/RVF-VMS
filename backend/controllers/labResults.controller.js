@@ -1,15 +1,51 @@
-const { LabResult, LabTechnician } = require('../models');
+const { LabResult, LabTechnician, SurveillanceSample } = require('../models');
 
 exports.uploadResults = async (req, res) => {
   try {
     const results = req.body; // Expecting an array of objects
-    if (!Array.isArray(results)) {
-      return res.status(400).json({ message: 'Payload must be an array of results' });
+    if (!Array.isArray(results) || results.length === 0) {
+      return res.status(400).json({ message: 'Payload must be a non-empty array of results' });
+    }
+
+    // Validation 1: Check for missing PCR results
+    const missingPcr = results.filter(r => !r.rvf_pcr_results || String(r.rvf_pcr_results).trim() === '');
+    if (missingPcr.length > 0) {
+      const missingIds = missingPcr.map(r => r.animal_id || 'Unknown ID').join(', ');
+      return res.status(400).json({ 
+        message: `Upload rejected. Missing PCR Result for the following Animal IDs: ${missingIds}` 
+      });
+    }
+
+    // Validation 2: Check if Animal IDs exist in SurveillanceSample
+    const uploadedAnimalIds = results.map(r => r.animal_id).filter(Boolean);
+    if (uploadedAnimalIds.length === 0) {
+      return res.status(400).json({ message: 'Upload rejected. No Animal IDs found in the file.' });
+    }
+
+    const existingSamples = await SurveillanceSample.findAll({
+      where: {
+        animal_id: uploadedAnimalIds
+      },
+      attributes: ['animal_id']
+    });
+
+    const existingIdSet = new Set(existingSamples.map(s => String(s.animal_id).trim().toLowerCase()));
+    
+    const mismatchedIds = [];
+    for (const r of results) {
+      if (!r.animal_id || !existingIdSet.has(String(r.animal_id).trim().toLowerCase())) {
+        mismatchedIds.push(r.animal_id || 'Unknown ID');
+      }
+    }
+
+    if (mismatchedIds.length > 0) {
+      return res.status(400).json({ 
+        message: `Upload rejected. The following Animal IDs do not exist in the system (mismatch): ${mismatchedIds.join(', ')}` 
+      });
     }
 
     const uploaded_by = req.user.id;
     let createdCount = 0;
-    let updatedCount = 0;
 
     for (const item of results) {
       await LabResult.create({
@@ -22,11 +58,11 @@ exports.uploadResults = async (req, res) => {
     res.json({
       message: 'Results processed successfully',
       created: createdCount,
-      updated: updatedCount
+      updated: 0
     });
   } catch (error) {
     console.error('Error uploading lab results:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error while validating or saving data' });
   }
 };
 

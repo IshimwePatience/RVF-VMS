@@ -47,80 +47,60 @@ export default function UploadResultsTab() {
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         
-        // Convert to JSON. The user's screenshot has headers on row 5 (index 4).
-        // Let's assume standard parsing for now, or just look for the first row with 'S/N' or 'Farmer Name'
+        // Convert to JSON using first row as header.
         const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: "" });
         
-        // Find the actual data rows. The headers might not be on the first line.
-        // Let's map it based on expected columns: "Farmer Name", "Animal Id", "RVF PCR Results"
-        let processedData = [];
-        
-        let foundHeader = false;
-        let keysMapping = {};
-        
-        // Fallback simple parsing if headers are recognized by xlsx
-        const standardData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        
-        for (let row of standardData) {
-          if (!foundHeader) {
-            // Check if this row looks like a header
-            const rowStr = row.join(' ').toLowerCase();
-            if (rowStr.includes('farmer') && rowStr.includes('results')) {
-              foundHeader = true;
-              row.forEach((col, idx) => {
-                if (!col) return;
-                const c = col.toString().toLowerCase();
-                if (c.includes('farmer')) keysMapping.farmer_name = idx;
-                if (c.includes('phone')) keysMapping.phone = idx;
-                if (c.includes('district')) keysMapping.animal_district_origin = idx;
-                if (c.includes('sector')) keysMapping.sector = idx;
-                if (c.includes('cell')) keysMapping.cell = idx;
-                if (c.includes('village')) keysMapping.village = idx;
-                if (c.includes('specie')) keysMapping.specie = idx;
-                if (c.includes('animal id') || c.includes('eartag')) keysMapping.animal_id = idx;
-                if (c.includes('breed')) keysMapping.breed = idx;
-                if (c.includes('sex')) keysMapping.sex = idx;
-                if (c.includes('age')) keysMapping.age = idx;
-                if (c.includes('vaccination')) keysMapping.vaccination_status = idx;
-                if (c.includes('purpose')) keysMapping.purpose = idx;
-                if (c.includes('health status')) keysMapping.health_status = idx;
-                if (c.includes('pcr results') || c.includes('results')) keysMapping.rvf_pcr_results = idx;
-              });
-            }
-          } else {
-            // It's a data row
-            if (row.length === 0 || !row[keysMapping.farmer_name]) continue; // Skip empty rows or summary rows
-            if (row[0] && row[0].toString().toLowerCase().includes('prepared by')) break; // End of table
-            
-            processedData.push({
-              farmer_name: row[keysMapping.farmer_name]?.toString() || '',
-              phone: row[keysMapping.phone]?.toString() || '',
-              animal_district_origin: row[keysMapping.animal_district_origin]?.toString() || '',
-              sector: row[keysMapping.sector]?.toString() || '',
-              cell: row[keysMapping.cell]?.toString() || '',
-              village: row[keysMapping.village]?.toString() || '',
-              specie: row[keysMapping.specie]?.toString() || '',
-              animal_id: row[keysMapping.animal_id]?.toString() || '',
-              breed: row[keysMapping.breed]?.toString() || '',
-              sex: row[keysMapping.sex]?.toString() || '',
-              age: row[keysMapping.age]?.toString() || '',
-              vaccination_status: row[keysMapping.vaccination_status]?.toString() || '',
-              purpose: row[keysMapping.purpose]?.toString() || '',
-              health_status: row[keysMapping.health_status]?.toString() || '',
-              rvf_pcr_results: row[keysMapping.rvf_pcr_results]?.toString() || '',
-            });
-          }
+        if (!jsonData || jsonData.length === 0) {
+          addToast('File is empty or invalid format.', 'error');
+          setParsedData(null);
+          setRawData(null);
+          return;
         }
 
+        // Map to expected backend columns
+        const processedData = jsonData.map(row => {
+          // Flexible key matching in case of slight variations
+          const getVal = (possibleKeys) => {
+            for (const k of Object.keys(row)) {
+              if (possibleKeys.some(pk => k.toLowerCase().includes(pk.toLowerCase()))) {
+                return row[k]?.toString() || '';
+              }
+            }
+            return '';
+          };
+
+          return {
+            farmer_name: getVal(['Farmer Name', 'Farmer']),
+            phone: getVal(['Phone']),
+            animal_district_origin: getVal(['District']),
+            sector: getVal(['Sector']),
+            cell: getVal(['Cell']),
+            village: getVal(['Village']),
+            specie: getVal(['Specie', 'Species']),
+            animal_id: getVal(['Animal ID', 'Eartag', 'Tag']),
+            breed: getVal(['Breed']),
+            sex: getVal(['Sex', 'Gender']),
+            age: getVal(['Age']),
+            vaccination_status: getVal(['Vaccination']),
+            purpose: getVal(['Purpose']),
+            health_status: getVal(['Health Status']),
+            rvf_pcr_results: getVal(['PCR Result', 'PCR Results', 'Result']),
+          };
+        }).filter(r => r.animal_id || r.farmer_name); // Filter out completely empty rows
+
         if (processedData.length === 0) {
-           addToast('Could not find recognizable data in this file. Please use the standard template.', 'error');
+           addToast('Could not find recognizable data in this file. Please use the downloaded template.', 'error');
            setParsedData(null);
            setRawData(null);
            return;
         }
 
         setParsedData(processedData);
-        setRawData(standardData.filter(row => row.some(cell => cell !== undefined && cell !== null && cell !== '')));
+        
+        // For raw preview: get headers and rows
+        const headers = Object.keys(jsonData[0] || {});
+        const previewData = [headers, ...jsonData.map(row => headers.map(h => row[h]))];
+        setRawData(previewData);
 
       } catch (err) {
         console.error(err);
@@ -161,7 +141,11 @@ export default function UploadResultsTab() {
       setParsedData(null);
     } catch (err) {
       console.error(err);
-      addToast('Failed to upload results to the server', 'error');
+      if (err.response && err.response.data && err.response.data.message) {
+        addToast(err.response.data.message, 'error');
+      } else {
+        addToast('Failed to upload results to the server', 'error');
+      }
     } finally {
       setIsUploading(false);
     }
