@@ -224,6 +224,11 @@ exports.vetLogin = async (req, res) => {
 
     let vet = await Veterinary.findOne({ where: { phone_number } });
     
+    // If vet exists and they are trying to register (name/district provided), throw error
+    if (vet && (name || district)) {
+      return res.status(400).json({ message: 'This phone number is already registered. Please login instead.' });
+    }
+
     if (!vet) {
       if (!name || !district) {
         // Not found, and no name/district provided -> tell frontend they need to register
