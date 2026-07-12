@@ -11,6 +11,7 @@ import HomeVaccinationReportView from '../components/HomeVaccinationReportView';
 import MapModal from '../components/MapModal';
 import ViewResultsTab from './LabPortal/ViewResultsTab';
 import ReportPDFModal from '../components/ReportPDFModal';
+import ExportExcelModal from '../components/ExportExcelModal';
 import { exportToExcel } from '../utils/exportExcel';
 import { generatePDFReport } from '../utils/generatePDF';
 import { MoreVertical, Download, FileText } from 'lucide-react';
@@ -26,6 +27,7 @@ export default function Reports() {
   const [mapLocationData, setMapLocationData] = useState(null);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [pdfModalConfig, setPdfModalConfig] = useState(null);
+  const [excelModalConfig, setExcelModalConfig] = useState(null);
   const exportMenuRef = useRef(null);
 
   useEffect(() => {
@@ -148,112 +150,144 @@ export default function Reports() {
     }
   };
 
-  const handleExportHomeVaccinations = () => {
-    const data = homeVaccinations.map(r => ({
-      'Date Submitted': new Date(r.date_administered || r.createdAt).toLocaleDateString(),
-      'Veterinary Phone': r.veterinary_email,
-      'Province': r.province,
-      'District': r.district,
-      'Sector': r.sector,
-      'Cell': r.cell,
-      'Village': r.village,
-      'Owner Name': r.owner_name,
-      'Owner Phone': r.owner_phone,
-      'Owner National ID': r.owner_national_id,
-      'Vaccine': r.vaccine_name,
-      'Batch Number': r.batch_number,
-      'Animal Type': r.animal_type,
-      'Dose Given': r.dose_given,
-      'Damages': r.damages
-    }));
-    exportToExcel(data, 'Home_Vaccination_Records');
-    setShowExportMenu(false);
-  };
+  const handleGenerateExcel = async ({ startDate, endDate, dateRangeLabel, filters: excelFilters }) => {
+    const type = excelModalConfig.type;
+    const title = excelModalConfig.title;
 
-  const handleExportSurveillance = () => {
-    const data = [];
-    filteredSurveillance.forEach(form => {
-      if (form.samples && form.samples.length > 0) {
-        form.samples.forEach(sample => {
-          data.push({
-            'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
-            'Veterinary Phone': form.veterinary_email || form.phone_number,
-            'Test Requested': form.test_requested,
-            'District': sample.district_origin || sample.district || form.district || '',
-            'Sector': sample.sector || form.sector || '',
-            'Cell': sample.cell || form.cell || '',
-            'Village': sample.village || form.village || '',
-            'From Abattoir': form.from_abattoir ? 'Yes' : 'No',
-            'Sample SN': sample.sn,
-            'Farmer Name': sample.farmer_name,
-            'Farmer Phone': sample.phone,
-            'Animal ID': sample.animal_id,
-            'Specie': sample.specie,
-            'Breed': sample.breed,
-            'Sex': sample.sex,
-            'Age': sample.age,
-            'Vaccination Status': sample.vaccination_status,
-            'Purpose': sample.purpose,
-            'Health Status': sample.health_status
-          });
-        });
-      } else {
-         data.push({
-           'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
-           'Veterinary Phone': form.veterinary_email || form.phone_number,
-           'Test Requested': form.test_requested,
-           'District': form.district,
-           'Sector': form.sector,
-           'Cell': form.cell,
-           'Village': form.village
-         });
-      }
-    });
-    exportToExcel(data, 'Sample_Test_Forms');
-    setShowExportMenu(false);
-  };
-
-  const handleExportLabResults = async () => {
     try {
-      const res = await axios.get('/rvf-api/lab-results');
-      const results = res.data;
-      const filtered = results.filter(r => {
-        if (filters?.district && r.animal_district_origin !== filters.district && r.district !== filters.district) return false;
-        if (filters?.sector && r.sector !== filters.sector) return false;
-        if (filters?.veterinary_name) {
-          const searchVal = filters.veterinary_name.toLowerCase();
-          const rPhone = (r.phone || '').toLowerCase();
-          const rFarmer = (r.farmer_name || '').toLowerCase();
-          if (!rPhone.includes(searchVal) && !rFarmer.includes(searchVal)) return false;
+      let records = [];
+      if (type === 'home_vaccination') {
+        const res = await axios.get('/rvf-api/veterinary-portal/vaccinations');
+        records = res.data;
+      } else if (type === 'surveillance') {
+        const res = await axios.get('/rvf-api/surveillance');
+        records = res.data;
+      } else if (type === 'lab_results') {
+        const res = await axios.get('/rvf-api/lab-results');
+        records = res.data;
+      }
+
+      // Filter records
+      let filtered = records.filter(r => {
+        const d = new Date(r.createdAt || r.date_administered);
+        if (d < startDate || d > endDate) return false;
+
+        // For surveillance, the location is usually on the samples, but we'll check both form and samples later
+        // For now, if it's not surveillance, filter directly
+        if (type !== 'surveillance') {
+          const rDist = r.animal_district_origin || r.district;
+          if (excelFilters.district && rDist !== excelFilters.district) return false;
+          if (excelFilters.sector && r.sector !== excelFilters.sector) return false;
+          if (excelFilters.cell && r.cell !== excelFilters.cell) return false;
+          if (excelFilters.village && r.village !== excelFilters.village) return false;
         }
-        if (filters?.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
-        if (filters?.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
         return true;
       });
 
-      const data = filtered.map(r => ({
-        'Date Uploaded': new Date(r.createdAt).toLocaleDateString(),
-        'Farmer Name': r.farmer_name,
-        'Farmer Phone': r.phone,
-        'Province': r.animal_province || r.province,
-        'District': r.animal_district_origin || r.district,
-        'Sector': r.sector,
-        'Animal ID': r.animal_id,
-        'Specie': r.specie,
-        'Breed': r.breed,
-        'Sex': r.sex,
-        'Age': r.age,
-        'Vaccination Status': r.vaccination_status,
-        'Purpose': r.purpose,
-        'Health Status': r.health_status,
-        'PCR Result': r.pcr_result || 'Pending'
-      }));
-      exportToExcel(data, 'Lab_Results');
+      let data = [];
+
+      if (type === 'home_vaccination') {
+        data = filtered.map(r => ({
+          'Date Submitted': new Date(r.date_administered || r.createdAt).toLocaleDateString(),
+          'Veterinary Phone': r.veterinary_email,
+          'Province': r.province,
+          'District': r.district,
+          'Sector': r.sector,
+          'Cell': r.cell,
+          'Village': r.village,
+          'Owner Name': r.owner_name,
+          'Owner Phone': r.owner_phone,
+          'Owner National ID': r.owner_national_id,
+          'Vaccine': r.vaccine_name,
+          'Batch Number': r.batch_number,
+          'Animal Type': r.animal_type,
+          'Dose Given': r.dose_given,
+          'Damages': r.damages
+        }));
+      } else if (type === 'surveillance') {
+        filtered.forEach(form => {
+          if (form.samples && form.samples.length > 0) {
+            form.samples.forEach(sample => {
+              const sDist = sample.district_origin || sample.district || form.district;
+              const sSec = sample.sector || form.sector;
+              const sCell = sample.cell || form.cell;
+              const sVill = sample.village || form.village;
+              
+              if (excelFilters.district && sDist !== excelFilters.district) return;
+              if (excelFilters.sector && sSec !== excelFilters.sector) return;
+              if (excelFilters.cell && sCell !== excelFilters.cell) return;
+              if (excelFilters.village && sVill !== excelFilters.village) return;
+
+              data.push({
+                'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
+                'Veterinary Phone': form.veterinary_email || form.phone_number,
+                'Test Requested': form.test_requested,
+                'District': sDist || '',
+                'Sector': sSec || '',
+                'Cell': sCell || '',
+                'Village': sVill || '',
+                'From Abattoir': form.from_abattoir ? 'Yes' : 'No',
+                'Sample SN': sample.sn,
+                'Farmer Name': sample.farmer_name,
+                'Farmer Phone': sample.phone,
+                'Animal ID': sample.animal_id,
+                'Specie': sample.specie,
+                'Breed': sample.breed,
+                'Sex': sample.sex,
+                'Age': sample.age,
+                'Vaccination Status': sample.vaccination_status,
+                'Purpose': sample.purpose,
+                'Health Status': sample.health_status
+              });
+            });
+          } else {
+            if (excelFilters.district && form.district !== excelFilters.district) return;
+            if (excelFilters.sector && form.sector !== excelFilters.sector) return;
+            if (excelFilters.cell && form.cell !== excelFilters.cell) return;
+            if (excelFilters.village && form.village !== excelFilters.village) return;
+            
+            data.push({
+              'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
+              'Veterinary Phone': form.veterinary_email || form.phone_number,
+              'Test Requested': form.test_requested,
+              'District': form.district,
+              'Sector': form.sector,
+              'Cell': form.cell,
+              'Village': form.village
+            });
+          }
+        });
+      } else if (type === 'lab_results') {
+        data = filtered.map(r => ({
+          'Date Uploaded': new Date(r.createdAt).toLocaleDateString(),
+          'Farmer Name': r.farmer_name,
+          'Farmer Phone': r.phone,
+          'Province': r.animal_province || r.province,
+          'District': r.animal_district_origin || r.district,
+          'Sector': r.sector,
+          'Cell': r.cell,
+          'Village': r.village,
+          'Animal ID': r.animal_id,
+          'Specie': r.specie,
+          'Breed': r.breed,
+          'Sex': r.sex,
+          'Age': r.age,
+          'Vaccination Status': r.vaccination_status,
+          'Purpose': r.purpose,
+          'Health Status': r.health_status,
+          'PCR Result': r.pcr_result || 'Pending'
+        }));
+      }
+
+      exportToExcel(data, `${title.replace(/\s+/g, '_')}_${dateRangeLabel}`);
+      setExcelModalConfig(null);
     } catch (err) {
-      addToast('Failed to fetch lab results for export.', 'error');
+      console.error(err);
+      addToast('Failed to export Excel. Check network.', 'error');
     }
-    setShowExportMenu(false);
   };
+
+
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -529,18 +563,25 @@ export default function Reports() {
                   Export to Excel
                 </div>
                 <button 
-                  onClick={handleExportHomeVaccinations} 
+                  onClick={() => { setExcelModalConfig({ type: 'home_vaccination', title: 'Home Vaccination Records' }); setShowExportMenu(false); }} 
                   className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                 >
-                  <Download className="w-4 h-4 text-blue-500" />
+                  <Download className="w-4 h-4 text-emerald-500" />
                   Home Vaccination Records
                 </button>
                 <button 
-                  onClick={handleExportSurveillance} 
+                  onClick={() => { setExcelModalConfig({ type: 'surveillance', title: 'Sample Test Forms' }); setShowExportMenu(false); }} 
                   className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4 text-emerald-500" />
                   Sample Test Forms
+                </button>
+                <button 
+                  onClick={() => { setExcelModalConfig({ type: 'lab_results', title: 'Lab Results' }); setShowExportMenu(false); }} 
+                  className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4 text-emerald-500" />
+                  Lab Results
                 </button>
                 <div className="px-4 py-2 mt-2 text-xs font-bold tracking-wider text-slate-400 uppercase border-t border-slate-100 pt-3 mb-1">
                   Export to PDF
@@ -577,6 +618,13 @@ export default function Reports() {
         onClose={() => setPdfModalConfig(null)}
         title={pdfModalConfig?.title}
         onGenerate={handleGeneratePDF}
+      />
+
+      <ExportExcelModal 
+        isOpen={!!excelModalConfig}
+        onClose={() => setExcelModalConfig(null)}
+        title={excelModalConfig?.title}
+        onExport={handleGenerateExcel}
       />
 
       {user?.role === 'Admin' && activeTab === 'overview' ? (

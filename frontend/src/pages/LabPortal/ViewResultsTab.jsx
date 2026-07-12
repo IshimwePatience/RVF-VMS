@@ -210,7 +210,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
       )}
 
       {!isLoading && results.length > 0 && (
-        <Pagination {...pagination} />
+        <Pagination {...pagination} onPageChange={pagination.jump} />
       )}
 
       {mapLocationData && (
