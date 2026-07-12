@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext, useState, useMemo, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { AuthContext } from '../context/AuthContext';
@@ -10,6 +10,10 @@ import SampleTestReportView from '../components/SampleTestReportView';
 import HomeVaccinationReportView from '../components/HomeVaccinationReportView';
 import MapModal from '../components/MapModal';
 import ViewResultsTab from './LabPortal/ViewResultsTab';
+import ReportPDFModal from '../components/ReportPDFModal';
+import { exportToExcel } from '../utils/exportExcel';
+import { generatePDFReport } from '../utils/generatePDF';
+import { MoreVertical, Download, FileText } from 'lucide-react';
 
 export default function Reports() {
   const { user } = useContext(AuthContext);
@@ -20,6 +24,230 @@ export default function Reports() {
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedHomeVaccination, setSelectedHomeVaccination] = useState(null);
   const [mapLocationData, setMapLocationData] = useState(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [pdfModalConfig, setPdfModalConfig] = useState(null);
+  const exportMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleGeneratePDF = async ({ startDate, endDate, status, dateRangeLabel }) => {
+    const type = pdfModalConfig.type;
+    const title = pdfModalConfig.title;
+    
+    try {
+      // Fetch all veterinaries and users to know who didn't report
+      const [vetsRes, usersRes] = await Promise.all([
+        axios.get('/rvf-api/veterinaries').catch(() => ({ data: [] })),
+        axios.get('/rvf-api/users').catch(() => ({ data: [] }))
+      ]);
+      const allVets = vetsRes.data || [];
+      const labUsers = (usersRes.data || []).filter(u => u.role === 'Lab User');
+
+      let records = [];
+      let allUsersToCheck = [];
+      let reportedUserIdentifierFn = () => null;
+
+      if (type === 'home_vaccination') {
+        const res = await axios.get('/rvf-api/veterinary-portal/vaccinations');
+        records = res.data;
+        allUsersToCheck = allVets;
+        reportedUserIdentifierFn = (r) => r.veterinary_email; // Using email column for phone
+      } else if (type === 'surveillance') {
+        const res = await axios.get('/rvf-api/surveillance');
+        records = res.data;
+        allUsersToCheck = allVets;
+        reportedUserIdentifierFn = (r) => r.veterinary_email || r.phone_number;
+      } else if (type === 'lab_results') {
+        const res = await axios.get('/rvf-api/lab-results');
+        records = res.data;
+        allUsersToCheck = labUsers;
+        reportedUserIdentifierFn = (r) => r.uploaded_by || r.lab_user_id; // Need to match lab users
+        // Note: if lab results don't clearly map to a Lab User ID, this might fall back to showing all as missing.
+        // For lab results, let's just show the raw records if reported, and for missing we check lab users.
+      }
+
+      // Filter records by date range
+      const recordsInRange = records.filter(r => {
+        const d = new Date(r.createdAt || r.date_administered);
+        return d >= startDate && d <= endDate;
+      });
+
+      // Get unique identifiers of those who reported
+      const reportedIdentifiers = new Set(recordsInRange.map(reportedUserIdentifierFn).filter(Boolean));
+
+      let rows = [];
+      let headers = [];
+
+      if (status === 'reported') {
+        if (type === 'home_vaccination') {
+          headers = ['Date', 'Veterinary Phone', 'District', 'Sector', 'Vaccine', 'Doses'];
+          rows = recordsInRange.map(r => [
+            new Date(r.createdAt).toLocaleDateString(),
+            r.veterinary_email || 'N/A',
+            r.district || 'N/A',
+            r.sector || 'N/A',
+            r.vaccine_name || 'N/A',
+            r.dose_given || '0'
+          ]);
+        } else if (type === 'surveillance') {
+          headers = ['Date', 'Veterinary Phone', 'District', 'Sector', 'Samples'];
+          rows = recordsInRange.map(r => [
+            new Date(r.createdAt).toLocaleDateString(),
+            r.veterinary_email || r.phone_number || 'N/A',
+            r.district || 'N/A',
+            r.sector || 'N/A',
+            r.samples?.length || '0'
+          ]);
+        } else if (type === 'lab_results') {
+          headers = ['Date Uploaded', 'Farmer', 'District', 'Specie', 'PCR Result'];
+          rows = recordsInRange.map(r => [
+            new Date(r.createdAt).toLocaleDateString(),
+            r.farmer_name || 'N/A',
+            r.animal_district_origin || r.district || 'N/A',
+            r.specie || 'N/A',
+            r.pcr_result || 'Pending'
+          ]);
+        }
+      } else {
+        // Missing Reports
+        headers = ['Name', 'Phone', 'District', 'Sector'];
+        const missingUsers = allUsersToCheck.filter(u => {
+          const identifier = type === 'lab_results' ? u.id : (u.phone_number || u.email);
+          return !reportedIdentifiers.has(identifier);
+        });
+
+        rows = missingUsers.map(u => [
+          u.name || u.full_name || 'N/A',
+          u.phone_number || u.phone || u.email || 'N/A',
+          u.district || 'N/A',
+          u.sector || 'N/A'
+        ]);
+      }
+
+      const statusText = status === 'reported' ? 'Submitted Reports' : 'Did NOT Submit';
+      const fullTitle = `${title} - ${statusText} (${dateRangeLabel.toUpperCase()})`;
+      generatePDFReport(fullTitle, headers, rows, `${title.replace(/\s+/g, '_')}_${status}`);
+      setPdfModalConfig(null);
+    } catch (err) {
+      console.error(err);
+      addToast('Failed to generate PDF. Check network or permissions.', 'error');
+    }
+  };
+
+  const handleExportHomeVaccinations = () => {
+    const data = homeVaccinations.map(r => ({
+      'Date Submitted': new Date(r.date_administered || r.createdAt).toLocaleDateString(),
+      'Veterinary Phone': r.veterinary_email,
+      'Province': r.province,
+      'District': r.district,
+      'Sector': r.sector,
+      'Cell': r.cell,
+      'Village': r.village,
+      'Owner Name': r.owner_name,
+      'Owner Phone': r.owner_phone,
+      'Owner National ID': r.owner_national_id,
+      'Vaccine': r.vaccine_name,
+      'Batch Number': r.batch_number,
+      'Animal Type': r.animal_type,
+      'Dose Given': r.dose_given,
+      'Damages': r.damages
+    }));
+    exportToExcel(data, 'Home_Vaccination_Records');
+    setShowExportMenu(false);
+  };
+
+  const handleExportSurveillance = () => {
+    const data = [];
+    filteredSurveillance.forEach(form => {
+      if (form.samples && form.samples.length > 0) {
+        form.samples.forEach(sample => {
+          data.push({
+            'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
+            'Veterinary Phone': form.veterinary_email || form.phone_number,
+            'Test Requested': form.test_requested,
+            'Province': form.province,
+            'District': form.district,
+            'Sector': form.sector,
+            'Cell': form.cell,
+            'Village': form.village,
+            'From Abattoir': form.from_abattoir ? 'Yes' : 'No',
+            'Sample SN': sample.sn,
+            'Farmer Name': sample.farmer_name,
+            'Farmer Phone': sample.phone,
+            'Animal ID': sample.animal_id,
+            'Specie': sample.specie,
+            'Breed': sample.breed,
+            'Sex': sample.sex,
+            'Age': sample.age,
+            'Vaccination Status': sample.vaccination_status,
+            'Purpose': sample.purpose,
+            'Health Status': sample.health_status,
+            'Status': form.report_status
+          });
+        });
+      } else {
+         data.push({
+           'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
+           'Veterinary Phone': form.veterinary_email || form.phone_number,
+           'Test Requested': form.test_requested,
+           'Province': form.province,
+           'District': form.district,
+           'Sector': form.sector,
+           'Cell': form.cell,
+           'Village': form.village,
+           'Status': form.report_status
+         });
+      }
+    });
+    exportToExcel(data, 'Sample_Test_Forms');
+    setShowExportMenu(false);
+  };
+
+  const handleExportLabResults = async () => {
+    try {
+      const res = await axios.get('/rvf-api/lab-results');
+      const results = res.data;
+      const filtered = results.filter(r => {
+        if (filters?.province && r.animal_province !== filters.province && r.province !== filters.province) return false;
+        if (filters?.district && r.animal_district_origin !== filters.district && r.district !== filters.district) return false;
+        if (filters?.sector && r.sector !== filters.sector) return false;
+        if (filters?.veterinary_name && r.phone && !r.phone.includes(filters.veterinary_name)) return false;
+        if (filters?.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
+        if (filters?.dateTo && new Date(r.createdAt) > new Date(filters.dateTo)) return false;
+        return true;
+      });
+
+      const data = filtered.map(r => ({
+        'Date Uploaded': new Date(r.createdAt).toLocaleDateString(),
+        'Farmer Name': r.farmer_name,
+        'Farmer Phone': r.phone,
+        'Province': r.animal_province || r.province,
+        'District': r.animal_district_origin || r.district,
+        'Sector': r.sector,
+        'Animal ID': r.animal_id,
+        'Specie': r.specie,
+        'Breed': r.breed,
+        'Sex': r.sex,
+        'Age': r.age,
+        'Vaccination Status': r.vaccination_status,
+        'Purpose': r.purpose,
+        'Health Status': r.health_status,
+        'PCR Result': r.pcr_result || 'Pending'
+      }));
+      exportToExcel(data, 'Lab_Results');
+    } catch (err) {
+      addToast('Failed to fetch lab results for export.', 'error');
+    }
+    setShowExportMenu(false);
+  };
 
   // Filters State
   const [filters, setFilters] = useState({
@@ -221,49 +449,114 @@ export default function Reports() {
       </div>
 
       {user?.role === 'Admin' && (
-        <div className="flex space-x-4 mb-8 overflow-x-auto">
-          <button
-            onClick={() => { setActiveTab('overview'); pagination.jump(1); }}
-            className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'overview' 
-                ? 'border-blue-600 text-blue-600' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => { setActiveTab('home_vaccination'); pagination.jump(1); }}
-            className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'home_vaccination' 
-                ? 'border-blue-600 text-blue-600' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            Home Vaccination Records
-          </button>
-          <button
-            onClick={() => { setActiveTab('surveillance'); pagination.jump(1); }}
-            className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'surveillance' 
-                ? 'border-blue-600 text-blue-600' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            Sample Test Forms
-          </button>
-          <button
-            onClick={() => { setActiveTab('lab_results'); pagination.jump(1); }}
-            className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-              activeTab === 'lab_results' 
-                ? 'border-blue-600 text-blue-600' 
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            Lab Results
-          </button>
+        <div className="flex justify-between items-center mb-8 border-b-2 border-transparent">
+          <div className="flex space-x-4 overflow-x-auto">
+            <button
+              onClick={() => { setActiveTab('overview'); pagination.jump(1); }}
+              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'overview' 
+                  ? 'border-blue-600 text-blue-600' 
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => { setActiveTab('home_vaccination'); pagination.jump(1); }}
+              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'home_vaccination' 
+                  ? 'border-blue-600 text-blue-600' 
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Home Vaccination Records
+            </button>
+            <button
+              onClick={() => { setActiveTab('surveillance'); pagination.jump(1); }}
+              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'surveillance' 
+                  ? 'border-blue-600 text-blue-600' 
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Sample Test Forms
+            </button>
+            <button
+              onClick={() => { setActiveTab('lab_results'); pagination.jump(1); }}
+              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === 'lab_results' 
+                  ? 'border-blue-600 text-blue-600' 
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Lab Results
+            </button>
+          </div>
+          
+          <div className="relative ml-4" ref={exportMenuRef}>
+            <button 
+              onClick={() => setShowExportMenu(!showExportMenu)} 
+              className="p-2 hover:bg-slate-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              title="Export Options"
+            >
+              <MoreVertical className="w-5 h-5 text-slate-600" />
+            </button>
+            
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 z-50 py-2">
+                <div className="px-4 py-2 text-xs font-bold tracking-wider text-slate-400 uppercase mb-1">
+                  Export to Excel
+                </div>
+                <button 
+                  onClick={handleExportHomeVaccinations} 
+                  className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4 text-blue-500" />
+                  Home Vaccination Records
+                </button>
+                <button 
+                  onClick={handleExportSurveillance} 
+                  className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4 text-emerald-500" />
+                  Sample Test Forms
+                </button>
+                <div className="px-4 py-2 mt-2 text-xs font-bold tracking-wider text-slate-400 uppercase border-t border-slate-100 pt-3 mb-1">
+                  Export to PDF
+                </div>
+                <button 
+                  onClick={() => { setPdfModalConfig({ type: 'home_vaccination', title: 'Home Vaccination Records' }); setShowExportMenu(false); }} 
+                  className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4 text-red-500" />
+                  Home Vaccination Records
+                </button>
+                <button 
+                  onClick={() => { setPdfModalConfig({ type: 'surveillance', title: 'Sample Test Forms' }); setShowExportMenu(false); }} 
+                  className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4 text-red-500" />
+                  Sample Test Forms
+                </button>
+                <button 
+                  onClick={() => { setPdfModalConfig({ type: 'lab_results', title: 'Lab Results' }); setShowExportMenu(false); }} 
+                  className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4 text-red-500" />
+                  Lab Results
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
+
+      <ReportPDFModal 
+        isOpen={!!pdfModalConfig}
+        onClose={() => setPdfModalConfig(null)}
+        title={pdfModalConfig?.title}
+        onGenerate={handleGeneratePDF}
+      />
 
       {user?.role === 'Admin' && activeTab === 'overview' ? (
         <div className="bg-white shadow-sm border border-slate-200 overflow-hidden">
