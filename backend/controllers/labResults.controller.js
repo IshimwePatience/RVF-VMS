@@ -44,7 +44,7 @@ exports.uploadResults = async (req, res) => {
       });
     }
 
-    const uploaded_by = req.user.id;
+    const uploaded_by = req.user.role === 'Lab User' ? req.user.id : null;
     let createdCount = 0;
 
     for (const item of results) {
@@ -63,7 +63,7 @@ exports.uploadResults = async (req, res) => {
     });
   } catch (error) {
     console.error('Error uploading lab results:', error);
-    res.status(500).json({ message: 'Server error while validating or saving data' });
+    res.status(500).json({ message: error.message || 'Server error while validating or saving data' });
   }
 };
 
