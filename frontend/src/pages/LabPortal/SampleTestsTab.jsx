@@ -254,7 +254,7 @@ export default function SampleTestsTab() {
       </div>
 
       {filteredSamples.length === 0 && !isLoading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center mt-4 border border-slate-200 rounded-xl bg-white">
+        <div className="py-20 flex flex-col items-center justify-center text-center mt-4">
           <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No sample tests found" className="w-48 h-48 mb-6 object-contain opacity-75" />
           <p className="text-[17px] font-semibold text-slate-700">No sample tests found.</p>
           <p className="text-slate-500 text-sm mt-1 max-w-sm">There are no samples matching your criteria.</p>
