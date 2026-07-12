@@ -44,7 +44,13 @@ exports.uploadResults = async (req, res) => {
       });
     }
 
-    const uploaded_by = req.user.role === 'Lab User' ? req.user.id : null;
+    let uploaded_by = null;
+    if (req.user.role === 'Lab User') {
+      const tech = await LabTechnician.findByPk(req.user.id);
+      if (tech) {
+        uploaded_by = tech.id;
+      }
+    }
     let createdCount = 0;
 
     for (const item of results) {
