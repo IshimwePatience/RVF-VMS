@@ -156,6 +156,7 @@ export default function Reports() {
 
     try {
       let records = [];
+      let vetMap = {};
       if (type === 'home_vaccination') {
         const res = await axios.get('/rvf-api/veterinary-portal/vaccinations');
         records = res.data;
@@ -163,8 +164,27 @@ export default function Reports() {
         const res = await axios.get('/rvf-api/surveillance');
         records = res.data;
       } else if (type === 'lab_results') {
-        const res = await axios.get('/rvf-api/lab-results');
-        records = res.data;
+        const [labRes, survRes, vaccRes] = await Promise.all([
+          axios.get('/rvf-api/lab-results'),
+          axios.get('/rvf-api/surveillance').catch(() => ({ data: [] })),
+          axios.get('/rvf-api/veterinary-portal/vaccinations').catch(() => ({ data: [] }))
+        ]);
+        records = labRes.data;
+        const surv = survRes.data || [];
+        const vacc = vaccRes.data || [];
+
+        surv.forEach(r => {
+          r.samples?.forEach(s => {
+            if (s.animal_id) {
+              vetMap[s.animal_id] = { name: r.veterinary_name, phone: r.phone_number || r.veterinary_email };
+            }
+          });
+        });
+        vacc.forEach(r => {
+          if (r.animal_id) {
+            vetMap[r.animal_id] = { name: r.veterinary_name, phone: r.veterinary_email };
+          }
+        });
       }
 
       // Filter records
@@ -259,23 +279,26 @@ export default function Reports() {
         });
       } else if (type === 'lab_results') {
         data = filtered.map(r => ({
+          'Lab Technician Name': r.uploader?.name || 'N/A',
+          'Technician Number': r.uploader?.phone_number || 'N/A',
           'Date Uploaded': new Date(r.createdAt).toLocaleDateString(),
-          'Farmer Name': r.farmer_name,
-          'Farmer Phone': r.phone,
-          'Province': r.animal_province || r.province,
-          'District': r.animal_district_origin || r.district,
-          'Sector': r.sector,
-          'Cell': r.cell,
-          'Village': r.village,
-          'Animal ID': r.animal_id,
-          'Specie': r.specie,
-          'Breed': r.breed,
-          'Sex': r.sex,
-          'Age': r.age,
-          'Vaccination Status': r.vaccination_status,
-          'Purpose': r.purpose,
-          'Health Status': r.health_status,
-          'PCR Result': r.pcr_result || 'Pending'
+          'Veterinary (Result Owner)': vetMap[r.animal_id]?.name || 'N/A',
+          'Veterinary Phone': vetMap[r.animal_id]?.phone || 'N/A',
+          'Farmer Name': r.farmer_name || 'N/A',
+          'Farmer Phone': r.phone || 'N/A',
+          'District': r.animal_district_origin || r.district || 'N/A',
+          'Sector': r.sector || 'N/A',
+          'Cell': r.cell || 'N/A',
+          'Village': r.village || 'N/A',
+          'Animal ID': r.animal_id || 'N/A',
+          'Specie': r.specie || 'N/A',
+          'Breed': r.breed || 'N/A',
+          'Sex': r.sex || 'N/A',
+          'Age': r.age || 'N/A',
+          'Vacc. Status': r.vaccination_status || 'N/A',
+          'Purpose': r.purpose || 'N/A',
+          'Health Status': r.health_status || 'N/A',
+          'PCR Result': r.rvf_pcr_results || 'Pending'
         }));
       }
 

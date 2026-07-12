@@ -1,10 +1,11 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { RefreshCw, MapPin, Pencil, Trash2, X } from 'lucide-react';
+import { RefreshCw, MapPin, Pencil, Trash2, X, Search } from 'lucide-react';
 import MapModal from '../../components/MapModal';
 import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/Pagination';
+import LocationDropdown from '../../components/LocationDropdown';
 import { AuthContext } from '../../context/AuthContext';
 import { ToastContext } from '../../context/ToastContext';
 
@@ -13,6 +14,16 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
   const { addToast } = useContext(ToastContext);
   const [mapLocationData, setMapLocationData] = useState(null);
   const [editingResult, setEditingResult] = useState(null);
+  
+  const [localFilters, setLocalFilters] = useState({
+    district: '',
+    sector: '',
+    cell: '',
+    village: '',
+    dateFrom: '',
+    dateTo: '',
+    search: ''
+  });
 
   const { data: surveillanceForms = [] } = useQuery({
     queryKey: ['surveillance-forms-for-vets'],
@@ -47,25 +58,118 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
   });
 
   const filteredResults = useMemo(() => {
+    const activeFilters = isLabPortal ? localFilters : filters;
+    
     return results.filter(r => {
-      if (filters?.district && r.animal_district_origin !== filters.district && r.district !== filters.district) return false;
-      if (filters?.sector && r.sector !== filters.sector) return false;
-      if (filters?.veterinary_name) {
-        const searchVal = filters.veterinary_name.toLowerCase();
+      if (activeFilters?.district && r.animal_district_origin !== activeFilters.district && r.district !== activeFilters.district) return false;
+      if (activeFilters?.sector && r.sector !== activeFilters.sector) return false;
+      if (activeFilters?.cell && r.cell !== activeFilters.cell) return false;
+      if (activeFilters?.village && r.village !== activeFilters.village) return false;
+      
+      const searchTerm = isLabPortal ? activeFilters?.search : activeFilters?.veterinary_name;
+      if (searchTerm) {
+        const searchVal = searchTerm.toLowerCase();
         const rPhone = (r.phone || '').toLowerCase();
         const rFarmer = (r.farmer_name || '').toLowerCase();
-        if (!rPhone.includes(searchVal) && !rFarmer.includes(searchVal)) return false;
+        const rAnimalId = (r.animal_id || '').toLowerCase();
+        if (!rPhone.includes(searchVal) && !rFarmer.includes(searchVal) && !rAnimalId.includes(searchVal)) return false;
       }
-      if (filters?.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
-      if (filters?.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
+      if (activeFilters?.dateFrom && new Date(r.createdAt) < new Date(activeFilters.dateFrom)) return false;
+      if (activeFilters?.dateTo && new Date(r.createdAt) > new Date(activeFilters.dateTo + 'T23:59:59')) return false;
       return true;
     });
-  }, [results, filters]);
+  }, [results, filters, localFilters, isLabPortal]);
 
   const pagination = usePagination(filteredResults || [], 10);
 
   return (
     <>
+      <div className="space-y-6">
+        {isLabPortal && (
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="text"
+                  placeholder="Search farmer or animal ID..."
+                  value={localFilters.search}
+                  onChange={(e) => setLocalFilters({...localFilters, search: e.target.value})}
+                  className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+            <div className="w-40">
+              <div className="border border-slate-300 rounded-lg bg-white overflow-hidden text-sm">
+                <LocationDropdown 
+                  type="districts"
+                  value={localFilters.district}
+                  onChange={(val) => setLocalFilters({ ...localFilters, district: val, sector: '', cell: '', village: '' })}
+                  placeholder="District"
+                />
+              </div>
+            </div>
+            <div className="w-40">
+              <div className="border border-slate-300 rounded-lg bg-white overflow-hidden text-sm">
+                <LocationDropdown 
+                  type="sectors"
+                  params={{ district: localFilters.district }}
+                  value={localFilters.sector}
+                  onChange={(val) => setLocalFilters({ ...localFilters, sector: val, cell: '', village: '' })}
+                  placeholder="Sector"
+                />
+              </div>
+            </div>
+            <div className="w-40">
+              <div className="border border-slate-300 rounded-lg bg-white overflow-hidden text-sm">
+                <LocationDropdown 
+                  type="cells"
+                  params={{ district: localFilters.district, sector: localFilters.sector }}
+                  value={localFilters.cell}
+                  onChange={(val) => setLocalFilters({ ...localFilters, cell: val, village: '' })}
+                  placeholder="Cell"
+                />
+              </div>
+            </div>
+            <div className="w-40">
+              <div className="border border-slate-300 rounded-lg bg-white overflow-hidden text-sm">
+                <LocationDropdown 
+                  type="villages"
+                  params={{ district: localFilters.district, sector: localFilters.sector, cell: localFilters.cell }}
+                  value={localFilters.village}
+                  onChange={(val) => setLocalFilters({ ...localFilters, village: val })}
+                  placeholder="Village"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input 
+                type="date"
+                value={localFilters.dateFrom}
+                onChange={e => setLocalFilters({...localFilters, dateFrom: e.target.value})}
+                className="w-36 px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-600"
+              />
+              <span className="text-slate-400">-</span>
+              <input 
+                type="date"
+                value={localFilters.dateTo}
+                onChange={e => setLocalFilters({...localFilters, dateTo: e.target.value})}
+                className="w-36 px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-600"
+              />
+            </div>
+            {(localFilters.search || localFilters.district || localFilters.dateFrom || localFilters.dateTo) && (
+              <button 
+                onClick={() => setLocalFilters({ district: '', sector: '', cell: '', village: '', dateFrom: '', dateTo: '', search: '' })}
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {(!isLoading && filteredResults.length === 0) ? (
         <div className="py-20 flex flex-col items-center justify-center text-center mt-2">
           <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No data" className="h-40 object-contain mb-6 opacity-75" />
@@ -220,6 +324,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
           locationData={mapLocationData}
         />
       )}
+    </div>
 
       {editingResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
