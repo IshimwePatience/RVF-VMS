@@ -8,16 +8,17 @@ import Pagination from '../../components/Pagination';
 import { AuthContext } from '../../context/AuthContext';
 import { ToastContext } from '../../context/ToastContext';
 
-export default function ViewResultsTab({ isLabPortal, filters }) {
+export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }) {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const [mapLocationData, setMapLocationData] = useState(null);
   const [editingResult, setEditingResult] = useState(null);
 
   const { data: results = [], isLoading, refetch, isFetching } = useQuery({
-    queryKey: ['lab-results'],
+    queryKey: ['lab-results', veterinaryPhone],
     queryFn: async () => {
-      const res = await axios.get('/rvf-api/lab-results');
+      const url = veterinaryPhone ? `/rvf-api/lab-results?vet_phone=${encodeURIComponent(veterinaryPhone)}` : '/rvf-api/lab-results';
+      const res = await axios.get(url);
       return res.data;
     }
   });
