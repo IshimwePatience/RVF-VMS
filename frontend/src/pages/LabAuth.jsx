@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import minisanteLogo from '../assets/images/MINISANTE.png';
-import { ChevronRight } from 'lucide-react';
+import LoginSkeleton from '../components/LoginSkeleton';
 import { ToastContext } from '../context/ToastContext';
 import { useContext } from 'react';
 
@@ -17,8 +16,6 @@ export default function LabAuth({ mode = 'login' }) {
   const { data: districts = [] } = useQuery({
     queryKey: ['districts'],
     queryFn: async () => {
-      // Just fetch all locations, or districts specifically. If we don't have a specific endpoint, we can use an existing one or hardcode it.
-      // But we can just use the locations api if it exists. Let's use districts-with-stock as a proxy for valid districts.
       const res = await axios.get('/rvf-api/locations/districts-with-stock').catch(() => ({ data: [] }));
       return res.data;
     },
@@ -30,7 +27,6 @@ export default function LabAuth({ mode = 'login' }) {
     onSuccess: (res) => {
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-      // Force a hard reload so AuthContext picks up the new token
       window.location.href = import.meta.env.BASE_URL + 'lab-portal';
     },
     onError: (err) => {
@@ -65,94 +61,104 @@ export default function LabAuth({ mode = 'login' }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="bg-[#12aeec] p-8 text-center text-white flex flex-col items-center justify-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#12aeec] to-[#0d8abf] opacity-90"></div>
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="bg-white p-3 rounded-full shadow-lg mb-4">
-              <img src={minisanteLogo} alt="MINISANTE Logo" className="h-16 w-16 object-contain" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight mb-2">Lab Technician Portal</h1>
-            <p className="text-blue-100 text-sm max-w-xs mx-auto">
-              {mode === 'login' ? 'Enter your registered phone number to access the portal' : 'Register your details to start uploading results'}
-            </p>
-          </div>
+    <LoginSkeleton>
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-[450px] p-8 pt-10 relative overflow-hidden text-left border border-slate-200">
+        <div className="mb-6">
+          <h2 className="text-[22px] font-medium text-[#5f6368] tracking-tight leading-tight mb-2">
+            Lab Technician Portal
+          </h2>
+          <p className="text-[16px] text-[#373A3C] leading-normal">
+            {mode === 'login' 
+              ? 'Enter your registered phone number to access the portal.' 
+              : 'Register your details to start uploading results.'}
+          </p>
         </div>
 
-        <div className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {mode === 'register' && (
-              <>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#12aeec]/20 focus:border-[#12aeec] transition-all"
-                    placeholder="Enter your full name"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Working District</label>
-                  <select
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#12aeec]/20 focus:border-[#12aeec] transition-all"
-                    required
-                  >
-                    <option value="">Select your district...</option>
-                    {districts.map(d => (
-                      <option key={d.district} value={d.district}>{d.district}</option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            )}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-6">
+            <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
+              Phone Number <span className="text-[#C02B0A]">*</span>
+            </label>
+            <input
+              type="tel"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] placeholder-[#8A92A3] text-[#1F2432]"
+              placeholder="078..."
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label>
+          {mode === 'register' && (
+            <div className="mb-6">
+              <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
+                Full Name <span className="text-[#C02B0A]">*</span>
+              </label>
               <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#12aeec]/20 focus:border-[#12aeec] transition-all"
-                placeholder="078..."
+                type="text"
                 required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] placeholder-[#8A92A3] text-[#1F2432]"
+                placeholder="Enter your full name"
               />
             </div>
+          )}
 
+          {mode === 'register' && (
+            <div className="mb-6">
+              <label className="block text-[14px] font-bold text-[#1F2432] mb-1.5">
+                Working District <span className="text-[#C02B0A]">*</span>
+              </label>
+              <select
+                required
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
+                className="w-full px-3 py-2.5 rounded border border-[#8A92A3] focus:border-[#0056D2] focus:ring-1 focus:ring-[#0056D2] outline-none transition-all text-[16px] text-[#1F2432] bg-white"
+              >
+                <option value="">Select your district...</option>
+                {districts.map(d => (
+                  <option key={d.district} value={d.district}>{d.district}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loginMutation.isPending}
+            className="w-full bg-[#0056D2] hover:bg-[#004BB8] text-white font-bold text-[16px] py-3 rounded transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {loginMutation.isPending ? 'Processing...' : (mode === 'login' ? 'Continue' : 'Complete Registration')}
+          </button>
+        </form>
+
+        <div className="mt-6 flex flex-col gap-2">
+          {mode === 'login' ? (
             <button
-              type="submit"
-              disabled={loginMutation.isPending}
-              className="w-full bg-[#12aeec] hover:bg-[#0d8abf] text-white py-3.5 px-4 rounded-xl font-bold tracking-wide shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+              type="button"
+              onClick={() => navigate('/lab-signup')}
+              className="block text-left text-[#0056D2] text-[14px] hover:underline font-normal"
             >
-              {loginMutation.isPending ? 'Processing...' : (mode === 'login' ? 'Login to Portal' : 'Complete Registration')}
-              {!loginMutation.isPending && <ChevronRight className="w-5 h-5" />}
+              Don't have an account? Register here.
             </button>
-          </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate('/lab-login')}
+              className="block text-left text-[#0056D2] text-[14px] hover:underline font-normal"
+            >
+              Already registered? Login here.
+            </button>
+          )}
+        </div>
 
-          <div className="mt-6 text-center">
-            {mode === 'login' ? (
-              <p className="text-sm text-slate-500">
-                Don't have an account?{' '}
-                <button onClick={() => navigate('/lab-signup')} className="text-[#12aeec] font-semibold hover:underline">
-                  Register here
-                </button>
-              </p>
-            ) : (
-              <p className="text-sm text-slate-500">
-                Already registered?{' '}
-                <button onClick={() => navigate('/lab-login')} className="text-[#12aeec] font-semibold hover:underline">
-                  Login here
-                </button>
-              </p>
-            )}
-          </div>
+        <div className="text-[12px] text-[#5E6D7E] leading-[1.5] mt-6">
+          I accept rvf vaccine hub's <a href="#" className="underline hover:text-[#1F2432]">Terms of Use</a> and <a href="#" className="underline hover:text-[#1F2432]">Privacy Notice</a>. Having trouble logging in? <a href="#" className="underline hover:text-[#1F2432]">Help center</a>
+          <br /><br />
+          This site is protected by reCAPTCHA Enterprise and the Google <a href="#" className="underline hover:text-[#1F2432]">Privacy Policy</a> and <a href="#" className="underline hover:text-[#1F2432]">Terms of Service</a> apply.
         </div>
       </div>
-    </div>
+    </LoginSkeleton>
   );
 }

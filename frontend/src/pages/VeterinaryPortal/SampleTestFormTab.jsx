@@ -191,21 +191,21 @@ export default function SampleTestFormTab({ phone }) {
           {/* Left Column */}
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap">District:</label>
+              <label className="font-bold mr-2 whitespace-nowrap">District <span className="text-red-500">*</span>:</label>
               <div className="flex-1 border-b border-dotted border-slate-400 pb-1">
-                <LocationDropdown type="districts" value={headerData.district} onChange={(val) => handleHeaderChange('district', val)} placeholder="Select District" />
+                <LocationDropdown type="districts" required={true} value={headerData.district} onChange={(val) => handleHeaderChange('district', val)} placeholder="Select District" />
               </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap">Numbers & Type of Samples:</label>
-              <input type="text" value={headerData.samplesType} onChange={(e) => handleHeaderChange('samplesType', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
+              <label className="font-bold mr-2 whitespace-nowrap">Numbers & Type of Samples <span className="text-red-500">*</span>:</label>
+              <input type="text" required value={headerData.samplesType} onChange={(e) => handleHeaderChange('samplesType', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap">Date of Sample Collection:</label>
-              <input type="date" value={headerData.collectionDate} onChange={(e) => handleHeaderChange('collectionDate', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
+              <label className="font-bold mr-2 whitespace-nowrap">Date of Sample Collection <span className="text-red-500">*</span>:</label>
+              <input type="date" required value={headerData.collectionDate} onChange={(e) => handleHeaderChange('collectionDate', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap text-blue-700">Submitted by (Name & Title):</label>
+              <label className="font-bold mr-2 whitespace-nowrap text-blue-700">Submitted by (Name & Title) <span className="text-red-500">*</span>:</label>
               <input type="text" required value={headerData.submittedBy} onChange={(e) => handleHeaderChange('submittedBy', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" />
             </div>
           </div>
@@ -213,8 +213,8 @@ export default function SampleTestFormTab({ phone }) {
           {/* Right Column */}
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap">Sample Source:</label>
-              <select value={headerData.fromAbattoir} onChange={(e) => handleHeaderChange('fromAbattoir', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600 appearance-none cursor-pointer">
+              <label className="font-bold mr-2 whitespace-nowrap">Sample Source <span className="text-red-500">*</span>:</label>
+              <select required value={headerData.fromAbattoir} onChange={(e) => handleHeaderChange('fromAbattoir', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600 appearance-none cursor-pointer">
                 <option value=""></option>
                 <option value="Home Control">Home Control</option>
                 <option value="Home Sampling">Home Sampling</option>
@@ -223,15 +223,15 @@ export default function SampleTestFormTab({ phone }) {
               </select>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap">If Market/Abattoir (Name & Phone):</label>
-              <input type="text" value={headerData.abattoirDetails} onChange={(e) => handleHeaderChange('abattoirDetails', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
+              <label className="font-bold mr-2 whitespace-nowrap">If Market/Abattoir (Name & Phone) {['Market', 'Abattoir'].includes(headerData.fromAbattoir) && <span className="text-red-500">*</span>}:</label>
+              <input type="text" required={['Market', 'Abattoir'].includes(headerData.fromAbattoir)} value={headerData.abattoirDetails} onChange={(e) => handleHeaderChange('abattoirDetails', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap">Test Requested:</label>
-              <input type="text" value={headerData.testRequested} onChange={(e) => handleHeaderChange('testRequested', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
+              <label className="font-bold mr-2 whitespace-nowrap">Test Requested <span className="text-red-500">*</span>:</label>
+              <input type="text" required value={headerData.testRequested} onChange={(e) => handleHeaderChange('testRequested', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
-              <label className="font-bold mr-2 whitespace-nowrap text-blue-700">Phone Number:</label>
+              <label className="font-bold mr-2 whitespace-nowrap text-blue-700">Phone Number <span className="text-red-500">*</span>:</label>
               <input type="tel" required pattern="^07[23489]\d{7}$" minLength="10" maxLength="10" title="Must be a valid 10-digit Rwandan phone number starting with 07" value={headerData.phoneNumber} onChange={(e) => handleHeaderChange('phoneNumber', e.target.value.replace(/\D/g, ''))} className="flex-1 bg-transparent border-b border-dotted border-blue-400 outline-none pb-1 focus:border-blue-600" />
             </div>
           </div>
