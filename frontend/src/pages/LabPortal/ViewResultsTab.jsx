@@ -51,9 +51,8 @@ export default function ViewResultsTab({ isLabPortal, filters }) {
           </p>
         </div>
       ) : (
-        <div className="bg-white shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-700 whitespace-nowrap">
           {(!isLoading && results.length > 0) && (
             <thead className="border-b border-slate-200">
               <tr>
@@ -158,7 +157,6 @@ export default function ViewResultsTab({ isLabPortal, filters }) {
             )}
           </tbody>
         </table>
-      </div>
       </div>
       )}
 
