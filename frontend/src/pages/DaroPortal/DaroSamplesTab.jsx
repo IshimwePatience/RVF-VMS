@@ -143,7 +143,8 @@ export default function DaroSamplesTab({ district }) {
       </div>
 
       {filteredSamples.length === 0 && !isLoading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-center mt-4 border border-slate-200 rounded-xl bg-white">
+        <div className="py-20 flex flex-col items-center justify-center text-center mt-4">
+          <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No samples found" className="h-40 object-contain mb-6 opacity-75" />
           <p className="text-[17px] font-semibold text-slate-700">No samples found.</p>
           <p className="text-slate-500 text-sm mt-1 max-w-sm">There are no samples matching your criteria in your district.</p>
         </div>

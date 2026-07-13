@@ -52,7 +52,11 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
     queryKey: ['lab-results', veterinaryPhone],
     queryFn: async () => {
       const url = veterinaryPhone ? `/rvf-api/lab-results?vet_phone=${encodeURIComponent(veterinaryPhone)}` : '/rvf-api/lab-results';
-      const res = await axios.get(url);
+      
+      const token = localStorage.getItem('token') || localStorage.getItem('daro_token') || localStorage.getItem('lab_token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      const res = await axios.get(url, { headers });
       return res.data;
     }
   });
