@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Download } from 'lucide-react';
 import LocationDropdown from './LocationDropdown';
 
-export default function ExportExcelModal({ isOpen, onClose, onExport, title }) {
+export default function ExportExcelModal({ isOpen, onClose, onExport, title, type }) {
   const [dateRange, setDateRange] = useState('all');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
@@ -10,7 +10,8 @@ export default function ExportExcelModal({ isOpen, onClose, onExport, title }) {
     district: '',
     sector: '',
     cell: '',
-    village: ''
+    village: '',
+    tested_site: ''
   });
 
   if (!isOpen) return null;
@@ -95,6 +96,25 @@ export default function ExportExcelModal({ isOpen, onClose, onExport, title }) {
                   placeholder="All Villages"
                 />
               </div>
+              
+              {type === 'lab_results' && (
+                <div className="border border-slate-300 rounded-lg bg-white overflow-hidden text-sm">
+                  <select
+                    value={filters.tested_site}
+                    onChange={(e) => setFilters({ ...filters, tested_site: e.target.value })}
+                    className="w-full px-4 py-2.5 outline-none text-slate-700 bg-transparent"
+                  >
+                    <option value="">All Lab Sites</option>
+                    <option value="Rubilizi-Kigali Lab">Rubilizi-Kigali Lab</option>
+                    <option value="Gihundwe-Rusizi Lab">Gihundwe-Rusizi Lab</option>
+                    <option value="CHUB-Huye Lab">CHUB-Huye Lab</option>
+                    <option value="Rubavu-Gisenyi Lab">Rubavu-Gisenyi Lab</option>
+                    <option value="Rwamagana Lab">Rwamagana Lab</option>
+                    <option value="Ngoma Lab">Ngoma Lab</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              )}
             </div>
           </div>
 

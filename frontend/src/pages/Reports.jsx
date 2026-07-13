@@ -200,6 +200,7 @@ export default function Reports() {
           if (excelFilters.sector && r.sector !== excelFilters.sector) return false;
           if (excelFilters.cell && r.cell !== excelFilters.cell) return false;
           if (excelFilters.village && r.village !== excelFilters.village) return false;
+          if (type === 'lab_results' && excelFilters.tested_site && r.tested_site !== excelFilters.tested_site) return false;
         }
         return true;
       });
@@ -685,6 +686,7 @@ export default function Reports() {
         isOpen={!!excelModalConfig}
         onClose={() => setExcelModalConfig(null)}
         title={excelModalConfig?.title}
+        type={excelModalConfig?.type}
         onExport={handleGenerateExcel}
       />
 

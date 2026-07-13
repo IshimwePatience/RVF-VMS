@@ -125,16 +125,23 @@ exports.getAdminDashboard = async (req, res) => {
     });
 
     // Positive Cases by Purpose
-    const whereLabResult = { rvf_pcr_results: { [Op.iLike]: 'Positive' } };
+    const whereLabResultAnd = [
+      Sequelize.where(Sequelize.fn('LOWER', Sequelize.col('rvf_pcr_results')), 'LIKE', '%positive%')
+    ];
+    
     if (whereSurvForm.district) {
-      whereLabResult.animal_district_origin = whereSurvForm.district;
+      whereLabResultAnd.push(
+        Sequelize.where(Sequelize.fn('LOWER', Sequelize.col('animal_district_origin')), Sequelize.fn('LOWER', String(whereSurvForm.district)))
+      );
     }
     if (whereSurvForm.sector) {
-      whereLabResult.sector = whereSurvForm.sector;
+      whereLabResultAnd.push({ sector: whereSurvForm.sector });
     }
     if (whereAdmin.date_administered) {
-      whereLabResult.createdAt = whereAdmin.date_administered;
+      whereLabResultAnd.push({ createdAt: whereAdmin.date_administered });
     }
+
+    const whereLabResult = { [Op.and]: whereLabResultAnd };
     const positiveCasesByPurpose = await LabResult.findAll({
       attributes: [
         'purpose',
