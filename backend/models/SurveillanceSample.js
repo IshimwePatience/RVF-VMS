@@ -53,6 +53,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     health_status: {
       type: DataTypes.STRING
+    },
+    daro_approval_status: {
+      type: DataTypes.STRING,
+      defaultValue: 'Pending'
+    },
+    daro_approved_by: {
+      type: DataTypes.STRING
+    },
+    daro_approval_date: {
+      type: DataTypes.DATE
     }
   }, {
     tableName: 'SurveillanceSamples',

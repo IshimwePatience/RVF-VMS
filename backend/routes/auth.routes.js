@@ -19,4 +19,8 @@ router.post('/lab-techs', authenticate, authController.createLabTech);
 router.put('/lab-techs/:id', authenticate, authController.updateLabTech);
 router.delete('/lab-techs/:id', authenticate, authController.deleteLabTech);
 
+// DARO Passwordless Auth
+router.post('/daro/login', authController.daroLogin);
+router.post('/daro/register', authController.daroRegister);
+
 module.exports = router;

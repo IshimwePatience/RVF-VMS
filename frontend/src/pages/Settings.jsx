@@ -115,6 +115,11 @@ export default function Settings() {
                 label="Show Vaccines Overview" 
                 description="When enabled, the Vaccines Overview summary will be visible in the Veterinary Portal's Overview tab."
               />
+              <ToggleSetting 
+                settingKey="daro_approval_enabled" 
+                label="Enable DARO Sample Approval" 
+                description="When enabled, DAROs will be able to approve or reject samples in their portal."
+              />
             </div>
           </div>
         </div>

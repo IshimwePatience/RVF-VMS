@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { User, Stock, PasswordResetRequest } = require('../models');
+const { User, Stock, PasswordResetRequest, Daro } = require('../models');
 const { Op } = require('sequelize');
 const { otpCache, sessionCache } = require('../utils/cache');
 const { sendOTP } = require('../utils/email');
@@ -398,5 +398,102 @@ exports.deleteLabTech = async (req, res) => {
   } catch (error) {
     console.error('Error deleting lab tech:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// DARO Passwordless Auth
+exports.daroLogin = async (req, res) => {
+  try {
+    let { phone_number } = req.body;
+    if (!phone_number) return res.status(400).json({ message: 'Phone number is required' });
+    
+    phone_number = phone_number.replace(/\s+/g, '').trim();
+
+    if (!/^07[23489]\d{7}$/.test(phone_number)) {
+      return res.status(400).json({ message: 'Invalid Rwandan phone number. Format should be 078xxxxxxx' });
+    }
+
+    const daro = await Daro.findOne({ where: { phone_number } });
+    if (!daro) {
+      return res.status(404).json({ message: 'DARO not found. Registration required.' });
+    }
+
+    const token = jwt.sign(
+      { 
+        id: daro.id, 
+        role: 'DARO',
+        district: daro.district,
+        phone_number: daro.phone_number
+      },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: daro.id,
+        full_names: daro.full_names,
+        phone_number: daro.phone_number,
+        district: daro.district,
+        role: 'DARO'
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.daroRegister = async (req, res) => {
+  try {
+    let { phone_number, full_names, district } = req.body;
+    if (!phone_number || !full_names || !district) {
+      return res.status(400).json({ message: 'Phone number, full names, and district are required' });
+    }
+    
+    phone_number = phone_number.replace(/\s+/g, '').trim();
+
+    if (!/^07[23489]\d{7}$/.test(phone_number)) {
+      return res.status(400).json({ message: 'Invalid Rwandan phone number. Format should be 078xxxxxxx' });
+    }
+
+    let daro = await Daro.findOne({ where: { phone_number } });
+    if (daro) {
+      return res.status(400).json({ message: 'This phone number is already registered. Please login instead.' });
+    }
+
+    daro = await Daro.create({
+      phone_number,
+      full_names,
+      district
+    });
+
+    const token = jwt.sign(
+      { 
+        id: daro.id, 
+        role: 'DARO',
+        district: daro.district,
+        phone_number: daro.phone_number
+      },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: daro.id,
+        full_names: daro.full_names,
+        phone_number: daro.phone_number,
+        district: daro.district,
+        role: 'DARO'
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 };

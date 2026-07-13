@@ -112,3 +112,33 @@ exports.getForms = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.approveSample = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!['Pending', 'Approved', 'Rejected'].includes(status)) {
+      return res.status(400).json({ message: 'Invalid status' });
+    }
+
+    const sample = await SurveillanceSample.findByPk(id);
+    if (!sample) {
+      return res.status(404).json({ message: 'Sample not found' });
+    }
+
+    // Assuming we have the DARO's ID or name in req.user, but if not we just use "DARO"
+    const approvedBy = req.user && req.user.role === 'DARO' ? req.user.id : 'DARO';
+
+    sample.daro_approval_status = status;
+    sample.daro_approved_by = approvedBy;
+    sample.daro_approval_date = new Date();
+
+    await sample.save();
+
+    res.json({ message: 'Sample status updated', sample });
+  } catch (error) {
+    console.error('Error updating sample status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
