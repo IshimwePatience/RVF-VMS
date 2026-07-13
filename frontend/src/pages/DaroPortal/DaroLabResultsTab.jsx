@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 import LocationDropdown from '../../components/LocationDropdown';
 import ViewResultsTab from '../LabPortal/ViewResultsTab';
+import { exportToExcel } from '../../utils/exportExcel';
 
 export default function DaroLabResultsTab({ district }) {
   const [filters, setFilters] = useState({
@@ -13,6 +14,8 @@ export default function DaroLabResultsTab({ district }) {
     dateTo: '',
     search: ''
   });
+  
+  const [filteredData, setFilteredData] = useState([]);
 
   const setDateRange = (type) => {
     const today = new Date();
@@ -29,11 +32,41 @@ export default function DaroLabResultsTab({ district }) {
     }
   };
 
+  const handleExport = () => {
+    // Format data for excel to make it clean
+    const formattedData = filteredData.map(r => ({
+      'Date Uploaded': new Date(r.createdAt).toLocaleDateString(),
+      'Farmer Name': r.farmer_name || 'N/A',
+      'Farmer Phone': r.phone || 'N/A',
+      'Animal ID': r.animal_id || 'N/A',
+      'Species': r.specie || 'N/A',
+      'Breed': r.breed || 'N/A',
+      'Sex': r.sex || 'N/A',
+      'Age': r.age || 'N/A',
+      'District': r.animal_district_origin || 'N/A',
+      'Sector': r.sector || 'N/A',
+      'Cell': r.cell || 'N/A',
+      'Village': r.village || 'N/A',
+      'Tested Site': r.tested_site || 'N/A',
+      'PCR Result': r.rvf_pcr_results || 'N/A'
+    }));
+    exportToExcel(formattedData, `DARO_Lab_Results_${district}`);
+  };
+
   return (
     <div className="pb-12 pt-4">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Lab Results</h1>
-        <p className="text-slate-500 mt-1">View the laboratory test results for {district} district.</p>
+      <div className="mb-6 flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Lab Results</h1>
+          <p className="text-slate-500 mt-1">View the laboratory test results for {district} district.</p>
+        </div>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium text-sm transition-colors"
+        >
+          <Download className="w-4 h-4" />
+          Download Excel
+        </button>
       </div>
 
       <div className="mb-6">
@@ -128,7 +161,12 @@ export default function DaroLabResultsTab({ district }) {
       </div>
 
       <div className="w-full">
-        <ViewResultsTab veterinaryPhone={null} filters={filters} isLabPortal={false} />
+        <ViewResultsTab 
+          veterinaryPhone={null} 
+          filters={filters} 
+          isLabPortal={false} 
+          onFilteredDataChange={setFilteredData}
+        />
       </div>
     </div>
   );

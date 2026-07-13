@@ -9,7 +9,7 @@ import LocationDropdown from '../../components/LocationDropdown';
 import { AuthContext } from '../../context/AuthContext';
 import { ToastContext } from '../../context/ToastContext';
 
-export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }) {
+export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, onFilteredDataChange }) {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const [mapLocationData, setMapLocationData] = useState(null);
@@ -88,6 +88,18 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
       return true;
     });
   }, [results, filters, localFilters, isLabPortal]);
+
+  // Use a ref to store the latest callback to avoid unnecessary dependency changes
+  const onFilteredDataChangeRef = React.useRef(onFilteredDataChange);
+  React.useEffect(() => {
+    onFilteredDataChangeRef.current = onFilteredDataChange;
+  }, [onFilteredDataChange]);
+
+  React.useEffect(() => {
+    if (onFilteredDataChangeRef.current) {
+      onFilteredDataChangeRef.current(filteredResults);
+    }
+  }, [filteredResults]);
 
   const pagination = usePagination(filteredResults || [], 10);
 
