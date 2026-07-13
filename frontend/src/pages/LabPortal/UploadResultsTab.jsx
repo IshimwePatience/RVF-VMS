@@ -261,7 +261,7 @@ export default function UploadResultsTab() {
                   className="w-full sm:w-auto px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   disabled={isUploading}
                 >
-                  <option value="">-- Select a location --</option>
+                  <option value="">Select location</option>
                   <option value="Rubilizi-Kigali Lab">Rubilizi-Kigali Lab</option>
                   <option value="Gihundwe-Rusizi Lab">Gihundwe-Rusizi Lab</option>
                   <option value="CHUB-Huye Lab">CHUB-Huye Lab</option>
