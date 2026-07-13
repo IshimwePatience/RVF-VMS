@@ -70,7 +70,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
       if (activeFilters?.cell && r.cell !== activeFilters.cell) return false;
       if (activeFilters?.village && r.village !== activeFilters.village) return false;
       
-      const searchTerm = isLabPortal ? activeFilters?.search : activeFilters?.veterinary_name;
+      const searchTerm = activeFilters?.search;
       if (searchTerm) {
         const searchVal = searchTerm.toLowerCase();
         const rPhone = (r.phone || '').toLowerCase();

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import minisanteLogo from '../../assets/images/RAB_Logo2.png';
 import DaroSamplesTab from './DaroSamplesTab';
 import DaroLabResultsTab from './DaroLabResultsTab';
@@ -33,6 +35,49 @@ export default function DaroPortal() {
     localStorage.removeItem('daro_user');
     navigate('/daro-login');
   };
+
+  // Fetch counts
+  const { data: forms = [] } = useQuery({
+    queryKey: ['surveillance-forms'],
+    queryFn: async () => {
+      const res = await axios.get('/rvf-api/surveillance');
+      return res.data;
+    },
+    enabled: !!user
+  });
+
+  const pendingSamplesCount = useMemo(() => {
+    if (!user) return 0;
+    let count = 0;
+    forms.forEach(form => {
+      if (form.samples && Array.isArray(form.samples)) {
+        form.samples.forEach(sample => {
+          const sampleDistrict = sample.district_origin || form.district;
+          if (sampleDistrict === user.district && !sample.has_result) {
+            count++;
+          }
+        });
+      }
+    });
+    return count;
+  }, [forms, user]);
+
+  const { data: results = [] } = useQuery({
+    queryKey: ['lab-results', null],
+    queryFn: async () => {
+      const token = localStorage.getItem('daro_token');
+      const res = await axios.get('/rvf-api/lab-results', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      return res.data;
+    },
+    enabled: !!user
+  });
+
+  const labResultsCount = useMemo(() => {
+    if (!user) return 0;
+    return results.filter(r => r.district === user.district || r.form_district === user.district).length;
+  }, [results, user]);
 
   if (!user) return null;
 
@@ -91,7 +136,7 @@ export default function DaroPortal() {
                   : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
               }`}
             >
-              Samples
+              Samples ({pendingSamplesCount})
             </button>
             <button
               onClick={() => setActiveTab('lab_results')}
@@ -101,7 +146,7 @@ export default function DaroPortal() {
                   : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
               }`}
             >
-              Lab Results
+              Lab Results ({labResultsCount})
             </button>
           </nav>
         </div>
