@@ -22,6 +22,7 @@ module.exports = (sequelize) => {
     purpose: { type: DataTypes.STRING, allowNull: true },
     health_status: { type: DataTypes.STRING, allowNull: true },
     rvf_pcr_results: { type: DataTypes.STRING, allowNull: true },
+    tested_site: { type: DataTypes.STRING, allowNull: true },
     uploaded_by: { type: DataTypes.UUID, allowNull: true }
   }, {
     timestamps: true

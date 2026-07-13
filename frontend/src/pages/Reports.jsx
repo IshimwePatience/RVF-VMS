@@ -282,6 +282,7 @@ export default function Reports() {
           'Lab Technician Name': r.uploader?.name || 'N/A',
           'Technician Number': r.uploader?.phone_number || 'N/A',
           'Date Uploaded': new Date(r.createdAt).toLocaleDateString(),
+          'Tested Site': r.tested_site || 'N/A',
           'Veterinary (Result Owner)': vetMap[r.animal_id]?.name || 'N/A',
           'Veterinary Phone': vetMap[r.animal_id]?.phone || 'N/A',
           'Farmer Name': r.farmer_name || 'N/A',

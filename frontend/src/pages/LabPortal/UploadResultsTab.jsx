@@ -10,6 +10,7 @@ export default function UploadResultsTab() {
   const [parsedData, setParsedData] = useState(null);
   const [rawData, setRawData] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [testedSite, setTestedSite] = useState('');
   const [uploadResult, setUploadResult] = useState(null);
   const fileInputRef = useRef(null);
   const { addToast } = useContext(ToastContext);
@@ -126,11 +127,17 @@ export default function UploadResultsTab() {
 
   const handleUpload = async () => {
     if (!parsedData || parsedData.length === 0) return;
+    if (!testedSite) {
+      addToast('Please select a testing location before uploading.', 'error');
+      return;
+    }
+    
     setIsUploading(true);
     setUploadResult(null);
 
     try {
-      const res = await axios.post('/rvf-api/lab-results', parsedData);
+      const dataToUpload = parsedData.map(item => ({ ...item, tested_site: testedSite }));
+      const res = await axios.post('/rvf-api/lab-results', dataToUpload);
       setUploadResult({
         success: true,
         created: res.data.created,
@@ -139,6 +146,7 @@ export default function UploadResultsTab() {
       addToast('Results uploaded successfully', 'success');
       setFile(null);
       setParsedData(null);
+      setTestedSite('');
     } catch (err) {
       console.error(err);
       if (err.response && err.response.data && err.response.data.message) {
@@ -238,31 +246,69 @@ export default function UploadResultsTab() {
               </table>
             </div>
 
-            <div className="flex justify-end gap-4">
-              <button 
-                onClick={clearFile}
-                className="px-6 py-2.5 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-                disabled={isUploading}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleUpload}
-                disabled={isUploading}
-                className="flex items-center gap-2 px-8 py-2.5 bg-blue-600 text-white rounded-xl font-bold shadow-sm hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {isUploading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <UploadCloud className="w-5 h-5" />
-                    Upload / Update Results
-                  </>
-                )}
-              </button>
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <span className="text-sm font-semibold text-slate-700 whitespace-nowrap">Testing Location <span className="text-red-500">*</span></span>
+                <select 
+                  value={testedSite === 'Other' ? 'Other' : testedSite}
+                  onChange={(e) => {
+                    if (e.target.value === 'Other') {
+                      setTestedSite('Other');
+                    } else {
+                      setTestedSite(e.target.value);
+                    }
+                  }}
+                  className="w-full sm:w-auto px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  disabled={isUploading}
+                >
+                  <option value="">-- Select a location --</option>
+                  <option value="Rubilizi-Kigali Lab">Rubilizi-Kigali Lab</option>
+                  <option value="Gihundwe-Rusizi Lab">Gihundwe-Rusizi Lab</option>
+                  <option value="CHUB-Huye Lab">CHUB-Huye Lab</option>
+                  <option value="Rubavu-Gisenyi Lab">Rubavu-Gisenyi Lab</option>
+                  <option value="Rwamagana Lab">Rwamagana Lab</option>
+                  <option value="Ngoma Lab">Ngoma Lab</option>
+                  <option value="Other">Other</option>
+                </select>
+                
+                {testedSite === 'Other' || (testedSite && !['Rubilizi-Kigali Lab', 'Gihundwe-Rusizi Lab', 'CHUB-Huye Lab', 'Rubavu-Gisenyi Lab', 'Rwamagana Lab', 'Ngoma Lab'].includes(testedSite)) ? (
+                  <input
+                    type="text"
+                    placeholder="Type location..."
+                    value={testedSite === 'Other' ? '' : testedSite}
+                    onChange={(e) => setTestedSite(e.target.value || 'Other')}
+                    className="w-full sm:w-auto px-4 py-2.5 border border-slate-300 rounded-xl text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    disabled={isUploading}
+                  />
+                ) : null}
+              </div>
+
+              <div className="flex justify-end gap-4 w-full sm:w-auto">
+                <button 
+                  onClick={clearFile}
+                  className="px-6 py-2.5 rounded-xl font-medium text-slate-600 hover:bg-slate-100 transition-colors w-full sm:w-auto"
+                  disabled={isUploading}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleUpload}
+                  disabled={isUploading || !testedSite}
+                  className="flex items-center justify-center gap-2 px-8 py-2.5 bg-blue-600 text-white rounded-xl font-bold shadow-sm hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                >
+                  {isUploading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud className="w-5 h-5" />
+                      Upload / Update Results
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

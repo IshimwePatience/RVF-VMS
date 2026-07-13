@@ -191,6 +191,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
                   </>
                 )}
                 <th className="py-4 px-6 font-semibold text-slate-800">Date Uploaded</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Tested Site</th>
                 {!isLabPortal && (
                   <th className="py-4 px-6 font-semibold text-slate-800">Veterinary (Result Owner)</th>
                 )}
@@ -236,6 +237,9 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
                   )}
                   <td className="py-4 px-6 text-slate-600">
                     {new Date(r.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="py-4 px-6 text-slate-600 font-medium">
+                    {r.tested_site || 'N/A'}
                   </td>
                   {!isLabPortal && (
                     <td className="py-4 px-6">
