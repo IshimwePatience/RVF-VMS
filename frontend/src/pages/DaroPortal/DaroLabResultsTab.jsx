@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import LocationDropdown from '../../../components/LocationDropdown';
-import ViewResultsTab from '../../LabPortal/ViewResultsTab';
+import LocationDropdown from '../../components/LocationDropdown';
+import ViewResultsTab from '../LabPortal/ViewResultsTab';
 
 export default function DaroLabResultsTab({ district }) {
   const [filters, setFilters] = useState({

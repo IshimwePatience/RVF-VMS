@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
-import minisanteLogo from '../../../assets/images/RAB_Logo2.png';
+import minisanteLogo from '../../assets/images/RAB_Logo2.png';
 import DaroSamplesTab from './DaroSamplesTab';
 import DaroLabResultsTab from './DaroLabResultsTab';
 

@@ -2,9 +2,9 @@ import React, { useState, useMemo, useContext } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { Search, CheckCircle, XCircle } from 'lucide-react';
-import { usePagination } from '../../../hooks/usePagination';
-import Pagination from '../../../components/Pagination';
-import { ToastContext } from '../../../context/ToastContext';
+import { usePagination } from '../../hooks/usePagination';
+import Pagination from '../../components/Pagination';
+import { ToastContext } from '../../context/ToastContext';
 
 export default function DaroSamplesTab({ district }) {
   const [searchTerm, setSearchTerm] = useState('');
