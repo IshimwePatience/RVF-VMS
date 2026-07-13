@@ -17,15 +17,19 @@ exports.uploadResults = async (req, res) => {
     }
 
     // Validation 2: Check if Animal IDs exist in SurveillanceSample
-    const uploadedAnimalIds = results.map(r => r.animal_id ? String(r.animal_id).trim() : null).filter(Boolean);
+    const uploadedAnimalIds = results.map(r => r.animal_id ? String(r.animal_id).trim().toLowerCase() : null).filter(Boolean);
     if (uploadedAnimalIds.length === 0) {
       return res.status(400).json({ message: 'Upload rejected. No Animal IDs found in the file.' });
     }
 
+    const { Op, Sequelize } = require('sequelize');
     const existingSamples = await SurveillanceSample.findAll({
-      where: {
-        animal_id: uploadedAnimalIds
-      },
+      where: Sequelize.where(
+        Sequelize.fn('LOWER', Sequelize.fn('TRIM', Sequelize.col('animal_id'))),
+        {
+          [Op.in]: uploadedAnimalIds
+        }
+      ),
       attributes: ['animal_id']
     });
 
