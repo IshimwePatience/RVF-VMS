@@ -38,7 +38,7 @@ export default function DaroLabResultsTab({ district }) {
 
       <div className="mb-6">
         <div className="flex flex-wrap gap-4">
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-72">
             <div className="relative h-full">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input 
