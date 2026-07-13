@@ -36,7 +36,7 @@ export default function DaroLabResultsTab({ district }) {
         <p className="text-slate-500 mt-1">View the laboratory test results for {district} district.</p>
       </div>
 
-      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
+      <div className="mb-6">
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
             <div className="relative h-full">

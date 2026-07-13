@@ -65,10 +65,15 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone }
     const activeFilters = isLabPortal ? localFilters : filters;
     
     return results.filter(r => {
-      if (activeFilters?.district && r.animal_district_origin !== activeFilters.district && r.district !== activeFilters.district) return false;
-      if (activeFilters?.sector && r.sector !== activeFilters.sector) return false;
-      if (activeFilters?.cell && r.cell !== activeFilters.cell) return false;
-      if (activeFilters?.village && r.village !== activeFilters.village) return false;
+      if (activeFilters?.district) {
+        const fDist = String(activeFilters.district).toLowerCase();
+        const rDist1 = String(r.animal_district_origin || '').toLowerCase();
+        const rDist2 = String(r.district || '').toLowerCase();
+        if (rDist1 !== fDist && rDist2 !== fDist) return false;
+      }
+      if (activeFilters?.sector && String(r.sector || '').toLowerCase() !== String(activeFilters.sector).toLowerCase()) return false;
+      if (activeFilters?.cell && String(r.cell || '').toLowerCase() !== String(activeFilters.cell).toLowerCase()) return false;
+      if (activeFilters?.village && String(r.village || '').toLowerCase() !== String(activeFilters.village).toLowerCase()) return false;
       
       const searchTerm = activeFilters?.search;
       if (searchTerm) {

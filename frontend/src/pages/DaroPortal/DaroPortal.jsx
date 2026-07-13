@@ -49,11 +49,12 @@ export default function DaroPortal() {
   const pendingSamplesCount = useMemo(() => {
     if (!user) return 0;
     let count = 0;
+    const userDistrict = String(user.district || '').trim().toLowerCase();
     forms.forEach(form => {
       if (form.samples && Array.isArray(form.samples)) {
         form.samples.forEach(sample => {
-          const sampleDistrict = sample.district_origin || form.district;
-          if (sampleDistrict === user.district && !sample.has_result) {
+          const sampleDistrict = String(sample.district_origin || form.district || '').trim().toLowerCase();
+          if (sampleDistrict === userDistrict && !sample.has_result) {
             count++;
           }
         });
@@ -76,7 +77,12 @@ export default function DaroPortal() {
 
   const labResultsCount = useMemo(() => {
     if (!user) return 0;
-    return results.filter(r => r.district === user.district || r.form_district === user.district).length;
+    const userDistrict = String(user.district || '').trim().toLowerCase();
+    return results.filter(r => {
+      const d1 = String(r.animal_district_origin || '').trim().toLowerCase();
+      const d2 = String(r.district || '').trim().toLowerCase();
+      return d1 === userDistrict || d2 === userDistrict;
+    }).length;
   }, [results, user]);
 
   if (!user) return null;

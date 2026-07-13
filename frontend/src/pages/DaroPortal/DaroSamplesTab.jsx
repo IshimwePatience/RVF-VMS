@@ -18,11 +18,12 @@ export default function DaroSamplesTab({ district }) {
 
   const flattenedSamples = useMemo(() => {
     const samples = [];
+    const userDistrict = String(district || '').trim().toLowerCase();
     forms.forEach(form => {
       if (form.samples && Array.isArray(form.samples)) {
         form.samples.forEach(sample => {
-          const sampleDistrict = sample.district_origin || form.district;
-          if (sampleDistrict === district && !sample.has_result) {
+          const sampleDistrict = String(sample.district_origin || form.district || '').trim().toLowerCase();
+          if (sampleDistrict === userDistrict && !sample.has_result) {
             samples.push({
               ...sample,
               form_district: form.district,
