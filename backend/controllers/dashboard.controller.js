@@ -55,14 +55,15 @@ exports.getAdminDashboard = async (req, res) => {
     // 2. Daily Epidemic Curve (Cases by Date)
     const dailyCurveRaw = await AdministrationRecord.findAll({
       attributes: [
-        [Sequelize.fn('DATE', Sequelize.col('date_administered')), 'date'],
+        [Sequelize.literal('DATE(date_administered)'), 'date'],
         [Sequelize.fn('SUM', Sequelize.col('animals_affected')), 'affected'],
         [Sequelize.fn('SUM', Sequelize.col('doses_used')), 'doses']
       ],
       where: whereAdmin,
-      group: [Sequelize.fn('DATE', Sequelize.col('date_administered'))],
-      order: [[Sequelize.fn('DATE', Sequelize.col('date_administered')), 'ASC']],
-      limit: 30
+      group: [Sequelize.literal('DATE(date_administered)')],
+      order: [[Sequelize.literal('DATE(date_administered)'), 'ASC']],
+      limit: 30,
+      raw: true
     });
 
     // 3. Clinical Outcomes (Surveillance Samples health_status)
@@ -72,7 +73,8 @@ exports.getAdminDashboard = async (req, res) => {
         [Sequelize.fn('COUNT', Sequelize.col('SurveillanceSample.id')), 'count']
       ],
       include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
-      group: ['health_status']
+      group: ['health_status'],
+      raw: true
     });
 
     // 4. Cases by District (Administration animals_affected)
@@ -83,8 +85,9 @@ exports.getAdminDashboard = async (req, res) => {
       ],
       where: whereAdmin,
       group: ['district'],
-      order: [[Sequelize.fn('SUM', Sequelize.col('animals_affected')), 'DESC']],
-      limit: 10
+      order: [[Sequelize.literal('SUM(animals_affected)'), 'DESC']],
+      limit: 10,
+      raw: true
     });
 
     // 5. Species Distribution
@@ -95,7 +98,8 @@ exports.getAdminDashboard = async (req, res) => {
       ],
       include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
       group: ['specie'],
-      order: [[Sequelize.fn('COUNT', Sequelize.col('SurveillanceSample.id')), 'DESC']]
+      order: [[Sequelize.literal('COUNT("SurveillanceSample"."id")'), 'DESC']],
+      raw: true
     });
 
     // 6. Sex Distribution
@@ -105,7 +109,8 @@ exports.getAdminDashboard = async (req, res) => {
         [Sequelize.fn('COUNT', Sequelize.col('SurveillanceSample.id')), 'count']
       ],
       include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
-      group: ['sex']
+      group: ['sex'],
+      raw: true
     });
 
     // 7. Vaccination Status Distribution
@@ -115,7 +120,8 @@ exports.getAdminDashboard = async (req, res) => {
         [Sequelize.fn('COUNT', Sequelize.col('SurveillanceSample.id')), 'count']
       ],
       include: [{ model: SurveillanceForm, where: whereSurvForm, attributes: [], required: true }],
-      group: ['vaccination_status']
+      group: ['vaccination_status'],
+      raw: true
     });
 
     // 8. Vaccine Stock Distribution
