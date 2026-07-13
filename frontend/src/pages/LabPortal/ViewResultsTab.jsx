@@ -85,6 +85,8 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
       }
       if (activeFilters?.dateFrom && new Date(r.createdAt) < new Date(activeFilters.dateFrom)) return false;
       if (activeFilters?.dateTo && new Date(r.createdAt) > new Date(activeFilters.dateTo + 'T23:59:59')) return false;
+      if (activeFilters?.purpose && r.purpose !== activeFilters.purpose) return false;
+      if (activeFilters?.pcr_result && r.rvf_pcr_results !== activeFilters.pcr_result) return false;
       return true;
     });
   }, [results, filters, localFilters, isLabPortal]);

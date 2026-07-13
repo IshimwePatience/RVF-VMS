@@ -315,13 +315,16 @@ export default function Reports() {
 
   // Filters State
   const [filters, setFilters] = useState({
+    search: '',
     province: '',
     district: '',
     sector: '',
     veterinary_name: '',
     dateFrom: '',
     dateTo: '',
-    status: ''
+    status: '',
+    purpose: '',
+    pcr_result: ''
   });
 
   // Query string for filters for the API
@@ -419,6 +422,8 @@ export default function Reports() {
       }
       if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
       if (filters.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
+      if (filters.purpose && r.purpose !== filters.purpose) return false;
+      if (filters.pcr_result && r.rvf_pcr_results !== filters.pcr_result) return false;
       return true;
     });
   }, [centralLabResults, filters]);
@@ -515,9 +520,41 @@ export default function Reports() {
               />
             </div>
 
-            {(filters.district || filters.sector || filters.veterinary_name || filters.dateFrom || filters.dateTo || filters.status) && (
+            {(activeTab === 'lab_results' || activeTab === 'surveillance') && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Purpose</span>
+                <select
+                  value={filters.purpose}
+                  onChange={e => setFilters({...filters, purpose: e.target.value})}
+                  className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+                >
+                  <option value="">All</option>
+                  <option value="Control">Control</option>
+                  <option value="Slaughter">Slaughter</option>
+                  <option value="Suspected new case">Suspected new case</option>
+                  <option value="Systematic surveillance">Systematic surveillance</option>
+                </select>
+              </div>
+            )}
+
+            {activeTab === 'lab_results' && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 font-medium whitespace-nowrap">PCR Result</span>
+                <select
+                  value={filters.pcr_result}
+                  onChange={e => setFilters({...filters, pcr_result: e.target.value})}
+                  className="w-32 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+                >
+                  <option value="">All</option>
+                  <option value="Positive">Positive</option>
+                  <option value="Negative">Negative</option>
+                </select>
+              </div>
+            )}
+
+            {(filters.district || filters.sector || filters.veterinary_name || filters.dateFrom || filters.dateTo || filters.status || filters.purpose || filters.pcr_result) && (
               <button 
-                onClick={() => setFilters({ province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '' })}
+                onClick={() => setFilters({ province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '', purpose: '', pcr_result: '' })}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-full transition-colors border border-red-200"
               >
                 Clear

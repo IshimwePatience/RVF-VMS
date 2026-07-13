@@ -160,6 +160,17 @@ export default function Dashboard() {
     }]
   };
 
+  // Positive Cases by Purpose (Doughnut or Bar)
+  const positiveCasesData = {
+    labels: d.positiveCasesByPurpose?.map(x => x.purpose || 'Unknown') || [],
+    datasets: [{
+      label: 'Positive Cases',
+      data: d.positiveCasesByPurpose?.map(x => x.count) || [],
+      backgroundColor: [COLORS.deaths, COLORS.warning, COLORS.primary, COLORS.active, COLORS.recovered],
+      borderWidth: 0
+    }]
+  };
+
   // 7. Vaccine Stock (Bar)
   const stockLevelsData = {
     labels: d.stockByVaccine?.map(x => x.name || 'Unknown') || [],
@@ -360,6 +371,15 @@ export default function Dashboard() {
                   </button>
                 </div>
                 <div className="h-[250px]"><Bar data={vaxStatusData} options={CHART_OPTIONS} /></div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-[11px] font-bold text-slate-800 uppercase">Positive Cases By Purpose</h3>
+                  <button onClick={() => setIsMapModalOpen(true)} className="text-blue-600 font-medium hover:text-blue-800 text-[11px] flex items-center">
+                    View Map <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  </button>
+                </div>
+                <div className="h-[250px] pb-4"><Doughnut data={positiveCasesData} options={CHART_OPTIONS} /></div>
               </div>
             </>
           )}

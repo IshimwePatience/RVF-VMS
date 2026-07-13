@@ -1,4 +1,4 @@
-const { AdministrationRecord, StockInventory, Batch, Vaccine, Stock, SurveillanceForm, SurveillanceSample } = require('../models');
+const { AdministrationRecord, StockInventory, Batch, Vaccine, Stock, SurveillanceForm, SurveillanceSample, LabResult } = require('../models');
 const { Sequelize, Op } = require('sequelize');
 
 exports.getAdminDashboard = async (req, res) => {
@@ -124,6 +124,27 @@ exports.getAdminDashboard = async (req, res) => {
       raw: true
     });
 
+    // Positive Cases by Purpose
+    const whereLabResult = { rvf_pcr_results: { [Op.iLike]: 'Positive' } };
+    if (whereSurvForm.district) {
+      whereLabResult.animal_district_origin = whereSurvForm.district;
+    }
+    if (whereSurvForm.sector) {
+      whereLabResult.sector = whereSurvForm.sector;
+    }
+    if (whereAdmin.date_administered) {
+      whereLabResult.createdAt = whereAdmin.date_administered;
+    }
+    const positiveCasesByPurpose = await LabResult.findAll({
+      attributes: [
+        'purpose',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+      ],
+      where: whereLabResult,
+      group: ['purpose'],
+      raw: true
+    });
+
     // 8. Vaccine Stock Distribution
     const stockRaw = await StockInventory.findAll({
       include: [{ model: Batch, include: [{ model: Vaccine }] }]
@@ -198,6 +219,7 @@ exports.getAdminDashboard = async (req, res) => {
       speciesDistribution,
       sexDistribution,
       vaccinationStatus,
+      positiveCasesByPurpose,
       stockByVaccine: Object.entries(stockMap).map(([name, quantity]) => ({ name, quantity })),
       mapLocations
     });
