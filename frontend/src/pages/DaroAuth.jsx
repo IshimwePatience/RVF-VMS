@@ -138,7 +138,7 @@ export default function DaroAuth({ mode = 'login' }) {
 
         <div className="mt-8 pt-6 border-t border-slate-100">
           <p className="text-[12px] text-[#5f6368] leading-relaxed">
-            I accept rvf vaccine hub's <a href="#" className="underline hover:text-[#0056D2]">Terms of Use</a> and <a href="#" className="underline hover:text-[#0056D2]">Privacy Notice</a>.
+            I accept Rvf Vet Input hub's <a href="#" className="underline hover:text-[#0056D2]">Terms of Use</a> and <a href="#" className="underline hover:text-[#0056D2]">Privacy Notice</a>.
             <br /><br />
             This site is protected by reCAPTCHA Enterprise and the Google <a href="#" className="underline hover:text-[#0056D2]">Privacy Policy</a> and <a href="#" className="underline hover:text-[#0056D2]">Terms of Service</a> apply.
           </p>

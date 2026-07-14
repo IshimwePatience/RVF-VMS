@@ -96,7 +96,7 @@ export default function DaroPortal() {
             
             <div className="flex items-center gap-3 shrink-0">
               <img src={minisanteLogo} alt="RAB" className="h-10 object-contain" />
-              <span className="text-[22px] text-[#5f6368] font-medium tracking-tight">rvf vaccine hub</span>
+              <span className="text-[22px] text-[#5f6368] font-medium tracking-tight">Rvf Vet Input hub</span>
             </div>
 
             <div className="flex items-center gap-4 shrink-0">
