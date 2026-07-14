@@ -327,7 +327,7 @@ export default function SampleTestFormTab({ phone }) {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Purpose</label>
-                  <SearchableDropdown options={['Control', 'Slaughter', 'Suspected new case', 'Systematic surveillance']} value={row.purpose} onChange={(val) => handleRowChange(index, 'purpose', val)} placeholder="Purpose" />
+                  <SearchableDropdown options={['Surveillance control', 'Surveillance new case', 'Slaughtering']} value={row.purpose} onChange={(val) => handleRowChange(index, 'purpose', val)} placeholder="Purpose" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">Health Status (Sick, Normal, Control)</label>
@@ -478,13 +478,13 @@ export default function SampleTestFormTab({ phone }) {
                     <SearchableDropdown options={['Male', 'Female']} value={row.sex} onChange={(val) => handleRowChange(index, 'sex', val)} placeholder="Sex" />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <input type="number" min="0" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.age} onChange={(e) => handleRowChange(index, 'age', e.target.value)} />
+                    <SearchableDropdown options={['Young', 'Adult']} value={row.age} onChange={(val) => handleRowChange(index, 'age', val)} placeholder="Age" />
                   </td>
                   <td className="border border-slate-300 p-0">
                     <SearchableDropdown options={['Yes', 'No']} value={row.vaccination_status} onChange={(val) => handleRowChange(index, 'vaccination_status', val)} placeholder="Vaccination" />
                   </td>
                   <td className="border border-slate-300 p-0">
-                    <SearchableDropdown options={['Control', 'Slaughter', 'Suspected new case', 'Systematic surveillance']} value={row.purpose} onChange={(val) => handleRowChange(index, 'purpose', val)} placeholder="Purpose" />
+                    <SearchableDropdown options={['Surveillance control', 'Surveillance new case', 'Slaughtering']} value={row.purpose} onChange={(val) => handleRowChange(index, 'purpose', val)} placeholder="Purpose" />
                   </td>
                   <td className="border border-slate-300 p-0">
                     <SearchableDropdown options={['Sick', 'Normal', 'Control']} value={row.health_status} onChange={(val) => handleRowChange(index, 'health_status', val)} placeholder="Health Status" />

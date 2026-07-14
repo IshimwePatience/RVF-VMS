@@ -561,10 +561,9 @@ export default function Reports() {
                   className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
                 >
                   <option value="">All</option>
-                  <option value="Control">Control</option>
-                  <option value="Slaughter">Slaughter</option>
-                  <option value="Suspected new case">Suspected new case</option>
-                  <option value="Systematic surveillance">Systematic surveillance</option>
+                  <option value="Surveillance control">Surveillance control</option>
+                  <option value="Slaughtering">Slaughtering</option>
+                  <option value="Surveillance new case">Surveillance new case</option>
                 </select>
               </div>
             )}
