@@ -92,16 +92,27 @@ exports.getForms = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    const labResults = await LabResult.findAll({ attributes: ['animal_id'] });
-    const resultAnimalIds = new Set(labResults.map(lr => String(lr.animal_id).trim().toLowerCase()));
+    const labResults = await LabResult.findAll({ attributes: ['animal_id', 'createdAt'] });
 
     const formsWithFlags = forms.map(form => {
       const formJSON = form.toJSON();
+      const formDate = new Date(formJSON.createdAt);
       if (formJSON.samples) {
-        formJSON.samples = formJSON.samples.map(sample => ({
-          ...sample,
-          has_result: sample.animal_id ? resultAnimalIds.has(String(sample.animal_id).trim().toLowerCase()) : false
-        }));
+        formJSON.samples = formJSON.samples.map(sample => {
+          let hasResult = false;
+          if (sample.animal_id) {
+            const searchId = String(sample.animal_id).trim().toLowerCase();
+            // Find a lab result for this animal ID that was uploaded AFTER the sample was submitted
+            hasResult = labResults.some(lr => 
+              String(lr.animal_id).trim().toLowerCase() === searchId && 
+              new Date(lr.createdAt) >= formDate
+            );
+          }
+          return {
+            ...sample,
+            has_result: hasResult
+          };
+        });
       }
       return formJSON;
     });
