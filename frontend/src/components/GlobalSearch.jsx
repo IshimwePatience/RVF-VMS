@@ -65,8 +65,8 @@ export default function GlobalSearch() {
   };
 
   const placeholder = user?.role === 'Admin'
-    ? "Search all records, users, and stocks"
-    : "Search vaccines, inventory, and requests";
+    ? "Search all records, users, veterinaries, and lab technicians"
+    : "Search inventory, requests, and veterinaries";
 
   return (
     <div className="relative w-full" ref={searchRef}>

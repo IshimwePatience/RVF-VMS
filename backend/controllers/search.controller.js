@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Vaccine, StockInventory, Batch, Request, User, Stock, AdministrationRecord } = require('../models');
+const { Vaccine, StockInventory, Batch, Request, User, Stock, AdministrationRecord, Veterinary, LabTechnician } = require('../models');
 
 exports.globalSearch = async (req, res) => {
   try {
@@ -94,8 +94,62 @@ exports.globalSearch = async (req, res) => {
         link: '/administrations'
       }));
     }
+
+    // 5. Search Veterinaries
+    let vetWhere = {
+      [Op.or]: [
+        { name: { [Op.iLike]: query } },
+        { phone_number: { [Op.iLike]: query } },
+        { national_id: { [Op.iLike]: query } }
+      ]
+    };
+    if (role !== 'Admin') {
+      if (req.user.district) {
+        vetWhere.district = req.user.district;
+      } else if (stock_id) {
+        const userStock = await Stock.findByPk(stock_id);
+        if (userStock && userStock.district) {
+          vetWhere.district = userStock.district;
+        } else {
+          vetWhere.stock_id = stock_id;
+        }
+      }
+    }
+    const veterinaries = await Veterinary.findAll({
+      where: vetWhere,
+      limit: 5
+    });
+    veterinaries.forEach(v => results.push({
+      id: `vet-${v.id}`,
+      type: 'Veterinary',
+      label: v.name,
+      description: v.district ? `Veterinary in ${v.district}` : 'Veterinary',
+      link: '/veterinaries'
+    }));
+
+    // 6. Search Lab Technicians
+    let labTechWhere = {
+      [Op.or]: [
+        { name: { [Op.iLike]: query } },
+        { phone_number: { [Op.iLike]: query } }
+      ]
+    };
+    if (role !== 'Admin' && req.user.district) {
+      labTechWhere.district = req.user.district;
+    }
+    const labTechnicians = await LabTechnician.findAll({
+      where: labTechWhere,
+      limit: 5
+    });
+    labTechnicians.forEach(l => results.push({
+      id: `lab-${l.id}`,
+      type: 'Lab Technician',
+      label: l.name,
+      description: l.district ? `Lab Tech in ${l.district}` : 'Lab Technician',
+      link: '/lab-technicians'
+    }));
     
-    // 5. Admin only: Search Users and Stocks
+    // 7. Admin only: Search Users and Stocks
     if (role === 'Admin') {
       const users = await User.findAll({
         where: {
