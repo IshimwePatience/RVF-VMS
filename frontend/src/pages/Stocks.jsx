@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { ChevronDown, Plus, Pencil, Trash2, Search } from 'lucide-react';
 import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
@@ -13,6 +14,8 @@ export default function Stocks() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') || '');
 
   // Create Stock Modal State
   const [showModal, setShowModal] = useState(false);
@@ -110,40 +113,61 @@ export default function Stocks() {
   };
 
   const centralStocks = stocks.filter(s => s.is_central);
-
-  // Apply filtering and sorting
-  const getProcessedStocks = () => {
-    let processed = [...stocks];
-    
-    // Filtering
-    if (filterBy === 'Central Hubs') {
-      processed = processed.filter(s => s.is_central);
-    } else if (filterBy === 'Subordinates') {
-      processed = processed.filter(s => !s.is_central && !s.is_endpoint);
-    } else if (filterBy === 'Endpoints') {
-      processed = processed.filter(s => s.is_endpoint);
+  const handleSearchChange = (val) => {
+    setSearch(val);
+    if (val) {
+      setSearchParams({ search: val });
+    } else {
+      setSearchParams({});
     }
-    
-    // Sorting
-    if (sortBy === 'Name A-Z') {
-      processed.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortBy === 'Name Z-A') {
-      processed.sort((a, b) => b.name.localeCompare(a.name));
-    }
-    // Hierarchy (default from DB) is preserved if no other sort
-    
-    return processed;
   };
 
-  const processedStocks = getProcessedStocks();
-  const pagination = usePagination(processedStocks, 12);
+  const filteredStocks = useMemo(() => {
+    return stocks.filter(stock => {
+      // existing filters
+      if (filterBy === 'Central Hubs' && !stock.is_central) return false;
+      if (filterBy === 'Endpoints' && !stock.is_endpoint) return false;
+      if (filterBy === 'Subordinates' && (stock.is_central || stock.is_endpoint)) return false;
+      
+      // new search filter
+      if (search) {
+        const searchVal = search.toLowerCase();
+        if (!JSON.stringify(stock).toLowerCase().includes(searchVal)) return false;
+      }
+      return true;
+    }).sort((a, b) => {
+      if (sortBy === 'Name A-Z') return a.name.localeCompare(b.name);
+      if (sortBy === 'Name Z-A') return b.name.localeCompare(a.name);
+      // Hierarchy
+      if (a.is_central && !b.is_central) return -1;
+      if (!a.is_central && b.is_central) return 1;
+      if (a.is_endpoint && !b.is_endpoint) return 1;
+      if (!a.is_endpoint && b.is_endpoint) return -1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [stocks, filterBy, sortBy, search]);
+
+  const pagination = usePagination(filteredStocks, 12);
 
   return (
-    <div className="max-w-[1200px] mx-auto pb-12">
+    <div className="max-w-[1200px] mx-auto pb-12 pt-4">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Stock Network Overview</h1>
-        
-        <div className="flex items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Stock Overview</h1>
+          <p className="text-slate-500 mt-1">Manage physical storage locations and hierarchy</p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search stocks..." 
+              value={search} 
+              onChange={(e) => handleSearchChange(e.target.value)} 
+              className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 w-56 bg-slate-50 focus:bg-white transition-colors" 
+            />
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-500 font-medium">Filter by</span>
             <Dropdown 

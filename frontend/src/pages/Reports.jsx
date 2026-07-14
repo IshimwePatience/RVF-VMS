@@ -15,9 +15,11 @@ import ExportExcelModal from '../components/ExportExcelModal';
 import { exportToExcel } from '../utils/exportExcel';
 import { generatePDFReport } from '../utils/generatePDF';
 import { MoreVertical, Download, FileText } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 export default function Reports() {
   const { user } = useContext(AuthContext);
+  const [searchParams, setSearchParams] = useSearchParams();
   const { addToast } = useContext(ToastContext);
   
   const [activeTab, setActiveTab] = useState(user?.role === 'Admin' ? 'overview' : 'vaccination'); 
@@ -312,11 +314,9 @@ export default function Reports() {
     }
   };
 
-
-
   // Filters State
-  const [filters, setFilters] = useState({
-    search: '',
+  const [filters, _setFilters] = useState({
+    search: searchParams.get('search') || '',
     province: '',
     district: '',
     sector: '',
@@ -327,6 +327,22 @@ export default function Reports() {
     purpose: '',
     pcr_result: ''
   });
+
+  const setFilters = (update) => {
+    _setFilters(prev => {
+      const nextFilters = typeof update === 'function' ? update(prev) : { ...prev, ...update };
+      
+      // Sync search param to URL
+      if (nextFilters.search !== prev.search) {
+        if (nextFilters.search) {
+          setSearchParams({ search: nextFilters.search });
+        } else {
+          setSearchParams({});
+        }
+      }
+      return nextFilters;
+    });
+  };
 
   // Query string for filters for the API
   const queryParams = new URLSearchParams();

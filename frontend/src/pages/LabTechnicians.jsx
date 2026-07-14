@@ -1,7 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Power, PowerOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, Power, PowerOff, Search } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import { usePagination } from '../hooks/usePagination';
@@ -11,6 +12,8 @@ export default function LabTechnicians() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') || '');
 
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -110,7 +113,26 @@ export default function LabTechnicians() {
     deleteMutation.mutate(id);
   };
 
-  const pagination = usePagination(labTechs, 12);
+  const filteredLabTechs = useMemo(() => {
+    return labTechs.filter(v => {
+      if (search) {
+        const searchVal = search.toLowerCase();
+        if (!JSON.stringify(v).toLowerCase().includes(searchVal)) return false;
+      }
+      return true;
+    });
+  }, [labTechs, search]);
+
+  const pagination = usePagination(filteredLabTechs, 12);
+
+  const handleSearchChange = (val) => {
+    setSearch(val);
+    if (val) {
+      setSearchParams({ search: val });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   if (user?.role !== 'Admin') {
     return <div className="p-8 text-center text-slate-500">You do not have permission to view this page.</div>;
@@ -125,6 +147,16 @@ export default function LabTechnicians() {
         </div>
 
         <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search technicians..." 
+              value={search} 
+              onChange={(e) => handleSearchChange(e.target.value)} 
+              className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 w-64 bg-slate-50 focus:bg-white transition-colors" 
+            />
+          </div>
           <button
             onClick={handleAdd}
             className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"

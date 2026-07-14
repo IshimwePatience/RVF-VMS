@@ -1,7 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, ChevronDown, Pencil, Trash2 } from 'lucide-react';
+import { Plus, ChevronDown, Pencil, Trash2, Search } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import Dropdown from '../components/Dropdown';
@@ -12,11 +13,13 @@ export default function Veterinaries() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Filters for Admin
   const [provinceFilter, setProvinceFilter] = useState('All');
   const [districtFilter, setDistrictFilter] = useState('All');
   const [sectorFilter, setSectorFilter] = useState('All');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
 
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -128,7 +131,28 @@ export default function Veterinaries() {
   const provinces = ['All', ...new Set(veterinaries.map(v => v.province))].filter(Boolean);
   const districts = ['All', ...new Set(veterinaries.map(v => v.district))].filter(Boolean);
   const sectors = ['All', ...new Set(veterinaries.map(v => v.sector))].filter(Boolean);
-  const pagination = usePagination(veterinaries, 12);
+
+  const filteredVeterinaries = useMemo(() => {
+    return veterinaries.filter(v => {
+      if (search) {
+        const searchVal = search.toLowerCase();
+        if (!JSON.stringify(v).toLowerCase().includes(searchVal)) return false;
+      }
+      return true;
+    });
+  }, [veterinaries, search]);
+
+  const pagination = usePagination(filteredVeterinaries, 12);
+
+  // Update URL search params when search changes
+  const handleSearchChange = (val) => {
+    setSearch(val);
+    if (val) {
+      setSearchParams({ search: val });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12 pt-4">
@@ -139,6 +163,16 @@ export default function Veterinaries() {
         </div>
 
         <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search veterinaries..." 
+              value={search} 
+              onChange={(e) => handleSearchChange(e.target.value)} 
+              className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 w-64 bg-slate-50 focus:bg-white transition-colors" 
+            />
+          </div>
           {user?.role === 'Admin' && (
             <>
               <div className="flex items-center gap-2 text-sm">

@@ -61,7 +61,7 @@ export default function GlobalSearch() {
 
     setIsFocused(false);
     setQuery('');
-    navigate(item.link);
+    navigate(`${item.link}?search=${encodeURIComponent(item.label)}`);
   };
 
   const placeholder = user?.role === 'Admin'

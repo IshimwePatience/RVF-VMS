@@ -60,10 +60,14 @@ export default function UploadResultsTab() {
 
         // Map to expected backend columns
         const processedData = jsonData.map(row => {
-          // Flexible key matching in case of slight variations
+          // Safer key matching
           const getVal = (possibleKeys) => {
             for (const k of Object.keys(row)) {
-              if (possibleKeys.some(pk => k.toLowerCase().includes(pk.toLowerCase()))) {
+              const cleanK = k.toLowerCase().trim();
+              if (possibleKeys.some(pk => {
+                const cleanPk = pk.toLowerCase().trim();
+                return cleanK === cleanPk || cleanK === `${cleanPk}s` || cleanK.includes(` ${cleanPk}`) || cleanK.includes(`${cleanPk} `) || cleanK.includes(`/${cleanPk}`) || cleanK.includes(`${cleanPk}/`);
+              })) {
                 return row[k]?.toString() || '';
               }
             }
@@ -72,8 +76,8 @@ export default function UploadResultsTab() {
 
           return {
             farmer_name: getVal(['Farmer Name', 'Farmer']),
-            phone: getVal(['Phone']),
-            animal_district_origin: getVal(['District']),
+            phone: getVal(['Phone', 'Phone Number', 'Contact']),
+            animal_district_origin: getVal(['District Origin', 'District']),
             sector: getVal(['Sector']),
             cell: getVal(['Cell']),
             village: getVal(['Village']),
@@ -82,7 +86,7 @@ export default function UploadResultsTab() {
             breed: getVal(['Breed']),
             sex: getVal(['Sex', 'Gender']),
             age: getVal(['Age']),
-            vaccination_status: getVal(['Vaccination']),
+            vaccination_status: getVal(['Vaccination Status', 'Vaccination']),
             purpose: getVal(['Purpose']),
             health_status: getVal(['Health Status']),
             rvf_pcr_results: getVal(['PCR Result', 'PCR Results', 'Result']),

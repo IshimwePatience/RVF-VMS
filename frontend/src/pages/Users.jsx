@@ -1,7 +1,8 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, ChevronDown, Pencil, Trash2 } from 'lucide-react';
+import { Plus, ChevronDown, Pencil, Trash2, Search } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ToastContext } from '../context/ToastContext';
 import { usePagination } from '../hooks/usePagination';
@@ -11,6 +12,9 @@ export default function Users() {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -38,7 +42,26 @@ export default function Users() {
     }
   });
 
-  const pagination = usePagination(users, 12);
+  const filteredUsers = useMemo(() => {
+    return users.filter(v => {
+      if (search) {
+        const searchVal = search.toLowerCase();
+        if (!JSON.stringify(v).toLowerCase().includes(searchVal)) return false;
+      }
+      return true;
+    });
+  }, [users, search]);
+
+  const pagination = usePagination(filteredUsers, 12);
+
+  const handleSearchChange = (val) => {
+    setSearch(val);
+    if (val) {
+      setSearchParams({ search: val });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -108,13 +131,25 @@ export default function Users() {
           <p className="text-slate-500 mt-1">Manage system access and assign permissions</p>
         </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Add User
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search users..." 
+              value={search} 
+              onChange={(e) => handleSearchChange(e.target.value)} 
+              className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 w-64 bg-slate-50 focus:bg-white transition-colors" 
+            />
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Add User
+          </button>
+        </div>
       </div>
 
       <div className="mt-4">
