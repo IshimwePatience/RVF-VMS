@@ -22,8 +22,9 @@ export default function DaroSamplesTab({ district }) {
     forms.forEach(form => {
       if (form.samples && Array.isArray(form.samples)) {
         form.samples.forEach(sample => {
-          const sampleDistrict = String(sample.district_origin || form.district || '').trim().toLowerCase();
-          if (sampleDistrict === userDistrict && !sample.has_result) {
+          const d1 = String(sample.district_origin || '').trim().toLowerCase();
+          const d2 = String(form.district || '').trim().toLowerCase();
+          if ((d1 === userDistrict || d2 === userDistrict) && !sample.has_result) {
             samples.push({
               ...sample,
               form_district: form.district,
