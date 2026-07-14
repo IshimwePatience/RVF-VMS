@@ -78,10 +78,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
       const searchTerm = activeFilters?.search;
       if (searchTerm) {
         const searchVal = searchTerm.toLowerCase();
-        const rPhone = (r.phone || '').toLowerCase();
-        const rFarmer = (r.farmer_name || '').toLowerCase();
-        const rAnimalId = (r.animal_id || '').toLowerCase();
-        if (!rPhone.includes(searchVal) && !rFarmer.includes(searchVal) && !rAnimalId.includes(searchVal)) return false;
+        if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (activeFilters?.dateFrom && new Date(r.createdAt) < new Date(activeFilters.dateFrom)) return false;
       if (activeFilters?.dateTo && new Date(r.createdAt) > new Date(activeFilters.dateTo + 'T23:59:59')) return false;

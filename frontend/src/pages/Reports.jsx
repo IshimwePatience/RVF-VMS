@@ -333,7 +333,6 @@ export default function Reports() {
   if (filters.province) queryParams.append('province', filters.province);
   if (filters.district) queryParams.append('district', filters.district);
   if (filters.sector) queryParams.append('sector', filters.sector);
-  if (filters.veterinary_name) queryParams.append('email', filters.veterinary_name); // Assuming 'email' is used for vet search in backend
 
   // 1. Sector/District simple table (Allocations basically)
   const { data: reports = [], isLoading: loadingVaccination } = useQuery({
@@ -353,7 +352,7 @@ export default function Reports() {
 
   // 3. Central Home Vaccinations Data
   const { data: homeVaccinations = [], isLoading: loadingHomeVaccinations } = useQuery({
-    queryKey: ['central-home-vaccinations', filters.province, filters.district, filters.sector, filters.veterinary_name],
+    queryKey: ['central-home-vaccinations', filters.province, filters.district, filters.sector],
     queryFn: async () => {
       const res = await axios.get(`/rvf-api/veterinary-portal/vaccinations?${queryParams.toString()}`);
       return res.data;
@@ -389,12 +388,27 @@ export default function Reports() {
       if (filters.district && r.district !== filters.district) return false;
       if (filters.sector && r.sector !== filters.sector) return false;
       if (filters.status && r.report_status !== filters.status) return false;
-      if (filters.veterinary_name && !r.veterinary_name?.toLowerCase().includes(filters.veterinary_name.toLowerCase()) && !r.veterinary_email?.toLowerCase().includes(filters.veterinary_name.toLowerCase())) return false;
+      if (filters.search) {
+        const searchVal = filters.search.toLowerCase();
+        if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
+      }
       if (filters.dateFrom && new Date(r.date_administered) < new Date(filters.dateFrom)) return false;
       if (filters.dateTo && new Date(r.date_administered) > new Date(filters.dateTo)) return false;
       return true;
     });
-  }, [reports, filters]);
+  }, [reports, filters, user]);
+
+  const filteredHomeVaccinations = useMemo(() => {
+    return homeVaccinations.filter(r => {
+      if (filters.search) {
+        const searchVal = filters.search.toLowerCase();
+        if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
+      }
+      if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
+      if (filters.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
+      return true;
+    });
+  }, [homeVaccinations, filters]);
 
   // Client-side filtering for Surveillance Reports
   const filteredSurveillance = useMemo(() => {
@@ -403,23 +417,24 @@ export default function Reports() {
       if (user?.role !== 'Admin' && user?.stock?.district && r.district !== user.stock.district) return false;
       if (filters.district && r.district !== filters.district) return false;
       if (filters.sector && r.sector !== filters.sector) return false;
-      if (filters.veterinary_name && (!r.veterinary_email || !r.veterinary_email.toLowerCase().includes(filters.veterinary_name.toLowerCase())) && (!r.veterinary_name || !r.veterinary_name.toLowerCase().includes(filters.veterinary_name.toLowerCase()))) return false;
+      if (filters.search) {
+        const searchVal = filters.search.toLowerCase();
+        if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
+      }
       if (filters.dateFrom && new Date(r.collection_date || r.createdAt) < new Date(filters.dateFrom)) return false;
-      if (filters.dateTo && new Date(r.collection_date || r.createdAt) > new Date(filters.dateTo)) return false;
+      if (filters.dateTo && new Date(r.collection_date || r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
       return true;
     });
-  }, [surveillanceReports, filters]);
+  }, [surveillanceReports, filters, user]);
 
   // Client-side filtering for Lab Results
   const filteredLabResults = useMemo(() => {
     return centralLabResults.filter(r => {
       if (filters.district && r.animal_district_origin !== filters.district && r.district !== filters.district) return false;
       if (filters.sector && r.sector !== filters.sector) return false;
-      if (filters.veterinary_name) {
-        const searchVal = filters.veterinary_name.toLowerCase();
-        const rPhone = (r.phone || '').toLowerCase();
-        const rFarmer = (r.farmer_name || '').toLowerCase();
-        if (!rPhone.includes(searchVal) && !rFarmer.includes(searchVal)) return false;
+      if (filters.search) {
+        const searchVal = filters.search.toLowerCase();
+        if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
       if (filters.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
@@ -432,7 +447,7 @@ export default function Reports() {
   // Determine which data to paginate based on active tab and role
   const getListData = () => {
     if (user?.role !== 'Admin') return filteredReports;
-    if (activeTab === 'home_vaccination') return homeVaccinations; // API handles filtering
+    if (activeTab === 'home_vaccination') return filteredHomeVaccinations;
     if (activeTab === 'surveillance') return filteredSurveillance;
     if (activeTab === 'lab_results') return []; // Managed inside ViewResultsTab
     return [];
@@ -465,12 +480,12 @@ export default function Reports() {
         {user?.role === 'Admin' && (
           <div className="flex flex-wrap justify-end items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Phone Number</span>
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Search</span>
               <input 
                 type="text"
                 placeholder="Search..."
-                value={filters.veterinary_name}
-                onChange={e => setFilters({...filters, veterinary_name: e.target.value})}
+                value={filters.search}
+                onChange={e => setFilters({...filters, search: e.target.value})}
                 className="w-40 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
               />
             </div>
@@ -553,9 +568,9 @@ export default function Reports() {
               </div>
             )}
 
-            {(filters.district || filters.sector || filters.veterinary_name || filters.dateFrom || filters.dateTo || filters.status || filters.purpose || filters.pcr_result) && (
+            {(filters.search || filters.district || filters.sector || filters.dateFrom || filters.dateTo || filters.status || filters.purpose || filters.pcr_result) && (
               <button 
-                onClick={() => setFilters({ province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '', purpose: '', pcr_result: '' })}
+                onClick={() => setFilters({ search: '', province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '', purpose: '', pcr_result: '' })}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-full transition-colors border border-red-200"
               >
                 Clear
