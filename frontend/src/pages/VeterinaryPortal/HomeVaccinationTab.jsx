@@ -180,7 +180,7 @@ export default function HomeVaccinationTab({ phone, onSubmissionComplete }) {
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="h-3 bg-blue-600"></div>
         <div className="p-8">
-          <div className="flex flex-col gap-4 mb-6">
+          <div className="flex justify-between items-start mb-6">
             <img src={minisanteLogo} alt="MINISANTE" className="h-12 object-contain" />
           </div>
           <h1 className="text-3xl font-normal text-[#202124] mb-3">Record Home Vaccinations</h1>

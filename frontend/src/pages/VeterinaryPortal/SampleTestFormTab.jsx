@@ -171,7 +171,7 @@ export default function SampleTestFormTab({ phone }) {
   return (
     <div className="bg-white text-slate-900 p-4 sm:p-8 rounded-lg shadow-sm border border-slate-200">
       {/* Header section */}
-      <div className="flex flex-col gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6 md:gap-0">
         <div className="w-full md:w-32 flex justify-center md:justify-start">
           <img src={`${import.meta.env.BASE_URL}RAB_Logo2.png`} alt="RAB" className="h-16 object-contain" />
         </div>

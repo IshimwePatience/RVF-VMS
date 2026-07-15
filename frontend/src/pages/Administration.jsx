@@ -168,7 +168,7 @@ export default function Administration() {
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12">
-      <div className="flex flex-col gap-4 mb-8">
+      <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Vaccine Administration</h1>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm">

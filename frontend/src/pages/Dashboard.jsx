@@ -194,7 +194,7 @@ export default function Dashboard() {
 
   return (
     <div className="pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-      <div className="flex flex-col items-start gap-4 mb-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Stock Network Overview</h1>
           <p className="text-slate-500 mt-1">Central Stock | Veterinary Data Visualization</p>
