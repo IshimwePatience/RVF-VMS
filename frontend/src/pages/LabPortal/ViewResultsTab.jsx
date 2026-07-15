@@ -71,9 +71,18 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
   const filteredResults = useMemo(() => {
     const activeFilters = isLabPortal ? localFilters : filters;
     
-    return results.filter(r => {
-      if (!isLabPortal && veterinaryPhone && !animalIdToVetMap[r.animal_id]) return false;
+    let baseResults = results;
+    if (!isLabPortal && veterinaryPhone) {
+      const seen = new Set();
+      baseResults = results.filter(r => {
+        if (!animalIdToVetMap[r.animal_id]) return false;
+        if (seen.has(r.animal_id)) return false;
+        seen.add(r.animal_id);
+        return true;
+      });
+    }
 
+    return baseResults.filter(r => {
       if (activeFilters?.district && activeFilters.district.length > 0) {
         const dists = Array.isArray(activeFilters.district) ? activeFilters.district.map(d => d.toLowerCase()) : [String(activeFilters.district).toLowerCase()];
         const rDist1 = String(r.animal_district_origin || '').toLowerCase();
