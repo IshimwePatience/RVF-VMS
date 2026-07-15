@@ -5,6 +5,7 @@ import ViewResultsTab from '../LabPortal/ViewResultsTab';
 
 export default function VetLabResultsTab({ phone }) {
   const [filters, setFilters] = useState({
+    search: '',
     district: '',
     sector: '',
     dateFrom: '',
@@ -20,6 +21,15 @@ export default function VetLabResultsTab({ phone }) {
         </div>
 
         <div className="flex items-center gap-4 flex-wrap justify-end">
+          <div className="flex items-center gap-2 text-sm w-full sm:w-auto">
+            <input 
+              type="text"
+              placeholder="Search farmer or animal ID..."
+              value={filters.search}
+              onChange={e => setFilters({...filters, search: e.target.value})}
+              className="w-full sm:w-64 pl-3 pr-4 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-700 bg-white hover:border-slate-300 focus:outline-none focus:border-blue-500 transition-colors"
+            />
+          </div>
           <div className="flex items-center gap-2 text-sm">
             <span className="text-slate-500">District:</span>
             <div className="w-36">
@@ -65,9 +75,9 @@ export default function VetLabResultsTab({ phone }) {
             />
           </div>
 
-          {(filters.district || filters.sector || filters.dateFrom || filters.dateTo) && (
+          {(filters.search || filters.district || filters.sector || filters.dateFrom || filters.dateTo) && (
             <button 
-              onClick={() => setFilters({ district: '', sector: '', dateFrom: '', dateTo: '' })}
+              onClick={() => setFilters({ search: '', district: '', sector: '', dateFrom: '', dateTo: '' })}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
             >
               Clear

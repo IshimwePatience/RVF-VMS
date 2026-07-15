@@ -916,22 +916,6 @@ export default function Reports() {
                               View Form
                               <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                             </button>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMapLocationData({
-                                  province: r.province,
-                                  district: r.district,
-                                  sector: r.sector,
-                                  cell: r.cell,
-                                  village: r.village
-                                });
-                              }}
-                              className="text-slate-500 font-medium hover:text-slate-700 text-sm flex items-center"
-                            >
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                              Map
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -977,22 +961,6 @@ export default function Reports() {
                             <button className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center">
                               View Report
                               <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                            </button>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMapLocationData({
-                                  province: r.province || 'Eastern Province',
-                                  district: r.district || (r.samples && r.samples[0]?.district_origin),
-                                  sector: r.sector || (r.samples && r.samples[0]?.sector),
-                                  cell: r.cell || (r.samples && r.samples[0]?.cell),
-                                  village: r.village || (r.samples && r.samples[0]?.village)
-                                });
-                              }}
-                              className="text-slate-500 font-medium hover:text-slate-700 text-sm flex items-center"
-                            >
-                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                              Map
                             </button>
                           </div>
                         </td>

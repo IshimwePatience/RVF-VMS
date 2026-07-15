@@ -8,6 +8,9 @@ import SampleHistoryModal from './SampleHistoryModal';
 
 export default function OverviewTab({ phone }) {
   const [showSampleHistory, setShowSampleHistory] = useState(false);
+  const [dateRange, setDateRange] = useState('all'); // 'all', 'today', 'yesterday', 'custom'
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
 
   const { data, isLoading: loading, error } = useQuery({
     queryKey: ['veterinary-overview', phone],
@@ -27,8 +30,31 @@ export default function OverviewTab({ phone }) {
     enabled: !!phone,
   });
 
-  const totalRecorded = surveillanceForms.reduce((sum, f) => sum + (f.samples ? f.samples.length : 0), 0);
-  const totalTested = surveillanceForms.reduce((sum, f) => sum + (f.samples ? f.samples.filter(s => s.has_result).length : 0), 0);
+  const filteredForms = surveillanceForms.filter(f => {
+    if (dateRange === 'all') return true;
+    const date = new Date(f.createdAt || f.date);
+    date.setHours(0,0,0,0);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (dateRange === 'today') return date.getTime() === today.getTime();
+    if (dateRange === 'yesterday') return date.getTime() === yesterday.getTime();
+    if (dateRange === 'custom' && customStart && customEnd) {
+      const start = new Date(customStart);
+      start.setHours(0,0,0,0);
+      const end = new Date(customEnd);
+      end.setHours(0,0,0,0);
+      return date >= start && date <= end;
+    }
+    return true;
+  });
+
+  const totalRecorded = filteredForms.reduce((sum, f) => sum + (f.samples ? f.samples.length : 0), 0);
+  const totalTested = filteredForms.reduce((sum, f) => sum + (f.samples ? f.samples.filter(s => s.has_result).length : 0), 0);
+  const totalPositive = filteredForms.reduce((sum, f) => sum + (f.samples ? f.samples.filter(s => s.has_result && s.rvf_pcr_results?.toUpperCase().includes('POSITIVE')).length : 0), 0);
+  const totalNegative = filteredForms.reduce((sum, f) => sum + (f.samples ? f.samples.filter(s => s.has_result && s.rvf_pcr_results?.toUpperCase().includes('NEGATIVE')).length : 0), 0);
 
   const vaccineKeys = data ? Object.keys(data) : [];
   const pagination = usePagination(vaccineKeys, 12);
@@ -131,8 +157,57 @@ export default function OverviewTab({ phone }) {
 
       {/* Samples Overview Table */}
       <div className="bg-white shadow-sm border border-slate-200 overflow-hidden rounded-xl">
-        <div className="p-4 bg-white border-b border-slate-200 flex justify-between items-center">
+        <div className="p-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h2 className="text-lg font-bold text-slate-900">Samples Overview</h2>
+          
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => {
+                  setDateRange(dateRange === 'all' ? 'all' : 'all');
+                  if(dateRange === 'all') setDateRange('all'); // toggle trick, not really needed, just reset
+                  setDateRange('all');
+                }}
+                className={`px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${dateRange === 'all' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-300 hover:bg-slate-100 text-slate-700 bg-white'}`}
+              >
+                All Time
+              </button>
+              <button 
+                onClick={() => setDateRange('today')}
+                className={`px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${dateRange === 'today' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-300 hover:bg-slate-100 text-slate-700 bg-white'}`}
+              >
+                Today
+              </button>
+              <button 
+                onClick={() => setDateRange('yesterday')}
+                className={`px-3 py-1.5 text-sm font-medium border rounded-lg transition-colors ${dateRange === 'yesterday' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-300 hover:bg-slate-100 text-slate-700 bg-white'}`}
+              >
+                Yesterday
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500 font-medium">From:</span>
+              <input 
+                type="date" 
+                value={customStart}
+                onChange={(e) => {
+                  setCustomStart(e.target.value);
+                  setDateRange('custom');
+                }}
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+              />
+              <span className="text-sm text-slate-500 font-medium">To:</span>
+              <input 
+                type="date" 
+                value={customEnd}
+                onChange={(e) => {
+                  setCustomEnd(e.target.value);
+                  setDateRange('custom');
+                }}
+                className="px-3 py-1.5 text-sm border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-700">
@@ -166,6 +241,14 @@ export default function OverviewTab({ phone }) {
               <tr className="hover:bg-slate-50/50">
                 <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Tested (Has Results)</td>
                 <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-blue-600">{totalTested}</td>
+              </tr>
+              <tr className="hover:bg-slate-50/50">
+                <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30 pl-10 text-sm border-t border-slate-100/50">└ Positive Results</td>
+                <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-red-600 border-t border-slate-100/50">{totalPositive}</td>
+              </tr>
+              <tr className="hover:bg-slate-50/50">
+                <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30 pl-10 text-sm border-b border-slate-200">└ Negative Results</td>
+                <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-green-600 border-b border-slate-200">{totalNegative}</td>
               </tr>
               <tr className="hover:bg-slate-50/50">
                 <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Pending</td>

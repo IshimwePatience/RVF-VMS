@@ -1,19 +1,25 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { RefreshCw, MapPin, Pencil, Trash2, X, Search } from 'lucide-react';
+import { RefreshCw, MapPin, Pencil, Trash2, X, Search, Download } from 'lucide-react';
 import MapModal from '../../components/MapModal';
+import CertificateCard from '../../components/CertificateCard';
 import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/Pagination';
 import LocationDropdown from '../../components/LocationDropdown';
 import { AuthContext } from '../../context/AuthContext';
 import { ToastContext } from '../../context/ToastContext';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, onFilteredDataChange }) {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const [mapLocationData, setMapLocationData] = useState(null);
   const [editingResult, setEditingResult] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
+  const certificateRef = React.useRef(null);
+  const [certData, setCertData] = useState(null);
   
   const [localFilters, setLocalFilters] = useState({
     district: '',
@@ -101,6 +107,39 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
   }, [filteredResults]);
 
   const pagination = usePagination(filteredResults || [], 10);
+
+  const handleDownloadCertificate = async (result) => {
+    setDownloadingId(result.id);
+    setCertData(result);
+    // Wait for the hidden component to render
+    setTimeout(async () => {
+      try {
+        const element = certificateRef.current;
+        if (!element) throw new Error("Certificate element not found");
+        
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          logging: false
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: [800, 500]
+        });
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, 800, 500);
+        pdf.save(`RAB_RVF_Certificate_${result.animal_id || result.id}.pdf`);
+      } catch (err) {
+        console.error("Error generating certificate", err);
+      } finally {
+        setDownloadingId(null);
+        setCertData(null);
+      }
+    }, 100);
+  };
 
   return (
     <>
@@ -226,9 +265,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                 <th className="py-4 px-6 font-semibold text-slate-800">Purpose</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Health Status</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">PCR Result</th>
-                {isLabPortal && (
-                  <th className="py-4 px-6 font-semibold text-slate-800 text-right">Actions</th>
-                )}
+                <th className="py-4 px-6 font-semibold text-slate-800 text-right">Actions</th>
               </tr>
             </thead>
           )}
@@ -316,9 +353,21 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                       {r.rvf_pcr_results || 'UNKNOWN'}
                     </span>
                   </td>
-                  {isLabPortal && (
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex justify-end gap-2">
+                  <td className="py-4 px-6 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => handleDownloadCertificate(r)}
+                        disabled={downloadingId === r.id}
+                        className={`p-1.5 rounded-md transition-colors ${downloadingId === r.id ? 'text-slate-400 bg-slate-50' : 'text-green-600 bg-green-50 hover:bg-green-100'}`}
+                        title="Download Certificate"
+                      >
+                        {downloadingId === r.id ? (
+                          <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Download className="w-4 h-4" />
+                        )}
+                      </button>
+                      {isLabPortal && (
                         <button 
                           onClick={() => setEditingResult(r)}
                           className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
@@ -326,9 +375,9 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
-                      </div>
-                    </td>
-                  )}
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))
             )}
@@ -348,6 +397,11 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
           locationData={mapLocationData}
         />
       )}
+      
+      {/* Hidden container for PDF generation */}
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+        {certData && <CertificateCard result={certData} ref={certificateRef} />}
+      </div>
     </div>
 
       {editingResult && (

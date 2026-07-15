@@ -20,13 +20,7 @@ export default function SampleTestReportView({ report, onClose }) {
             Back to Reports
           </button>
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsMapOpen(true)}
-              className="flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-              View Map
-            </button>
+
             <div className="text-sm font-medium text-slate-500">
               Submitted on {new Date(report.createdAt).toLocaleString()}
             </div>

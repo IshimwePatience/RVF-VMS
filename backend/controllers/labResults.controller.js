@@ -144,3 +144,33 @@ exports.deleteResult = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.verifyCertificate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await LabResult.findByPk(id, {
+      include: [
+        { model: LabTechnician, as: 'uploader', attributes: ['id', 'name'] }
+      ]
+    });
+    
+    if (!result) {
+      return res.status(404).json({ message: 'Certificate not found or invalid ID' });
+    }
+    
+    // Return only necessary public data
+    res.json({
+      id: result.id,
+      farmer_name: result.farmer_name,
+      animal_id: result.animal_id,
+      specie: result.specie,
+      rvf_pcr_results: result.rvf_pcr_results,
+      tested_site: result.tested_site,
+      date_tested: result.createdAt,
+      lab_technician: result.uploader ? result.uploader.name : 'Unknown'
+    });
+  } catch (error) {
+    console.error('Error verifying certificate:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

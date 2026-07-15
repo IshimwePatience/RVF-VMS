@@ -24,6 +24,7 @@ const optionalAuthenticate = (req, res, next) => {
   return res.status(401).json({ message: 'Access denied' });
 };
 
+router.get('/verify/:id', labResultsController.verifyCertificate);
 router.post('/', authenticate, labResultsController.uploadResults);
 router.get('/', optionalAuthenticate, labResultsController.getResults);
 router.put('/:id', authenticate, labResultsController.updateResult);
