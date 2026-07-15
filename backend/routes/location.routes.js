@@ -88,7 +88,7 @@ router.get('/province-by-district', (req, res) => {
 // Get sectors for a district
 router.get('/sectors', (req, res) => {
   try {
-    let { district } = req.query;
+    let district = req.query.district || req.query['district[]'];
     if (!district) return res.status(400).json({ error: 'District is required' });
     
     if (!Array.isArray(district)) district = [district];
@@ -112,7 +112,8 @@ router.get('/sectors', (req, res) => {
 // Get cells for a sector
 router.get('/cells', (req, res) => {
   try {
-    let { district, sector } = req.query;
+    let district = req.query.district || req.query['district[]'];
+    let sector = req.query.sector || req.query['sector[]'];
     if (!district || !sector) return res.status(400).json({ error: 'District and sector are required' });
 
     if (!Array.isArray(district)) district = [district];
@@ -143,7 +144,10 @@ router.get('/cells', (req, res) => {
 // Get villages for a cell
 router.get('/villages', (req, res) => {
   try {
-    let { district, sector, cell } = req.query;
+    let district = req.query.district || req.query['district[]'];
+    let sector = req.query.sector || req.query['sector[]'];
+    let cell = req.query.cell || req.query['cell[]'];
+    
     if (!district || !sector || !cell) return res.status(400).json({ error: 'District, sector, and cell are required' });
 
     if (!Array.isArray(district)) district = [district];

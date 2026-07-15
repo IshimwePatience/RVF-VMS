@@ -16,6 +16,7 @@ export default function Users() {
   const [search, setSearch] = useState(searchParams.get('search') || '');
 
   const availablePermissions = [
+    { id: 'dashboard', label: 'Dashboard' },
     { id: 'stock_overview', label: 'Stock Overview' },
     { id: 'inventory', label: 'Current Inventory' },
     { id: 'vaccines', label: 'Vaccine Types' },

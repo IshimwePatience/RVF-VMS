@@ -250,7 +250,7 @@ export default function Layout() {
         <div className="w-[280px] shrink-0 overflow-y-auto flex flex-col">
           {/* Top horizontal tabs for sidebar */}
           <div className="flex items-center gap-6 px-6 py-2 border-b border-slate-100">
-            <NavLink to="/" end className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Dashboard</NavLink>
+            {hasPerm('dashboard') && <NavLink to="/" end className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Dashboard</NavLink>}
             <NavLink to="/inventory" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Inventory</NavLink>
             <NavLink to="/requests" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Requests</NavLink>
           </div>
