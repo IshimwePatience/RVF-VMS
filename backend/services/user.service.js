@@ -20,7 +20,8 @@ exports.createUser = async (data) => {
     password_hash,
     role: data.role,
     stock_id: data.stock_id || null,
-    must_change_password: !data.password // If password was provided by admin, don't force change
+    must_change_password: !data.password, // If password was provided by admin, don't force change
+    settings: data.settings || {}
   });
 
   try {
@@ -79,6 +80,7 @@ exports.updateUser = async (id, data) => {
   if (data.full_name !== undefined) user.full_name = data.full_name || null;
   if (data.role) user.role = data.role;
   if (data.stock_id !== undefined) user.stock_id = data.stock_id || null;
+  if (data.settings !== undefined) user.settings = data.settings;
   
   if (data.password) {
     const salt = await bcrypt.genSalt(10);

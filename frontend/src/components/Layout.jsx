@@ -92,6 +92,12 @@ export default function Layout() {
 
   if (!token) return <Navigate to="/login" replace />;
 
+  const hasPerm = (permId) => {
+    if (user?.role !== 'Admin' || user?.stock?.id) return true;
+    if (!user?.settings?.permissions) return true;
+    return user.settings.permissions.includes(permId);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-white text-slate-800">
       {/* Top Navbar */}
@@ -253,20 +259,22 @@ export default function Layout() {
             <div className="px-6 mb-2">
               <h3 className="text-sm font-medium text-slate-900 mb-2">Management</h3>
               <nav className="space-y-0.5 flex flex-col">
-                {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && (
+                {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('stock_overview') && (
                   <NavLink to="/stocks" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Stock Overview</NavLink>
                 )}
-                <NavLink to="/inventory" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Current Inventory</NavLink>
+                {hasPerm('inventory') && (
+                  <NavLink to="/inventory" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Current Inventory</NavLink>
+                )}
                 {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
                   <>
-                    <NavLink to="/vaccines" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Vaccine Types</NavLink>
-                    <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Suppliers</NavLink>
+                    {hasPerm('vaccines') && <NavLink to="/vaccines" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Vaccine Types</NavLink>}
+                    {hasPerm('suppliers') && <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Suppliers</NavLink>}
                   </>
                 )}
-                {(user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && (
+                {(user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('veterinaries') && (
                   <NavLink to="/veterinaries" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Veterinaries</NavLink>
                 )}
-                {(user?.role === 'Admin') && (
+                {(user?.role === 'Admin') && hasPerm('lab_technicians') && (
                   <NavLink to="/lab-technicians" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Lab Technicians</NavLink>
                 )}
               </nav>
@@ -277,14 +285,16 @@ export default function Layout() {
             <div className="px-6 mb-2">
               <h3 className="text-sm font-medium text-slate-900 mb-2">Operations</h3>
               <nav className="space-y-0.5 flex flex-col">
-                {!(user?.is_central || user?.stock?.is_central) && (
+                {!(user?.is_central || user?.stock?.is_central) && hasPerm('new_request') && (
                   <NavLink to="/requests/new" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>New Request</NavLink>
                 )}
-                {user?.stock?.is_endpoint && (
+                {user?.stock?.is_endpoint && hasPerm('administer') && (
                   <NavLink to="/administrations" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Administer Vaccines</NavLink>
                 )}
-                <NavLink to="/transfers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Transfers</NavLink>
-                {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.is_endpoint)) && (
+                {hasPerm('transfers') && (
+                  <NavLink to="/transfers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Transfers</NavLink>
+                )}
+                {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.is_endpoint)) && hasPerm('reports') && (
                   <NavLink to="/reports" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>
                     {(user?.role === 'Admin' || user?.is_central || user?.stock?.is_central) ? 'Reports' : 'Usage Reports'}
                   </NavLink>
@@ -298,8 +308,8 @@ export default function Layout() {
                 <div className="px-6 mb-2">
                   <h3 className="text-sm font-medium text-slate-900 mb-2">Admin</h3>
                   <nav className="space-y-0.5 flex flex-col">
-                    <NavLink to="/users" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Users & Roles</NavLink>
-                    <NavLink to="/settings" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Settings</NavLink>
+                    {hasPerm('users') && <NavLink to="/users" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Users & Roles</NavLink>}
+                    {hasPerm('settings') && <NavLink to="/settings" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Settings</NavLink>}
                   </nav>
                 </div>
               </>

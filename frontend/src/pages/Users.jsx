@@ -15,6 +15,21 @@ export default function Users() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
 
+  const availablePermissions = [
+    { id: 'stock_overview', label: 'Stock Overview' },
+    { id: 'inventory', label: 'Current Inventory' },
+    { id: 'vaccines', label: 'Vaccine Types' },
+    { id: 'suppliers', label: 'Suppliers' },
+    { id: 'veterinaries', label: 'Veterinaries' },
+    { id: 'lab_technicians', label: 'Lab Technicians' },
+    { id: 'new_request', label: 'New Request' },
+    { id: 'administer', label: 'Administer Vaccines' },
+    { id: 'transfers', label: 'Transfers' },
+    { id: 'reports', label: 'Reports' },
+    { id: 'users', label: 'Users & Roles' },
+    { id: 'settings', label: 'Settings' }
+  ];
+
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -22,7 +37,8 @@ export default function Users() {
     email: '',
     password: '',
     role: 'Viewer',
-    stock_id: ''
+    stock_id: '',
+    settings: { permissions: [] }
   });
   const [editingId, setEditingId] = useState(null);
 
@@ -90,7 +106,7 @@ export default function Users() {
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setFormData({ username: '', full_name: '', email: '', password: '', role: 'Viewer', stock_id: '' });
+    setFormData({ username: '', full_name: '', email: '', password: '', role: 'Viewer', stock_id: '', settings: { permissions: [] } });
   };
 
   const handleEdit = (u) => {
@@ -101,7 +117,8 @@ export default function Users() {
       email: u.email,
       password: '',
       role: u.role,
-      stock_id: u.stock_id || ''
+      stock_id: u.stock_id || '',
+      settings: u.settings || { permissions: availablePermissions.map(p => p.id) }
     });
     setShowModal(true);
   };
@@ -335,6 +352,50 @@ export default function Users() {
                     </div>
                     <p className="text-xs text-slate-500 mt-2">Leave blank if the user should have access to all stock points (typically Admins).</p>
                   </div>
+
+                  {formData.role === 'Admin' && !formData.stock_id && (
+                    <div className="pt-4 border-t border-slate-100">
+                      <label className="block text-[11px] font-bold text-slate-500 tracking-wider uppercase mb-3">Page Permissions</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {availablePermissions.map(perm => {
+                          const isSelected = formData.settings?.permissions?.includes(perm.id);
+                          return (
+                            <label key={perm.id} className="flex items-center gap-2 cursor-pointer group">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  const currentPerms = formData.settings?.permissions || [];
+                                  const newPerms = e.target.checked 
+                                    ? [...currentPerms, perm.id] 
+                                    : currentPerms.filter(p => p !== perm.id);
+                                  setFormData({ ...formData, settings: { ...formData.settings, permissions: newPerms } });
+                                }}
+                                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 transition-colors"
+                              />
+                              <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">{perm.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <div className="mt-3 flex gap-4">
+                        <button 
+                          type="button" 
+                          onClick={() => setFormData({ ...formData, settings: { ...formData.settings, permissions: availablePermissions.map(p => p.id) } })}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-semibold"
+                        >
+                          Select All
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setFormData({ ...formData, settings: { ...formData.settings, permissions: [] } })}
+                          className="text-xs text-slate-500 hover:text-slate-700 font-semibold"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
