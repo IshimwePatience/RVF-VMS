@@ -32,9 +32,10 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
   });
 
   const { data: surveillanceForms = [] } = useQuery({
-    queryKey: ['surveillance-forms-for-vets'],
+    queryKey: ['surveillance-forms-for-vets', veterinaryPhone],
     queryFn: async () => {
-      const res = await axios.get('/rvf-api/surveillance');
+      const url = veterinaryPhone ? `/rvf-api/surveillance?phone=${encodeURIComponent(veterinaryPhone)}` : '/rvf-api/surveillance';
+      const res = await axios.get(url);
       return res.data;
     },
     enabled: !isLabPortal // Only fetch if we are in Reports
@@ -71,6 +72,8 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
     const activeFilters = isLabPortal ? localFilters : filters;
     
     return results.filter(r => {
+      if (!isLabPortal && veterinaryPhone && !animalIdToVetMap[r.animal_id]) return false;
+
       if (activeFilters?.district && activeFilters.district.length > 0) {
         const dists = Array.isArray(activeFilters.district) ? activeFilters.district.map(d => d.toLowerCase()) : [String(activeFilters.district).toLowerCase()];
         const rDist1 = String(r.animal_district_origin || '').toLowerCase();
