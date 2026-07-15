@@ -259,7 +259,9 @@ export default function Reports() {
         }));
       }
 
-      const dateLabel = filters.dateFrom && filters.dateTo ? `${filters.dateFrom}_to_${filters.dateTo}` : (filters.dateFrom || filters.dateTo || 'Filtered');
+      const fromLabel = filters.dateFrom ? `${filters.dateFrom}${filters.timeFrom ? '_' + filters.timeFrom.replace(':', '') : ''}` : '';
+      const toLabel = filters.dateTo ? `${filters.dateTo}${filters.timeTo ? '_' + filters.timeTo.replace(':', '') : ''}` : '';
+      const dateLabel = fromLabel && toLabel ? `${fromLabel}_to_${toLabel}` : (fromLabel || toLabel || 'Filtered');
       exportToExcel(data, `${title.replace(/\s+/g, '_')}_${dateLabel}`);
     } catch (err) {
       console.error(err);
@@ -275,7 +277,9 @@ export default function Reports() {
     sector: '',
     veterinary_name: '',
     dateFrom: '',
+    timeFrom: '',
     dateTo: '',
+    timeTo: '',
     status: '',
     purpose: '',
     pcr_result: ''
@@ -361,8 +365,14 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      if (filters.dateFrom && new Date(r.date_administered) < new Date(filters.dateFrom + 'T00:00:00')) return false;
-      if (filters.dateTo && new Date(r.date_administered) > new Date(filters.dateTo + 'T23:59:59')) return false;
+      if (filters.dateFrom) {
+        const fromDateStr = `${filters.dateFrom}T${filters.timeFrom || '00:00'}:00`;
+        if (new Date(r.date_administered) < new Date(fromDateStr)) return false;
+      }
+      if (filters.dateTo) {
+        const toDateStr = `${filters.dateTo}T${filters.timeTo || '23:59'}:59`;
+        if (new Date(r.date_administered) > new Date(toDateStr)) return false;
+      }
       return true;
     });
   }, [reports, filters, user]);
@@ -373,8 +383,14 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom + 'T00:00:00')) return false;
-      if (filters.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
+      if (filters.dateFrom) {
+        const fromDateStr = `${filters.dateFrom}T${filters.timeFrom || '00:00'}:00`;
+        if (new Date(r.createdAt) < new Date(fromDateStr)) return false;
+      }
+      if (filters.dateTo) {
+        const toDateStr = `${filters.dateTo}T${filters.timeTo || '23:59'}:59`;
+        if (new Date(r.createdAt) > new Date(toDateStr)) return false;
+      }
       return true;
     });
   }, [homeVaccinations, filters]);
@@ -390,8 +406,14 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      if (filters.dateFrom && new Date(r.collection_date || r.createdAt) < new Date(filters.dateFrom + 'T00:00:00')) return false;
-      if (filters.dateTo && new Date(r.collection_date || r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
+      if (filters.dateFrom) {
+        const fromDateStr = `${filters.dateFrom}T${filters.timeFrom || '00:00'}:00`;
+        if (new Date(r.collection_date || r.createdAt) < new Date(fromDateStr)) return false;
+      }
+      if (filters.dateTo) {
+        const toDateStr = `${filters.dateTo}T${filters.timeTo || '23:59'}:59`;
+        if (new Date(r.collection_date || r.createdAt) > new Date(toDateStr)) return false;
+      }
       return true;
     });
   }, [surveillanceReports, filters, user]);
@@ -405,8 +427,14 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom + 'T00:00:00')) return false;
-      if (filters.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
+      if (filters.dateFrom) {
+        const fromDateStr = `${filters.dateFrom}T${filters.timeFrom || '00:00'}:00`;
+        if (new Date(r.createdAt) < new Date(fromDateStr)) return false;
+      }
+      if (filters.dateTo) {
+        const toDateStr = `${filters.dateTo}T${filters.timeTo || '23:59'}:59`;
+        if (new Date(r.createdAt) > new Date(toDateStr)) return false;
+      }
       if (filters.purpose && (!r.purpose || r.purpose.trim().toLowerCase() !== filters.purpose.trim().toLowerCase())) return false;
       if (filters.pcr_result && (!r.rvf_pcr_results || r.rvf_pcr_results.trim().toLowerCase() !== filters.pcr_result.trim().toLowerCase())) return false;
       return true;
@@ -485,23 +513,36 @@ export default function Reports() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">From</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap mr-1">From</span>
               <input
                 type="date"
                 value={filters.dateFrom}
                 onChange={e => setFilters({ ...filters, dateFrom: e.target.value })}
-                className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+                className="w-36 pl-3 pr-2 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+              />
+              <input
+                type="time"
+                value={filters.timeFrom}
+                onChange={e => setFilters({ ...filters, timeFrom: e.target.value })}
+                className="w-24 pl-2 pr-1 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+                title="Optional Time"
               />
             </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium whitespace-nowrap">To</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap mr-1">To</span>
               <input
                 type="date"
                 value={filters.dateTo}
                 onChange={e => setFilters({ ...filters, dateTo: e.target.value })}
-                className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+                className="w-36 pl-3 pr-2 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+              />
+              <input
+                type="time"
+                value={filters.timeTo}
+                onChange={e => setFilters({ ...filters, timeTo: e.target.value })}
+                className="w-24 pl-2 pr-1 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+                title="Optional Time"
               />
             </div>
 
@@ -538,9 +579,9 @@ export default function Reports() {
 
 
 
-            {(filters.search || filters.district || filters.sector || filters.dateFrom || filters.dateTo || filters.status || filters.purpose || filters.pcr_result) && (
+            {(filters.search || filters.district || filters.sector || filters.dateFrom || filters.timeFrom || filters.dateTo || filters.timeTo || filters.status || filters.purpose || filters.pcr_result) && (
               <button
-                onClick={() => setFilters({ search: '', province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '', purpose: '', pcr_result: '' })}
+                onClick={() => setFilters({ search: '', province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', timeFrom: '', dateTo: '', timeTo: '', status: '', purpose: '', pcr_result: '' })}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-full transition-colors border border-red-200"
               >
                 Clear
