@@ -21,8 +21,8 @@ export default function Reports() {
   const { user } = useContext(AuthContext);
   const [searchParams, setSearchParams] = useSearchParams();
   const { addToast } = useContext(ToastContext);
-  
-  const [activeTab, setActiveTab] = useState(user?.role === 'Admin' ? 'overview' : 'vaccination'); 
+
+  const [activeTab, setActiveTab] = useState(user?.role === 'Admin' ? 'overview' : 'vaccination');
   const [error, setError] = useState('');
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedHomeVaccination, setSelectedHomeVaccination] = useState(null);
@@ -45,7 +45,7 @@ export default function Reports() {
   const handleGeneratePDF = async ({ startDate, endDate, status, dateRangeLabel }) => {
     const type = pdfModalConfig.type;
     const title = pdfModalConfig.title;
-    
+
     try {
       // Fetch all veterinaries and users to know who didn't report
       const [vetsRes, labTechsRes] = await Promise.all([
@@ -235,7 +235,7 @@ export default function Reports() {
               const sSec = sample.sector || form.sector;
               const sCell = sample.cell || form.cell;
               const sVill = sample.village || form.village;
-              
+
               if (excelFilters.district && sDist !== excelFilters.district) return;
               if (excelFilters.sector && sSec !== excelFilters.sector) return;
               if (excelFilters.cell && sCell !== excelFilters.cell) return;
@@ -268,7 +268,7 @@ export default function Reports() {
             if (excelFilters.sector && form.sector !== excelFilters.sector) return;
             if (excelFilters.cell && form.cell !== excelFilters.cell) return;
             if (excelFilters.village && form.village !== excelFilters.village) return;
-            
+
             data.push({
               'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
               'Veterinary Phone': form.veterinary_email || form.phone_number,
@@ -331,7 +331,7 @@ export default function Reports() {
   const setFilters = (update) => {
     _setFilters(prev => {
       const nextFilters = typeof update === 'function' ? update(prev) : { ...prev, ...update };
-      
+
       // Sync search param to URL
       if (nextFilters.search !== prev.search) {
         if (nextFilters.search) {
@@ -470,9 +470,9 @@ export default function Reports() {
   };
 
   const pagination = usePagination(getListData(), 10);
-  
-  const loading = user?.role !== 'Admin' 
-    ? loadingVaccination 
+
+  const loading = user?.role !== 'Admin'
+    ? loadingVaccination
     : (activeTab === 'home_vaccination' ? loadingHomeVaccinations : loadingSurveillance);
 
   if (selectedReport) {
@@ -497,19 +497,19 @@ export default function Reports() {
           <div className="flex flex-wrap justify-end items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Search</span>
-              <input 
+              <input
                 type="text"
                 placeholder="Search..."
                 value={filters.search}
-                onChange={e => setFilters({...filters, search: e.target.value})}
+                onChange={e => setFilters({ ...filters, search: e.target.value })}
                 className="w-40 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
               />
             </div>
-            
+
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">District</span>
               <div className="w-36 border border-slate-300 rounded-full bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
-                <LocationDropdown 
+                <LocationDropdown
                   type="districts"
                   params={{ province: filters.province }}
                   value={filters.district}
@@ -522,7 +522,7 @@ export default function Reports() {
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Sector</span>
               <div className="w-36 border border-slate-300 rounded-full bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
-                <LocationDropdown 
+                <LocationDropdown
                   type="sectors"
                   params={{ district: filters.district }}
                   value={filters.sector}
@@ -534,20 +534,20 @@ export default function Reports() {
 
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">From</span>
-              <input 
+              <input
                 type="date"
                 value={filters.dateFrom}
-                onChange={e => setFilters({...filters, dateFrom: e.target.value})}
+                onChange={e => setFilters({ ...filters, dateFrom: e.target.value })}
                 className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
               />
             </div>
 
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">To</span>
-              <input 
+              <input
                 type="date"
                 value={filters.dateTo}
-                onChange={e => setFilters({...filters, dateTo: e.target.value})}
+                onChange={e => setFilters({ ...filters, dateTo: e.target.value })}
                 className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
               />
             </div>
@@ -557,7 +557,7 @@ export default function Reports() {
                 <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Purpose</span>
                 <select
                   value={filters.purpose}
-                  onChange={e => setFilters({...filters, purpose: e.target.value})}
+                  onChange={e => setFilters({ ...filters, purpose: e.target.value })}
                   className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
                 >
                   <option value="">All</option>
@@ -573,7 +573,7 @@ export default function Reports() {
                 <span className="text-xs text-slate-500 font-medium whitespace-nowrap">PCR Result</span>
                 <select
                   value={filters.pcr_result}
-                  onChange={e => setFilters({...filters, pcr_result: e.target.value})}
+                  onChange={e => setFilters({ ...filters, pcr_result: e.target.value })}
                   className="w-32 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
                 >
                   <option value="">All</option>
@@ -584,7 +584,7 @@ export default function Reports() {
             )}
 
             {(filters.search || filters.district || filters.sector || filters.dateFrom || filters.dateTo || filters.status || filters.purpose || filters.pcr_result) && (
-              <button 
+              <button
                 onClick={() => setFilters({ search: '', province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '', purpose: '', pcr_result: '' })}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-full transition-colors border border-red-200"
               >
@@ -600,76 +600,72 @@ export default function Reports() {
           <div className="flex space-x-4 overflow-x-auto">
             <button
               onClick={() => { setActiveTab('overview'); pagination.jump(1); }}
-              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'overview' 
-                  ? 'border-blue-600 text-blue-600' 
+              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'overview'
+                  ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
+                }`}
             >
               Overview
             </button>
             <button
               onClick={() => { setActiveTab('home_vaccination'); pagination.jump(1); }}
-              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'home_vaccination' 
-                  ? 'border-blue-600 text-blue-600' 
+              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'home_vaccination'
+                  ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
+                }`}
             >
               Home Vaccination Records
             </button>
             <button
               onClick={() => { setActiveTab('surveillance'); pagination.jump(1); }}
-              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'surveillance' 
-                  ? 'border-blue-600 text-blue-600' 
+              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'surveillance'
+                  ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
+                }`}
             >
               Sample Test Forms
             </button>
             <button
               onClick={() => { setActiveTab('lab_results'); pagination.jump(1); }}
-              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === 'lab_results' 
-                  ? 'border-blue-600 text-blue-600' 
+              className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'lab_results'
+                  ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-              }`}
+                }`}
             >
               Lab Results
             </button>
           </div>
-          
+
           <div className="relative ml-4" ref={exportMenuRef}>
-            <button 
-              onClick={() => setShowExportMenu(!showExportMenu)} 
+            <button
+              onClick={() => setShowExportMenu(!showExportMenu)}
               className="p-2 hover:bg-slate-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
               title="Export Options"
             >
               <MoreVertical className="w-5 h-5 text-slate-600" />
             </button>
-            
+
             {showExportMenu && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 z-50 py-2">
                 <div className="px-4 py-2 text-xs font-bold tracking-wider text-slate-400 uppercase mb-1">
                   Export to Excel
                 </div>
-                <button 
-                  onClick={() => { setExcelModalConfig({ type: 'home_vaccination', title: 'Home Vaccination Records' }); setShowExportMenu(false); }} 
+                <button
+                  onClick={() => { setExcelModalConfig({ type: 'home_vaccination', title: 'Home Vaccination Records' }); setShowExportMenu(false); }}
                   className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4 text-emerald-500" />
                   Home Vaccination Records
                 </button>
-                <button 
-                  onClick={() => { setExcelModalConfig({ type: 'surveillance', title: 'Sample Test Forms' }); setShowExportMenu(false); }} 
+                <button
+                  onClick={() => { setExcelModalConfig({ type: 'surveillance', title: 'Sample Test Forms' }); setShowExportMenu(false); }}
                   className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4 text-emerald-500" />
                   Sample Test Forms
                 </button>
-                <button 
-                  onClick={() => { setExcelModalConfig({ type: 'lab_results', title: 'Lab Results' }); setShowExportMenu(false); }} 
+                <button
+                  onClick={() => { setExcelModalConfig({ type: 'lab_results', title: 'Lab Results' }); setShowExportMenu(false); }}
                   className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4 text-emerald-500" />
@@ -678,22 +674,22 @@ export default function Reports() {
                 <div className="px-4 py-2 mt-2 text-xs font-bold tracking-wider text-slate-400 uppercase border-t border-slate-100 pt-3 mb-1">
                   Export to PDF
                 </div>
-                <button 
-                  onClick={() => { setPdfModalConfig({ type: 'home_vaccination', title: 'Home Vaccination Records' }); setShowExportMenu(false); }} 
+                <button
+                  onClick={() => { setPdfModalConfig({ type: 'home_vaccination', title: 'Home Vaccination Records' }); setShowExportMenu(false); }}
                   className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                 >
                   <FileText className="w-4 h-4 text-red-500" />
                   Home Vaccination Records
                 </button>
-                <button 
-                  onClick={() => { setPdfModalConfig({ type: 'surveillance', title: 'Sample Test Forms' }); setShowExportMenu(false); }} 
+                <button
+                  onClick={() => { setPdfModalConfig({ type: 'surveillance', title: 'Sample Test Forms' }); setShowExportMenu(false); }}
                   className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                 >
                   <FileText className="w-4 h-4 text-red-500" />
                   Sample Test Forms
                 </button>
-                <button 
-                  onClick={() => { setPdfModalConfig({ type: 'lab_results', title: 'Lab Results' }); setShowExportMenu(false); }} 
+                <button
+                  onClick={() => { setPdfModalConfig({ type: 'lab_results', title: 'Lab Results' }); setShowExportMenu(false); }}
                   className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                 >
                   <FileText className="w-4 h-4 text-red-500" />
@@ -705,14 +701,14 @@ export default function Reports() {
         </div>
       )}
 
-      <ReportPDFModal 
+      <ReportPDFModal
         isOpen={!!pdfModalConfig}
         onClose={() => setPdfModalConfig(null)}
         title={pdfModalConfig?.title}
         onGenerate={handleGeneratePDF}
       />
 
-      <ExportExcelModal 
+      <ExportExcelModal
         isOpen={!!excelModalConfig}
         onClose={() => setExcelModalConfig(null)}
         title={excelModalConfig?.title}
@@ -743,12 +739,7 @@ export default function Reports() {
                     {filteredSurveillance?.reduce((acc, r) => acc + (r?.samples?.length || 0), 0) || 0}
                   </td>
                 </tr>
-                <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Samples Awaiting Lab Reception</td>
-                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-amber-500">
-                    {Math.max(0, (filteredSurveillance?.reduce((acc, r) => acc + (r?.samples?.length || 0), 0) || 0) - (filteredLabResults.length || 0))}
-                  </td>
-                </tr>
+
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Home Vaccination Records</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
@@ -782,11 +773,11 @@ export default function Reports() {
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Pending Lab Results</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-amber-500">
-                    {filteredLabResults.filter(r => {
-                      const isPos = r.pcr_result === 'Positive' || r.rvf_pcr_results?.toUpperCase().includes('POSITIVE');
-                      const isNeg = r.pcr_result === 'Negative' || r.rvf_pcr_results?.toUpperCase().includes('NEGATIVE');
-                      return !isPos && !isNeg;
-                    }).length}
+                    {filteredSurveillance?.reduce((acc, r) => {
+                      const total = r?.samples?.length || 0;
+                      const tested = r?.samples?.filter(s => s.has_result).length || 0;
+                      return acc + (total - tested);
+                    }, 0) || 0}
                   </td>
                 </tr>
               </tbody>
