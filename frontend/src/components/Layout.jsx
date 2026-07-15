@@ -249,16 +249,18 @@ export default function Layout() {
         {/* Left Sidebar */}
         <div className="w-[280px] shrink-0 overflow-y-auto flex flex-col">
           {/* Top horizontal tabs for sidebar */}
+          {/* Top horizontal tabs for sidebar */}
           <div className="flex items-center gap-6 px-6 py-2 border-b border-slate-100">
             {hasPerm('dashboard') && <NavLink to="/" end className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Dashboard</NavLink>}
-            <NavLink to="/inventory" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Inventory</NavLink>
-            <NavLink to="/requests" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Requests</NavLink>
+            {hasPerm('inventory') && <NavLink to="/inventory" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Inventory</NavLink>}
+            {hasPerm('requests') && <NavLink to="/requests" className={({ isActive }) => `text-sm pb-3 font-medium ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-600 hover:text-slate-900'}`}>Requests</NavLink>}
           </div>
 
           <div className="py-4">
-            <div className="px-6 mb-2">
-              <h3 className="text-sm font-medium text-slate-900 mb-2">Management</h3>
-              <nav className="space-y-0.5 flex flex-col">
+            {((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('stock_overview')) || hasPerm('inventory') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (hasPerm('vaccines') || hasPerm('suppliers'))) || ((user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('veterinaries')) || ((user?.role === 'Admin') && hasPerm('lab_technicians')) ? (
+              <div className="px-6 mb-2">
+                <h3 className="text-sm font-medium text-slate-900 mb-2">Management</h3>
+                <nav className="space-y-0.5 flex flex-col">
                 {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('stock_overview') && (
                   <NavLink to="/stocks" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Stock Overview</NavLink>
                 )}
@@ -279,12 +281,16 @@ export default function Layout() {
                 )}
               </nav>
             </div>
+            ) : null}
 
-            <div className="mx-6 my-3 border-t border-slate-200"></div>
+            {(((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('stock_overview')) || hasPerm('inventory') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (hasPerm('vaccines') || hasPerm('suppliers'))) || ((user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('veterinaries')) || ((user?.role === 'Admin') && hasPerm('lab_technicians'))) && ((!(user?.is_central || user?.stock?.is_central) && hasPerm('new_request')) || (user?.stock?.is_endpoint && hasPerm('administer')) || hasPerm('transfers') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.is_endpoint)) && hasPerm('reports'))) ? (
+              <div className="mx-6 my-3 border-t border-slate-200"></div>
+            ) : null}
 
-            <div className="px-6 mb-2">
-              <h3 className="text-sm font-medium text-slate-900 mb-2">Operations</h3>
-              <nav className="space-y-0.5 flex flex-col">
+            {(!(user?.is_central || user?.stock?.is_central) && hasPerm('new_request')) || (user?.stock?.is_endpoint && hasPerm('administer')) || hasPerm('transfers') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.is_endpoint)) && hasPerm('reports')) ? (
+              <div className="px-6 mb-2">
+                <h3 className="text-sm font-medium text-slate-900 mb-2">Operations</h3>
+                <nav className="space-y-0.5 flex flex-col">
                 {!(user?.is_central || user?.stock?.is_central) && hasPerm('new_request') && (
                   <NavLink to="/requests/new" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>New Request</NavLink>
                 )}
@@ -301,8 +307,9 @@ export default function Layout() {
                 )}
               </nav>
             </div>
+            ) : null}
 
-            {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (
+            {(user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (hasPerm('users') || hasPerm('settings')) ? (
               <>
                 <div className="mx-6 my-3 border-t border-slate-200"></div>
                 <div className="px-6 mb-2">
@@ -313,7 +320,7 @@ export default function Layout() {
                   </nav>
                 </div>
               </>
-            )}
+            ) : null}
           </div>
         </div>
 
