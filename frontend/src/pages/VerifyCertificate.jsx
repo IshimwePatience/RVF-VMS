@@ -112,7 +112,6 @@ export default function VerifyCertificate() {
             </div>
             
             <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-4">
-              <Building2 className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
               <div>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tested At</p>
                 <p className="text-sm font-medium text-slate-800">{cert.tested_site || 'RAB Laboratory'}</p>
