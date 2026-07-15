@@ -6,7 +6,7 @@ const CertificateCard = forwardRef(({ result }, ref) => {
   if (!result) return null;
 
   // The verification URL that the QR code will point to
-  const verificationUrl = `${window.location.origin}/verify/${result.id}`;
+  const verificationUrl = `${window.location.origin}${import.meta.env.BASE_URL}verify/${result.id}`;
 
   const isPositive = result.rvf_pcr_results?.toUpperCase().includes('POSITIVE');
 
