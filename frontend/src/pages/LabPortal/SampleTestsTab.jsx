@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useContext, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Download, CheckSquare, Square, Search } from 'lucide-react';
+import { Download, CheckSquare, Square, Search, Loader } from 'lucide-react';
 import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/Pagination';
-import { exportToExcel } from '../../utils/exportExcel';
+import { exportToExcelWithValidation } from '../../utils/exportExcel';
 import { ToastContext } from '../../context/ToastContext';
 import Dropdown from '../../components/Dropdown';
 
@@ -149,7 +149,9 @@ export default function SampleTestsTab() {
       'PCR Result': '' // Blank column for the technician to fill
     }));
 
-    exportToExcel(exportData, 'RVF_Sample_Tests');
+    exportToExcelWithValidation(exportData, 'RVF_Sample_Tests', {
+      'PCR Result': ['Positive', 'Negative']
+    });
     
     // Clear selection after download
     setSelectedIds(new Set());

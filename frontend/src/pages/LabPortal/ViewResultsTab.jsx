@@ -350,7 +350,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                         ? 'bg-red-100 text-red-700' 
                         : 'bg-green-100 text-green-700'
                     }`}>
-                      {r.rvf_pcr_results || 'UNKNOWN'}
+                      {r.rvf_pcr_results ? r.rvf_pcr_results.trim().charAt(0).toUpperCase() + r.rvf_pcr_results.trim().slice(1).toLowerCase() : 'UNKNOWN'}
                     </span>
                   </td>
                   <td className="py-4 px-6 text-right">

@@ -255,7 +255,7 @@ export default function Reports() {
           'Vacc. Status': r.vaccination_status || 'N/A',
           'Purpose': r.purpose || 'N/A',
           'Health Status': r.health_status || 'N/A',
-          'PCR Result': r.rvf_pcr_results || 'Pending'
+          'PCR Result': r.rvf_pcr_results ? r.rvf_pcr_results.trim().charAt(0).toUpperCase() + r.rvf_pcr_results.trim().slice(1).toLowerCase() : 'Pending'
         }));
       }
 
@@ -407,8 +407,8 @@ export default function Reports() {
       }
       if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom + 'T00:00:00')) return false;
       if (filters.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
-      if (filters.purpose && r.purpose !== filters.purpose) return false;
-      if (filters.pcr_result && r.rvf_pcr_results !== filters.pcr_result) return false;
+      if (filters.purpose && (!r.purpose || r.purpose.trim().toLowerCase() !== filters.purpose.trim().toLowerCase())) return false;
+      if (filters.pcr_result && (!r.rvf_pcr_results || r.rvf_pcr_results.trim().toLowerCase() !== filters.pcr_result.trim().toLowerCase())) return false;
       return true;
     });
   }, [centralLabResults, filters]);
@@ -536,6 +536,8 @@ export default function Reports() {
               </div>
             )}
 
+
+
             {(filters.search || filters.district || filters.sector || filters.dateFrom || filters.dateTo || filters.status || filters.purpose || filters.pcr_result) && (
               <button
                 onClick={() => setFilters({ search: '', province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', dateTo: '', status: '', purpose: '', pcr_result: '' })}
@@ -554,8 +556,8 @@ export default function Reports() {
             <button
               onClick={() => { setActiveTab('overview'); pagination.jump(1); }}
               className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'overview'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
             >
               Overview
@@ -563,8 +565,8 @@ export default function Reports() {
             <button
               onClick={() => { setActiveTab('home_vaccination'); pagination.jump(1); }}
               className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'home_vaccination'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
             >
               Home Vaccination Records
@@ -572,8 +574,8 @@ export default function Reports() {
             <button
               onClick={() => { setActiveTab('surveillance'); pagination.jump(1); }}
               className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'surveillance'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
             >
               Sample Test Forms
@@ -581,8 +583,8 @@ export default function Reports() {
             <button
               onClick={() => { setActiveTab('lab_results'); pagination.jump(1); }}
               className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'lab_results'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
                 }`}
             >
               Lab Results
