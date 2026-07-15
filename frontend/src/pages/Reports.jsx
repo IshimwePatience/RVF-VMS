@@ -753,21 +753,21 @@ export default function Reports() {
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Lab Results</td>
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Tested (Has Results)</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                    {filteredLabResults.length}
+                    {filteredSurveillance?.reduce((acc, r) => acc + (r?.samples?.filter(s => s.has_result).length || 0), 0) || 0}
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Positive Lab Results</td>
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Positive Results</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-red-600">
-                    {filteredLabResults.filter(r => r.pcr_result === 'Positive' || r.rvf_pcr_results?.toUpperCase().includes('POSITIVE')).length}
+                    {filteredSurveillance?.reduce((acc, r) => acc + (r?.samples?.filter(s => s.has_result && s.rvf_pcr_results?.toUpperCase().includes('POSITIVE')).length || 0), 0) || 0}
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Negative Lab Results</td>
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Negative Results</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-green-600">
-                    {filteredLabResults.filter(r => r.pcr_result === 'Negative' || r.rvf_pcr_results?.toUpperCase().includes('NEGATIVE')).length}
+                    {filteredSurveillance?.reduce((acc, r) => acc + (r?.samples?.filter(s => s.has_result && s.rvf_pcr_results?.toUpperCase().includes('NEGATIVE')).length || 0), 0) || 0}
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
