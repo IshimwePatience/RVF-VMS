@@ -408,8 +408,8 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      if (filters.dateFrom && new Date(r.date_administered) < new Date(filters.dateFrom)) return false;
-      if (filters.dateTo && new Date(r.date_administered) > new Date(filters.dateTo)) return false;
+      if (filters.dateFrom && new Date(r.date_administered) < new Date(filters.dateFrom + 'T00:00:00')) return false;
+      if (filters.dateTo && new Date(r.date_administered) > new Date(filters.dateTo + 'T23:59:59')) return false;
       return true;
     });
   }, [reports, filters, user]);
@@ -420,7 +420,7 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
+      if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom + 'T00:00:00')) return false;
       if (filters.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
       return true;
     });
@@ -437,7 +437,7 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      if (filters.dateFrom && new Date(r.collection_date || r.createdAt) < new Date(filters.dateFrom)) return false;
+      if (filters.dateFrom && new Date(r.collection_date || r.createdAt) < new Date(filters.dateFrom + 'T00:00:00')) return false;
       if (filters.dateTo && new Date(r.collection_date || r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
       return true;
     });
@@ -452,7 +452,7 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom)) return false;
+      if (filters.dateFrom && new Date(r.createdAt) < new Date(filters.dateFrom + 'T00:00:00')) return false;
       if (filters.dateTo && new Date(r.createdAt) > new Date(filters.dateTo + 'T23:59:59')) return false;
       if (filters.purpose && r.purpose !== filters.purpose) return false;
       if (filters.pcr_result && r.rvf_pcr_results !== filters.pcr_result) return false;
@@ -744,6 +744,12 @@ export default function Reports() {
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Samples Awaiting Lab Reception</td>
+                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-amber-500">
+                    {Math.max(0, (filteredSurveillance?.reduce((acc, r) => acc + (r?.samples?.length || 0), 0) || 0) - (filteredLabResults.length || 0))}
+                  </td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Home Vaccination Records</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
                     {homeVaccinations?.length || 0}
@@ -771,6 +777,16 @@ export default function Reports() {
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Negative Lab Results</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-green-600">
                     {filteredLabResults.filter(r => r.pcr_result === 'Negative' || r.rvf_pcr_results?.toUpperCase().includes('NEGATIVE')).length}
+                  </td>
+                </tr>
+                <tr className="hover:bg-slate-50/50">
+                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Pending Lab Results</td>
+                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-amber-500">
+                    {filteredLabResults.filter(r => {
+                      const isPos = r.pcr_result === 'Positive' || r.rvf_pcr_results?.toUpperCase().includes('POSITIVE');
+                      const isNeg = r.pcr_result === 'Negative' || r.rvf_pcr_results?.toUpperCase().includes('NEGATIVE');
+                      return !isPos && !isNeg;
+                    }).length}
                   </td>
                 </tr>
               </tbody>
