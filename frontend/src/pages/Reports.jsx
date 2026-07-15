@@ -475,7 +475,7 @@ export default function Reports() {
 
   return (
     <div className="pb-12 max-w-7xl mx-auto">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-6">
+      <div className="flex flex-col items-start gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             {(user?.role === 'Admin' || user?.is_central || user?.stock?.is_central) ? 'Veterinary Reports' : 'Usage Reports'}

@@ -251,7 +251,7 @@ export default function ReportUsage({ mode = 'login' }) {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="h-3 bg-blue-600"></div>
           <div className="p-8">
-            <div className="flex justify-between items-start mb-6">
+            <div className="flex flex-col gap-4 mb-6">
               <img src={minisanteLogo} alt="MINISANTE" className="h-12 object-contain" />
               <button 
                 onClick={() => {

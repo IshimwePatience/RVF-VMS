@@ -14,7 +14,7 @@ export default function VetLabResultsTab({ phone }) {
 
   return (
     <div className="pb-12 pt-4">
-      <div className="flex items-start justify-between mb-8">
+      <div className="flex flex-col gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Lab Results</h1>
           <p className="text-slate-500 mt-1">View the latest laboratory test results for your submitted samples.</p>

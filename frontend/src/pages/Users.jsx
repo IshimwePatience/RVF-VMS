@@ -143,7 +143,7 @@ export default function Users() {
 
   return (
     <div className="max-w-[1200px] mx-auto pb-12 pt-4">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Users & Roles</h1>
           <p className="text-slate-500 mt-1">Manage system access and assign permissions</p>
