@@ -88,14 +88,22 @@ router.get('/province-by-district', (req, res) => {
 // Get sectors for a district
 router.get('/sectors', (req, res) => {
   try {
-    const { district } = req.query;
+    let { district } = req.query;
     if (!district) return res.status(400).json({ error: 'District is required' });
     
-    const province = getProvinceByDistrict(district);
-    if (!province) return res.status(404).json({ error: 'District not found' });
+    if (!Array.isArray(district)) district = [district];
 
-    const sectors = rwanda.getSectors(province, district);
-    res.json(sectors || []);
+    let allSectors = [];
+    for (const d of district) {
+      const province = getProvinceByDistrict(d);
+      if (province) {
+        const sectors = rwanda.getSectors(province, d);
+        if (sectors) allSectors = allSectors.concat(sectors);
+      }
+    }
+    
+    allSectors = [...new Set(allSectors)].sort();
+    res.json(allSectors);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -104,14 +112,29 @@ router.get('/sectors', (req, res) => {
 // Get cells for a sector
 router.get('/cells', (req, res) => {
   try {
-    const { district, sector } = req.query;
-    if (!district || !sector) return res.status(400).json({ error: 'District and Sector are required' });
+    let { district, sector } = req.query;
+    if (!district || !sector) return res.status(400).json({ error: 'District and sector are required' });
 
-    const province = getProvinceByDistrict(district);
-    if (!province) return res.status(404).json({ error: 'District not found' });
+    if (!Array.isArray(district)) district = [district];
+    if (!Array.isArray(sector)) sector = [sector];
 
-    const cells = rwanda.getCells(province, district, sector);
-    res.json(cells || []);
+    let allCells = [];
+    for (const d of district) {
+      const province = getProvinceByDistrict(d);
+      if (province) {
+        for (const s of sector) {
+          try {
+            const cells = rwanda.getCells(province, d, s);
+            if (cells) allCells = allCells.concat(cells);
+          } catch (e) {
+            // Ignore error if sector doesn't belong to district
+          }
+        }
+      }
+    }
+
+    allCells = [...new Set(allCells)].sort();
+    res.json(allCells);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -120,14 +143,32 @@ router.get('/cells', (req, res) => {
 // Get villages for a cell
 router.get('/villages', (req, res) => {
   try {
-    const { district, sector, cell } = req.query;
-    if (!district || !sector || !cell) return res.status(400).json({ error: 'District, Sector, and Cell are required' });
+    let { district, sector, cell } = req.query;
+    if (!district || !sector || !cell) return res.status(400).json({ error: 'District, sector, and cell are required' });
 
-    const province = getProvinceByDistrict(district);
-    if (!province) return res.status(404).json({ error: 'District not found' });
+    if (!Array.isArray(district)) district = [district];
+    if (!Array.isArray(sector)) sector = [sector];
+    if (!Array.isArray(cell)) cell = [cell];
 
-    const villages = rwanda.getVillages(province, district, sector, cell);
-    res.json(villages || []);
+    let allVillages = [];
+    for (const d of district) {
+      const province = getProvinceByDistrict(d);
+      if (province) {
+        for (const s of sector) {
+          for (const c of cell) {
+            try {
+              const villages = rwanda.getVillages(province, d, s, c);
+              if (villages) allVillages = allVillages.concat(villages);
+            } catch (e) {
+              // Ignore error if mismatch
+            }
+          }
+        }
+      }
+    }
+
+    allVillages = [...new Set(allVillages)].sort();
+    res.json(allVillages);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -4,7 +4,7 @@ import SearchableDropdown from './SearchableDropdown';
 
 const cache = {};
 
-export default function LocationDropdown({ type, params = {}, value, onChange, placeholder, disabled }) {
+export default function LocationDropdown({ type, params = {}, value, onChange, placeholder, disabled, isMulti = false }) {
   const [options, setOptions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -49,6 +49,7 @@ export default function LocationDropdown({ type, params = {}, value, onChange, p
       placeholder={loading ? 'Loading...' : placeholder}
       disabled={disabled || loading || (type !== 'districts' && options.length === 0)}
       loading={loading}
+      isMulti={isMulti}
     />
   );
 }

@@ -15,6 +15,7 @@ import ExportExcelModal from '../components/ExportExcelModal';
 import { exportToExcel } from '../utils/exportExcel';
 import { generatePDFReport } from '../utils/generatePDF';
 import { MoreVertical, Download, FileText } from 'lucide-react';
+import SearchableDropdown from '../components/SearchableDropdown';
 import { useSearchParams } from 'react-router-dom';
 
 export default function Reports() {
@@ -273,16 +274,16 @@ export default function Reports() {
   const [filters, _setFilters] = useState({
     search: searchParams.get('search') || '',
     province: '',
-    district: '',
-    sector: '',
+    district: [],
+    sector: [],
     veterinary_name: '',
     dateFrom: '',
     timeFrom: '',
     dateTo: '',
     timeTo: '',
     status: '',
-    purpose: '',
-    pcr_result: ''
+    purpose: [],
+    pcr_result: []
   });
 
   const setFilters = (update) => {
@@ -304,8 +305,12 @@ export default function Reports() {
   // Query string for filters for the API
   const queryParams = new URLSearchParams();
   if (filters.province) queryParams.append('province', filters.province);
-  if (filters.district) queryParams.append('district', filters.district);
-  if (filters.sector) queryParams.append('sector', filters.sector);
+  if (filters.district && filters.district.length > 0) {
+    filters.district.forEach(d => queryParams.append('district', d));
+  }
+  if (filters.sector && filters.sector.length > 0) {
+    filters.sector.forEach(s => queryParams.append('sector', s));
+  }
 
   // 1. Sector/District simple table (Allocations basically)
   const { data: reports = [], isLoading: loadingVaccination } = useQuery({
@@ -358,8 +363,8 @@ export default function Reports() {
     return reports.filter(r => {
       if (filters.province && r.province !== filters.province) return false;
       if (user?.role !== 'Admin' && user?.stock?.district && r.district !== user.stock.district) return false;
-      if (filters.district && r.district !== filters.district) return false;
-      if (filters.sector && r.sector !== filters.sector) return false;
+      if (filters.district && filters.district.length > 0 && !filters.district.includes(r.district)) return false;
+      if (filters.sector && filters.sector.length > 0 && !filters.sector.includes(r.sector)) return false;
       if (filters.status && r.report_status !== filters.status) return false;
       if (filters.search) {
         const searchVal = filters.search.toLowerCase();
@@ -400,8 +405,8 @@ export default function Reports() {
     return surveillanceReports.filter(r => {
       if (filters.province && r.province !== filters.province) return false;
       if (user?.role !== 'Admin' && user?.stock?.district && r.district !== user.stock.district) return false;
-      if (filters.district && r.district !== filters.district) return false;
-      if (filters.sector && r.sector !== filters.sector) return false;
+      if (filters.district && filters.district.length > 0 && !filters.district.includes(r.district)) return false;
+      if (filters.sector && filters.sector.length > 0 && !filters.sector.includes(r.sector)) return false;
       if (filters.search) {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
@@ -421,8 +426,8 @@ export default function Reports() {
   // Client-side filtering for Lab Results
   const filteredLabResults = useMemo(() => {
     return centralLabResults.filter(r => {
-      if (filters.district && r.animal_district_origin !== filters.district && r.district !== filters.district) return false;
-      if (filters.sector && r.sector !== filters.sector) return false;
+      if (filters.district && filters.district.length > 0 && !filters.district.includes(r.animal_district_origin) && !filters.district.includes(r.district)) return false;
+      if (filters.sector && filters.sector.length > 0 && !filters.sector.includes(r.sector)) return false;
       if (filters.search) {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
@@ -435,8 +440,12 @@ export default function Reports() {
         const toDateStr = `${filters.dateTo}T${filters.timeTo || '23:59'}:59`;
         if (new Date(r.createdAt) > new Date(toDateStr)) return false;
       }
-      if (filters.purpose && (!r.purpose || r.purpose.trim().toLowerCase() !== filters.purpose.trim().toLowerCase())) return false;
-      if (filters.pcr_result && (!r.rvf_pcr_results || r.rvf_pcr_results.trim().toLowerCase() !== filters.pcr_result.trim().toLowerCase())) return false;
+      if (filters.purpose && filters.purpose.length > 0) {
+        if (!r.purpose || !filters.purpose.some(p => p.toLowerCase() === r.purpose.trim().toLowerCase())) return false;
+      }
+      if (filters.pcr_result && filters.pcr_result.length > 0) {
+        if (!r.rvf_pcr_results || !filters.pcr_result.some(p => p.toLowerCase() === r.rvf_pcr_results.trim().toLowerCase())) return false;
+      }
       return true;
     });
   }, [centralLabResults, filters]);
@@ -489,26 +498,28 @@ export default function Reports() {
 
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">District</span>
-              <div className="w-36 border border-slate-300 rounded-full bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
+              <div className="w-48 border border-slate-300 rounded-lg bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
                 <LocationDropdown
                   type="districts"
                   params={{ province: filters.province }}
                   value={filters.district}
-                  onChange={(val) => setFilters({ ...filters, district: val, sector: '' })}
-                  placeholder="All"
+                  onChange={(val) => setFilters({ ...filters, district: val, sector: [] })}
+                  placeholder="All Districts"
+                  isMulti={true}
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Sector</span>
-              <div className="w-36 border border-slate-300 rounded-full bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
+              <div className="w-48 border border-slate-300 rounded-lg bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
                 <LocationDropdown
                   type="sectors"
                   params={{ district: filters.district }}
                   value={filters.sector}
                   onChange={(val) => setFilters({ ...filters, sector: val })}
-                  placeholder="All"
+                  placeholder="All Sectors"
+                  isMulti={true}
                 />
               </div>
             </div>
@@ -549,39 +560,38 @@ export default function Reports() {
             {(activeTab === 'lab_results' || activeTab === 'surveillance') && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500 font-medium whitespace-nowrap">Purpose</span>
-                <select
-                  value={filters.purpose}
-                  onChange={e => setFilters({ ...filters, purpose: e.target.value })}
-                  className="w-36 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
-                >
-                  <option value="">All</option>
-                  <option value="Surveillance control">Surveillance control</option>
-                  <option value="Slaughtering">Slaughtering</option>
-                  <option value="Surveillance new case">Surveillance new case</option>
-                </select>
+                <div className="w-48 border border-slate-300 rounded-lg bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
+                  <SearchableDropdown
+                    options={['Surveillance control', 'Slaughtering', 'Surveillance new case']}
+                    value={filters.purpose}
+                    onChange={val => setFilters({ ...filters, purpose: val })}
+                    placeholder="All Purposes"
+                    isMulti={true}
+                  />
+                </div>
               </div>
             )}
 
             {activeTab === 'lab_results' && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500 font-medium whitespace-nowrap">PCR Result</span>
-                <select
-                  value={filters.pcr_result}
-                  onChange={e => setFilters({ ...filters, pcr_result: e.target.value })}
-                  className="w-32 pl-4 pr-3 py-2 border border-slate-300 rounded-full text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
-                >
-                  <option value="">All</option>
-                  <option value="Positive">Positive</option>
-                  <option value="Negative">Negative</option>
-                </select>
+                <div className="w-40 border border-slate-300 rounded-lg bg-white hover:bg-slate-50 transition-colors outline-none focus-within:border-[#12aeec] focus-within:ring-1 focus-within:ring-[#12aeec] text-sm font-medium text-slate-700">
+                  <SearchableDropdown
+                    options={['Positive', 'Negative']}
+                    value={filters.pcr_result}
+                    onChange={val => setFilters({ ...filters, pcr_result: val })}
+                    placeholder="All Results"
+                    isMulti={true}
+                  />
+                </div>
               </div>
             )}
 
 
 
-            {(filters.search || filters.district || filters.sector || filters.dateFrom || filters.timeFrom || filters.dateTo || filters.timeTo || filters.status || filters.purpose || filters.pcr_result) && (
+            {(filters.search || filters.district.length > 0 || filters.sector.length > 0 || filters.dateFrom || filters.timeFrom || filters.dateTo || filters.timeTo || filters.status || filters.purpose.length > 0 || filters.pcr_result.length > 0) && (
               <button
-                onClick={() => setFilters({ search: '', province: '', district: '', sector: '', veterinary_name: '', dateFrom: '', timeFrom: '', dateTo: '', timeTo: '', status: '', purpose: '', pcr_result: '' })}
+                onClick={() => setFilters({ search: '', province: '', district: [], sector: [], veterinary_name: '', dateFrom: '', timeFrom: '', dateTo: '', timeTo: '', status: '', purpose: [], pcr_result: [] })}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-full transition-colors border border-red-200"
               >
                 Clear

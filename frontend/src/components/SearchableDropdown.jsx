@@ -1,13 +1,27 @@
 import React from 'react';
 import Select from 'react-select';
 
-export default function SearchableDropdown({ options, value, onChange, placeholder, disabled, loading, isClearable = true }) {
+export default function SearchableDropdown({ options, value, onChange, placeholder, disabled, loading, isClearable = true, isMulti = false }) {
   // Format options for react-select: { value, label }
   const formattedOptions = options.map(opt => (
     typeof opt === 'string' ? { value: opt, label: opt } : opt
   ));
 
-  const selectedValue = formattedOptions.find(opt => opt.value === value) || null;
+  let selectedValue;
+  if (isMulti) {
+    const valArray = Array.isArray(value) ? value : (value ? [value] : []);
+    selectedValue = formattedOptions.filter(opt => valArray.includes(opt.value));
+  } else {
+    selectedValue = formattedOptions.find(opt => opt.value === value) || null;
+  }
+
+  const handleChange = (selected) => {
+    if (isMulti) {
+      onChange(selected ? selected.map(s => s.value) : []);
+    } else {
+      onChange(selected ? selected.value : '');
+    }
+  };
 
   const customStyles = {
     control: (provided, state) => ({
@@ -81,11 +95,12 @@ export default function SearchableDropdown({ options, value, onChange, placehold
         styles={customStyles}
         options={formattedOptions}
         value={selectedValue}
-        onChange={(selected) => onChange(selected ? selected.value : '')}
+        onChange={handleChange}
         placeholder={placeholder}
         isDisabled={disabled}
         isLoading={loading}
         isClearable={isClearable}
+        isMulti={isMulti}
         menuPortalTarget={document.body}
         menuPosition="fixed"
         menuPlacement="auto"
