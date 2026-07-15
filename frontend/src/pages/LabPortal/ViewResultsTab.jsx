@@ -312,10 +312,10 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-slate-800">
-                          {r.village || r.cell || r.sector || r.animal_district_origin || 'Unknown Location'}
+                          {r.village || r.cell || r.sector || (r.district || r.animal_district_origin) || 'Unknown Location'}
                         </span>
                         <span className="text-xs text-slate-500">
-                          {[r.animal_district_origin, r.sector, r.cell].filter(Boolean).filter(x => x !== (r.village || r.cell || r.sector || r.animal_district_origin)).join(' / ')}
+                          {[(r.district || r.animal_district_origin), r.sector, r.cell].filter(Boolean).filter(x => x !== (r.village || r.cell || r.sector || (r.district || r.animal_district_origin))).join(' / ')}
                         </span>
                       </div>
                     </div>

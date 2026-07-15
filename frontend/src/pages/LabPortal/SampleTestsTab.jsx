@@ -66,15 +66,15 @@ export default function SampleTestsTab() {
         const search = searchTerm.toLowerCase();
         if (!((s.animal_id && s.animal_id.toLowerCase().includes(search)) ||
              (s.farmer_name && s.farmer_name.toLowerCase().includes(search)) ||
-             ((s.district_origin || s.form_district || '') && (s.district_origin || s.form_district || '').toLowerCase().includes(search)))) {
+             ((s.form_district || s.district_origin || '') && (s.form_district || s.district_origin || '').toLowerCase().includes(search)))) {
           return false;
         }
       }
 
-      const sDistrict = s.district_origin || s.form_district;
-      const sSector = s.sector || s.form_sector;
-      const sCell = s.cell || s.form_cell;
-      const sVillage = s.village || s.form_village;
+      const sDistrict = s.form_district || s.district_origin;
+      const sSector = s.form_sector || s.sector;
+      const sCell = s.form_cell || s.cell;
+      const sVillage = s.form_village || s.village;
 
       if (filterDistrict !== 'All' && sDistrict !== filterDistrict) return false;
       if (filterSector !== 'All' && sSector !== filterSector) return false;
@@ -321,7 +321,7 @@ export default function SampleTestsTab() {
                       <div className="text-xs text-slate-500">{sample.phone}</div>
                     </td>
                     <td className="py-3 px-4 text-slate-600">
-                      {sample.district_origin || sample.form_district}
+                      {sample.form_district || sample.district_origin}
                     </td>
                     <td className="py-3 px-4 text-slate-600">
                       {sample.specie} / {sample.sex} / {sample.age}
