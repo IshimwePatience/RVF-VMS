@@ -29,7 +29,9 @@ export default function ExportExcelModal({ isOpen, onClose, onExport, title, typ
     } else if (dateRange === 'custom') {
       start = customStart ? new Date(customStart) : new Date(0);
       end = customEnd ? new Date(customEnd) : new Date();
-      end.setHours(23, 59, 59, 999);
+      if (customEnd && !customEnd.includes('T')) {
+        end.setHours(23, 59, 59, 999);
+      }
     } else {
       start = new Date(0);
       end = new Date();
@@ -135,18 +137,18 @@ export default function ExportExcelModal({ isOpen, onClose, onExport, title, typ
           {dateRange === 'custom' && (
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block text-xs font-medium text-slate-500 mb-1">Start Date</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Start Date & Time</label>
                 <input 
-                  type="date" 
+                  type="datetime-local" 
                   value={customStart}
                   onChange={(e) => setCustomStart(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs font-medium text-slate-500 mb-1">End Date</label>
+                <label className="block text-xs font-medium text-slate-500 mb-1">End Date & Time</label>
                 <input 
-                  type="date" 
+                  type="datetime-local" 
                   value={customEnd}
                   onChange={(e) => setCustomEnd(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500"

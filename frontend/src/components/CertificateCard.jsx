@@ -81,11 +81,9 @@ const CertificateCard = forwardRef(({ result }, ref) => {
 
             <div className="col-span-2 pt-2">
               <p className="text-xs text-slate-500 uppercase font-semibold mb-2">PCR Test Result</p>
-              <div className={`inline-flex px-4 py-2 rounded-lg border-2 ${isPositive ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}>
-                <span className="text-xl font-black uppercase">
-                  {result.rvf_pcr_results || 'UNKNOWN'}
-                </span>
-              </div>
+              <p className={`text-xl font-bold uppercase ${isPositive ? 'text-red-600' : 'text-green-600'}`}>
+                {result.rvf_pcr_results?.trim() || 'UNKNOWN'}
+              </p>
             </div>
           </div>
         </div>
