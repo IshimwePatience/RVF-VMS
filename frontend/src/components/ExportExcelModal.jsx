@@ -135,8 +135,8 @@ export default function ExportExcelModal({ isOpen, onClose, onExport, title, typ
           </div>
 
           {dateRange === 'custom' && (
-            <div className="flex gap-4">
-              <div className="flex-1">
+            <div className="flex flex-col gap-4">
+              <div className="w-full">
                 <label className="block text-xs font-medium text-slate-500 mb-1">Start Date & Time</label>
                 <input 
                   type="datetime-local" 
@@ -145,7 +145,7 @@ export default function ExportExcelModal({ isOpen, onClose, onExport, title, typ
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500"
                 />
               </div>
-              <div className="flex-1">
+              <div className="w-full">
                 <label className="block text-xs font-medium text-slate-500 mb-1">End Date & Time</label>
                 <input 
                   type="datetime-local" 

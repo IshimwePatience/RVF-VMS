@@ -111,7 +111,7 @@ export default function SampleTestReportView({ report, onClose }) {
         <div className="space-y-4">
           <h2 className="text-xl font-bold text-slate-800 mt-8 mb-4 px-2">Samples Submitted ({report.samples?.length || 0})</h2>
           
-          {(report.samples || []).map((sample, idx) => (
+          {([...(report.samples || [])].sort((a, b) => (parseInt(a.sn) || 0) - (parseInt(b.sn) || 0))).map((sample, idx) => (
             <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center">
                 <span className="bg-purple-100 text-purple-800 w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3 shadow-sm">
