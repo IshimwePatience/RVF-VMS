@@ -71,13 +71,16 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
     const activeFilters = isLabPortal ? localFilters : filters;
     
     return results.filter(r => {
-      if (activeFilters?.district) {
-        const fDist = String(activeFilters.district).toLowerCase();
+      if (activeFilters?.district && activeFilters.district.length > 0) {
+        const dists = Array.isArray(activeFilters.district) ? activeFilters.district.map(d => d.toLowerCase()) : [String(activeFilters.district).toLowerCase()];
         const rDist1 = String(r.animal_district_origin || '').toLowerCase();
         const rDist2 = String(r.district || '').toLowerCase();
-        if (rDist1 !== fDist && rDist2 !== fDist) return false;
+        if (!dists.includes(rDist1) && !dists.includes(rDist2)) return false;
       }
-      if (activeFilters?.sector && String(r.sector || '').toLowerCase() !== String(activeFilters.sector).toLowerCase()) return false;
+      if (activeFilters?.sector && activeFilters.sector.length > 0) {
+        const sectors = Array.isArray(activeFilters.sector) ? activeFilters.sector.map(s => s.toLowerCase()) : [String(activeFilters.sector).toLowerCase()];
+        if (!sectors.includes(String(r.sector || '').toLowerCase())) return false;
+      }
       if (activeFilters?.cell && String(r.cell || '').toLowerCase() !== String(activeFilters.cell).toLowerCase()) return false;
       if (activeFilters?.village && String(r.village || '').toLowerCase() !== String(activeFilters.village).toLowerCase()) return false;
       
@@ -86,10 +89,22 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
         const searchVal = searchTerm.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      if (activeFilters?.dateFrom && new Date(r.createdAt) < new Date(activeFilters.dateFrom)) return false;
-      if (activeFilters?.dateTo && new Date(r.createdAt) > new Date(activeFilters.dateTo + 'T23:59:59')) return false;
-      if (activeFilters?.purpose && r.purpose !== activeFilters.purpose) return false;
-      if (activeFilters?.pcr_result && r.rvf_pcr_results !== activeFilters.pcr_result) return false;
+      if (activeFilters?.dateFrom) {
+         const fromDateStr = activeFilters.timeFrom ? `${activeFilters.dateFrom}T${activeFilters.timeFrom}:00` : activeFilters.dateFrom;
+         if (new Date(r.createdAt) < new Date(fromDateStr)) return false;
+      }
+      if (activeFilters?.dateTo) {
+         const toDateStr = activeFilters.timeTo ? `${activeFilters.dateTo}T${activeFilters.timeTo}:59` : `${activeFilters.dateTo}T23:59:59`;
+         if (new Date(r.createdAt) > new Date(toDateStr)) return false;
+      }
+      if (activeFilters?.purpose && activeFilters.purpose.length > 0) {
+        const purposes = Array.isArray(activeFilters.purpose) ? activeFilters.purpose.map(p => p.toLowerCase()) : [String(activeFilters.purpose).toLowerCase()];
+        if (!purposes.includes(String(r.purpose || '').trim().toLowerCase())) return false;
+      }
+      if (activeFilters?.pcr_result && activeFilters.pcr_result.length > 0) {
+        const results = Array.isArray(activeFilters.pcr_result) ? activeFilters.pcr_result.map(p => p.toLowerCase()) : [String(activeFilters.pcr_result).toLowerCase()];
+        if (!results.includes(String(r.rvf_pcr_results || '').trim().toLowerCase())) return false;
+      }
       return true;
     });
   }, [results, filters, localFilters, isLabPortal]);
