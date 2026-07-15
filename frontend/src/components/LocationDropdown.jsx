@@ -9,10 +9,13 @@ export default function LocationDropdown({ type, params = {}, value, onChange, p
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Helper to check if a param is empty
+    const isEmpty = (val) => !val || (Array.isArray(val) && val.length === 0);
+
     // Check required params based on type
-    if (type === 'sectors' && !params.district) { setOptions([]); return; }
-    if (type === 'cells' && (!params.district || !params.sector)) { setOptions([]); return; }
-    if (type === 'villages' && (!params.district || !params.sector || !params.cell)) { setOptions([]); return; }
+    if (type === 'sectors' && isEmpty(params.district)) { setOptions([]); return; }
+    if (type === 'cells' && (isEmpty(params.district) || isEmpty(params.sector))) { setOptions([]); return; }
+    if (type === 'villages' && (isEmpty(params.district) || isEmpty(params.sector) || isEmpty(params.cell))) { setOptions([]); return; }
 
     const key = `${type}-${JSON.stringify(params)}`;
     if (cache[key]) {
