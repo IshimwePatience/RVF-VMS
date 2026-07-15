@@ -92,7 +92,7 @@ exports.getForms = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    const labResults = await LabResult.findAll({ attributes: ['animal_id', 'createdAt'] });
+    const labResults = await LabResult.findAll({ attributes: ['animal_id', 'createdAt', 'rvf_pcr_results'] });
 
     const formsWithFlags = forms.map(form => {
       const formJSON = form.toJSON();
@@ -100,17 +100,23 @@ exports.getForms = async (req, res) => {
       if (formJSON.samples) {
         formJSON.samples = formJSON.samples.map(sample => {
           let hasResult = false;
+          let pcrResult = null;
           if (sample.animal_id) {
             const searchId = String(sample.animal_id).trim().toLowerCase();
             // Find a lab result for this animal ID that was uploaded AFTER the sample was submitted
-            hasResult = labResults.some(lr => 
+            const lrMatch = labResults.find(lr => 
               String(lr.animal_id).trim().toLowerCase() === searchId && 
               new Date(lr.createdAt) >= formDate
             );
+            if (lrMatch) {
+              hasResult = true;
+              pcrResult = lrMatch.rvf_pcr_results;
+            }
           }
           return {
             ...sample,
-            has_result: hasResult
+            has_result: hasResult,
+            rvf_pcr_results: pcrResult
           };
         });
       }

@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import rabLogo from '../assets/images/RAB_Logo2.png';
 
 const CertificateCard = forwardRef(({ result }, ref) => {
   if (!result) return null;
@@ -33,12 +34,12 @@ const CertificateCard = forwardRef(({ result }, ref) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8 relative z-10 border-b border-slate-200 pb-6">
         <div className="flex items-center gap-4">
-          <img src="/RAB_Logo2.png" alt="RAB Logo" className="h-20 object-contain" />
+          <img src={rabLogo} alt="RAB Logo" className="h-20 object-contain" />
           <div>
-            <h1 className="text-[22px] font-bold text-slate-800 uppercase tracking-wide">
+            <h1 className="text-[22px] font-bold text-slate-800 uppercase">
               Republic of Rwanda
             </h1>
-            <h2 className="text-[15px] font-medium text-slate-600 uppercase tracking-wider mt-1">
+            <h2 className="text-[15px] font-medium text-slate-600 uppercase mt-1">
               Ministry of Agriculture and Animal Resources
             </h2>
             <p className="text-sm text-green-700 font-semibold mt-1">
@@ -51,37 +52,37 @@ const CertificateCard = forwardRef(({ result }, ref) => {
       {/* Main Content */}
       <div className="flex justify-between relative z-10">
         <div className="flex-1 pr-8">
-          <h3 className="text-2xl font-black text-slate-800 mb-6 uppercase tracking-tight text-blue-900">
+          <h3 className="text-2xl font-black text-slate-800 mb-6 uppercase text-blue-900">
             Certificate for RVF Testing
           </h3>
           
           <div className="grid grid-cols-2 gap-x-8 gap-y-4">
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Farmer Name</p>
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Farmer Name</p>
               <p className="text-lg font-bold text-slate-800">{result.farmer_name || 'N/A'}</p>
             </div>
             
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Animal ID</p>
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Animal ID</p>
               <p className="text-lg font-bold text-slate-800">{result.animal_id || 'N/A'}</p>
             </div>
             
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Specie</p>
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Specie</p>
               <p className="text-lg font-bold text-slate-800">{result.specie || 'N/A'}</p>
             </div>
 
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1">Date Tested</p>
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Date Tested</p>
               <p className="text-lg font-bold text-slate-800">
                 {new Date(result.createdAt).toLocaleDateString('en-GB')}
               </p>
             </div>
 
             <div className="col-span-2 pt-2">
-              <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">PCR Test Result</p>
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-2">PCR Test Result</p>
               <div className={`inline-flex px-4 py-2 rounded-lg border-2 ${isPositive ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}>
-                <span className="text-xl font-black tracking-widest uppercase">
+                <span className="text-xl font-black uppercase">
                   {result.rvf_pcr_results || 'UNKNOWN'}
                 </span>
               </div>
