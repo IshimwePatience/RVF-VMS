@@ -120,13 +120,17 @@ export default function Reports() {
           });
         } else if (type === 'lab_results') {
           headers = ['Date Uploaded', 'Farmer', 'District', 'Specie', 'PCR Result'];
-          rows = recordsInRange.map(r => [
-            new Date(r.createdAt).toLocaleDateString(),
-            r.farmer_name || 'N/A',
-            r.animal_district_origin || r.district || 'N/A',
-            r.specie || 'N/A',
-            r.pcr_result || 'Pending'
-          ]);
+          rows = recordsInRange.map(r => {
+            const dateStr = new Date(r.createdAt).toLocaleDateString();
+            const timeStr = new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            return [
+              `${dateStr} ${timeStr}`,
+              r.farmer_name || 'N/A',
+              r.animal_district_origin || r.district || 'N/A',
+              r.specie || 'N/A',
+              r.pcr_result || 'Pending'
+            ];
+          });
         }
       } else {
         // Missing Reports
@@ -238,7 +242,7 @@ export default function Reports() {
         data = filtered.map(r => ({
           'Lab Technician Name': r.uploader?.name || 'N/A',
           'Technician Number': r.uploader?.phone_number || 'N/A',
-          'Date Uploaded': new Date(r.createdAt).toLocaleDateString(),
+          'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`,
           'Tested Site': r.tested_site || 'N/A',
           'Veterinary (Result Owner)': vetMap[r.animal_id]?.name || 'N/A',
           'Veterinary Phone': vetMap[r.animal_id]?.phone || 'N/A',

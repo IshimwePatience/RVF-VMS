@@ -319,8 +319,11 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                       </td>
                     </>
                   )}
-                  <td className="py-4 px-6 text-slate-600">
-                    {new Date(r.createdAt).toLocaleDateString()}
+                  <td className="py-4 px-6 text-slate-600 whitespace-nowrap">
+                    <div>{new Date(r.createdAt).toLocaleDateString()}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">
+                      {new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
+                    </div>
                   </td>
                   <td className="py-4 px-6 text-slate-600 font-medium">
                     {r.tested_site || 'N/A'}
