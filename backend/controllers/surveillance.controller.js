@@ -92,7 +92,9 @@ exports.getForms = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    const labResults = await LabResult.findAll({ attributes: ['animal_id', 'createdAt', 'rvf_pcr_results'] });
+    const labResults = await LabResult.findAll({ 
+      attributes: ['animal_id', 'farmer_name', 'phone', 'animal_district_origin', 'specie', 'createdAt', 'rvf_pcr_results'] 
+    });
 
     const formsWithFlags = forms.map(form => {
       const formJSON = form.toJSON();
@@ -103,11 +105,27 @@ exports.getForms = async (req, res) => {
           let pcrResult = null;
           if (sample.animal_id) {
             const searchId = String(sample.animal_id).trim().toLowerCase();
-            // Find a lab result for this animal ID that was uploaded AFTER the sample was submitted
-            const lrMatch = labResults.find(lr => 
-              String(lr.animal_id).trim().toLowerCase() === searchId && 
-              new Date(lr.createdAt) >= formDate
-            );
+            const searchFarmer = sample.farmer_name ? String(sample.farmer_name).trim().toLowerCase() : '';
+            const searchPhone = sample.phone ? String(sample.phone).trim().toLowerCase() : '';
+            const searchDistrict = sample.district_origin ? String(sample.district_origin).trim().toLowerCase() : '';
+            const searchSpecie = sample.specie ? String(sample.specie).trim().toLowerCase() : '';
+            
+            // Find a lab result matching all criteria uploaded AFTER the sample was submitted
+            const lrMatch = labResults.find(lr => {
+              const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
+              const lrFarmer = lr.farmer_name ? String(lr.farmer_name).trim().toLowerCase() : '';
+              const lrPhone = lr.phone ? String(lr.phone).trim().toLowerCase() : '';
+              const lrDistrict = lr.animal_district_origin ? String(lr.animal_district_origin).trim().toLowerCase() : '';
+              const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
+
+              const isIdMatch = lrId === searchId;
+              const isFarmerMatch = !searchFarmer || !lrFarmer || lrFarmer === searchFarmer;
+              const isPhoneMatch = !searchPhone || !lrPhone || lrPhone === searchPhone;
+              const isDistrictMatch = !searchDistrict || !lrDistrict || lrDistrict === searchDistrict;
+              const isSpecieMatch = !searchSpecie || !lrSpecie || lrSpecie === searchSpecie;
+
+              return isIdMatch && isFarmerMatch && isPhoneMatch && isDistrictMatch && isSpecieMatch && new Date(lr.createdAt) >= formDate;
+            });
             if (lrMatch) {
               hasResult = true;
               pcrResult = lrMatch.rvf_pcr_results;
