@@ -12,8 +12,9 @@ router.put('/settings', authenticate, authController.updateSettings);
 // Veterinary Passwordless Auth
 router.post('/vet/login', authController.vetLogin);
 
-// Lab Technician Passwordless Auth
+// Lab Technician Auth
 router.post('/lab-tech/login', authController.labTechLogin);
+router.post('/lab-tech/change-password', authController.changeLabTechPassword);
 router.get('/lab-techs', authenticate, authController.getLabTechs);
 router.post('/lab-techs', authenticate, authController.createLabTech);
 router.put('/lab-techs/:id', authenticate, authController.updateLabTech);

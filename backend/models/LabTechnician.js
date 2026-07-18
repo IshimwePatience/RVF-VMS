@@ -6,6 +6,8 @@ module.exports = (sequelize) => {
     name: { type: DataTypes.STRING, allowNull: false },
     phone_number: { type: DataTypes.STRING, allowNull: false, unique: true },
     district: { type: DataTypes.STRING, allowNull: true },
+    password_hash: { type: DataTypes.STRING, allowNull: true },
+    must_change_password: { type: DataTypes.BOOLEAN, defaultValue: false },
     is_active: { type: DataTypes.BOOLEAN, defaultValue: true }
   });
 };

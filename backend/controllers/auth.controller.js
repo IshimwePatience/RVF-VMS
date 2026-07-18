@@ -266,11 +266,21 @@ exports.vetLogin = async (req, res) => {
 
 const { LabTechnician } = require('../models');
 
+const validatePassword = (password) => {
+  if (password.length < 8) return 'Password must be at least 8 characters long.';
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter.';
+  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter.';
+  if (!/[0-9]/.test(password)) return 'Password must contain at least one number.';
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password)) return 'Password must contain at least one special character.';
+  return null;
+};
+
 exports.labTechLogin = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, password } = req.body;
     let { phone_number } = req.body;
     if (!phone_number) return res.status(400).json({ message: 'Phone number is required' });
+    if (!password) return res.status(400).json({ message: 'Password is required' });
     
     // Clean phone number (remove spaces)
     phone_number = phone_number.replace(/\s+/g, '').trim();
@@ -298,10 +308,43 @@ exports.labTechLogin = async (req, res) => {
       }
       
       // Name provided -> Create new self-registered tech
+      const passwordError = validatePassword(password);
+      if (passwordError) {
+        return res.status(400).json({ message: passwordError });
+      }
+
+      const password_hash = await bcrypt.hash(password, 10);
       tech = await LabTechnician.create({
         phone_number,
-        name
+        name,
+        password_hash,
+        must_change_password: false // Self-registered doesn't need to change password
       });
+    } else {
+      // Tech exists, verify password
+      let isMatch = false;
+      if (!tech.password_hash) {
+        // If they are an existing lab tech from before passwords, their temporary password is '123456'
+        isMatch = (password === '123456');
+        if (isMatch) {
+          tech.must_change_password = true;
+          await tech.save();
+        }
+      } else {
+        isMatch = await bcrypt.compare(password, tech.password_hash);
+      }
+
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Invalid phone number or password' });
+      }
+
+      if (tech.must_change_password) {
+        return res.json({ 
+          requires_password_change: true, 
+          userId: tech.id,
+          message: 'You must change your temporary password before continuing.' 
+        });
+      }
     }
 
     // Tech found or newly created -> issue token directly
@@ -314,6 +357,41 @@ exports.labTechLogin = async (req, res) => {
     res.json({ token, user: { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district } });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.changeLabTechPassword = async (req, res) => {
+  try {
+    const { userId, new_password } = req.body;
+    if (!userId || !new_password) {
+      return res.status(400).json({ message: 'User ID and new password are required' });
+    }
+
+    const tech = await LabTechnician.findByPk(userId);
+    if (!tech) {
+      return res.status(404).json({ message: 'Lab Technician not found' });
+    }
+
+    const passwordError = validatePassword(new_password);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
+    }
+
+    const password_hash = await bcrypt.hash(new_password, 10);
+    tech.password_hash = password_hash;
+    tech.must_change_password = false;
+    await tech.save();
+
+    const token = jwt.sign(
+      { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({ token, user: { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district }, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Error changing lab tech password:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -344,9 +422,14 @@ exports.createLabTech = async (req, res) => {
       return res.status(400).json({ error: 'This phone number is already registered to a Lab Technician.' });
     }
 
+    // Default temporary password
+    const password_hash = await bcrypt.hash('123456', 10);
+
     const tech = await LabTechnician.create({
       name,
       phone_number: cleanPhone,
+      password_hash,
+      must_change_password: true,
       is_active: is_active !== undefined ? is_active : true
     });
 
