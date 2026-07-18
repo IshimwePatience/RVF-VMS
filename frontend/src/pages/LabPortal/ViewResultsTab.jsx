@@ -385,6 +385,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                   </td>
                   <td className="py-4 px-6 text-right">
                     <div className="flex justify-end gap-2">
+                      {/* HIDDEN FOR NOW AS PER USER REQUEST
                       <button 
                         onClick={() => handleDownloadCertificate(r)}
                         disabled={downloadingId === r.id}
@@ -397,6 +398,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                           <Download className="w-4 h-4" />
                         )}
                       </button>
+                      */}
                       {isLabPortal && (
                         <button 
                           onClick={() => setEditingResult(r)}
