@@ -114,9 +114,13 @@ exports.getResults = async (req, res) => {
           return form.samples.some(sample => {
             if (!sample.animal_id) return false;
             const searchId = String(sample.animal_id).trim().toLowerCase();
-            const searchFarmer = sample.farmer_name ? String(sample.farmer_name).trim().toLowerCase() : '';
-            const searchPhone = sample.phone ? String(sample.phone).trim().toLowerCase() : '';
-            const searchDistrict = sample.district_origin ? String(sample.district_origin).trim().toLowerCase() : '';
+            const actualFarmer = sample.farmer_name || form.farmer_name || '';
+            const actualPhone = sample.phone || form.phone_number || form.veterinary_email || '';
+            const actualDistrict = sample.district_origin || form.district || '';
+
+            const searchFarmer = actualFarmer ? String(actualFarmer).trim().toLowerCase() : '';
+            const searchPhone = actualPhone ? String(actualPhone).trim().toLowerCase() : '';
+            const searchDistrict = actualDistrict ? String(actualDistrict).trim().toLowerCase() : '';
             const searchSpecie = sample.specie ? String(sample.specie).trim().toLowerCase() : '';
 
             const isIdMatch = lrId === searchId;

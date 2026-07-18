@@ -105,9 +105,13 @@ exports.getForms = async (req, res) => {
           let pcrResult = null;
           if (sample.animal_id) {
             const searchId = String(sample.animal_id).trim().toLowerCase();
-            const searchFarmer = sample.farmer_name ? String(sample.farmer_name).trim().toLowerCase() : '';
-            const searchPhone = sample.phone ? String(sample.phone).trim().toLowerCase() : '';
-            const searchDistrict = sample.district_origin ? String(sample.district_origin).trim().toLowerCase() : '';
+            const actualFarmer = sample.farmer_name || formJSON.farmer_name || '';
+            const actualPhone = sample.phone || formJSON.phone_number || formJSON.veterinary_email || '';
+            const actualDistrict = sample.district_origin || formJSON.district || '';
+            
+            const searchFarmer = actualFarmer ? String(actualFarmer).trim().toLowerCase() : '';
+            const searchPhone = actualPhone ? String(actualPhone).trim().toLowerCase() : '';
+            const searchDistrict = actualDistrict ? String(actualDistrict).trim().toLowerCase() : '';
             const searchSpecie = sample.specie ? String(sample.specie).trim().toLowerCase() : '';
             
             // Find a lab result matching all criteria uploaded AFTER the sample was submitted
