@@ -85,31 +85,52 @@ exports.getResults = async (req, res) => {
     }
 
     const { vet_phone } = req.query;
-    if (vet_phone) {
-      const { SurveillanceForm, SurveillanceSample } = require('../models');
-      const forms = await SurveillanceForm.findAll({
-        where: { veterinary_email: vet_phone },
-        include: [{ model: SurveillanceSample, as: 'samples' }]
-      });
-      const animalIds = [];
-      forms.forEach(f => {
-        if (f.samples) {
-          f.samples.forEach(s => {
-            if (s.animal_id) animalIds.push(String(s.animal_id).trim());
-          });
-        }
-      });
-      // If no samples found for this vet, ensure it returns empty array
-      whereClause.animal_id = animalIds.length > 0 ? animalIds : ['__NO_MATCH__'];
-    }
-
-    const results = await LabResult.findAll({
+    let results = await LabResult.findAll({
       where: whereClause,
       include: [
         { model: LabTechnician, as: 'uploader', attributes: ['id', 'name', 'phone_number'] }
       ],
       order: [['createdAt', 'DESC']]
     });
+
+    if (vet_phone) {
+      const { SurveillanceForm, SurveillanceSample } = require('../models');
+      const forms = await SurveillanceForm.findAll({
+        where: { veterinary_email: vet_phone },
+        include: [{ model: SurveillanceSample, as: 'samples' }]
+      });
+
+      // strict filtering in memory to prevent cross-vet leakage for generic animal_ids
+      results = results.filter(lr => {
+        const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
+        const lrFarmer = lr.farmer_name ? String(lr.farmer_name).trim().toLowerCase() : '';
+        const lrPhone = lr.phone ? String(lr.phone).trim().toLowerCase() : '';
+        const lrDistrict = lr.animal_district_origin ? String(lr.animal_district_origin).trim().toLowerCase() : '';
+        const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
+
+        return forms.some(form => {
+          const formDate = new Date(form.createdAt);
+          if (!form.samples) return false;
+          return form.samples.some(sample => {
+            if (!sample.animal_id) return false;
+            const searchId = String(sample.animal_id).trim().toLowerCase();
+            const searchFarmer = sample.farmer_name ? String(sample.farmer_name).trim().toLowerCase() : '';
+            const searchPhone = sample.phone ? String(sample.phone).trim().toLowerCase() : '';
+            const searchDistrict = sample.district_origin ? String(sample.district_origin).trim().toLowerCase() : '';
+            const searchSpecie = sample.specie ? String(sample.specie).trim().toLowerCase() : '';
+
+            const isIdMatch = lrId === searchId;
+            const isFarmerMatch = !searchFarmer || !lrFarmer || lrFarmer === searchFarmer;
+            const isPhoneMatch = !searchPhone || !lrPhone || lrPhone === searchPhone;
+            const isDistrictMatch = !searchDistrict || !lrDistrict || lrDistrict === searchDistrict;
+            const isSpecieMatch = !searchSpecie || !lrSpecie || lrSpecie === searchSpecie;
+
+            return isIdMatch && isFarmerMatch && isPhoneMatch && isDistrictMatch && isSpecieMatch && new Date(lr.createdAt) >= formDate;
+          });
+        });
+      });
+    }
+
     res.json(results);
   } catch (error) {
     console.error('Error fetching lab results:', error);
