@@ -1,7 +1,7 @@
 import React, { useState, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { RefreshCw, MapPin, Pencil, Trash2, X, Search, Download } from 'lucide-react';
+import { RefreshCw, MapPin, Pencil, Trash2, X, Search, Download, MoreVertical, FileText } from 'lucide-react';
 import MapModal from '../../components/MapModal';
 import CertificateCard from '../../components/CertificateCard';
 import { usePagination } from '../../hooks/usePagination';
@@ -9,6 +9,8 @@ import Pagination from '../../components/Pagination';
 import LocationDropdown from '../../components/LocationDropdown';
 import { AuthContext } from '../../context/AuthContext';
 import { ToastContext } from '../../context/ToastContext';
+import { exportToExcel } from '../../utils/exportExcel';
+import { generatePDFReport } from '../../utils/generatePDF';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -21,13 +23,28 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
   const certificateRef = React.useRef(null);
   const [certData, setCertData] = useState(null);
   
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
   const [localFilters, setLocalFilters] = useState({
     district: '',
     sector: '',
     cell: '',
     village: '',
     dateFrom: '',
+    timeFrom: '',
     dateTo: '',
+    timeTo: '',
     search: ''
   });
 
@@ -126,6 +143,62 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
 
   const pagination = usePagination(filteredResults || [], 10);
 
+  const handleExportExcel = () => {
+    try {
+      const data = filteredResults.map(r => ({
+        'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`,
+        'Tested Site': r.tested_site || 'N/A',
+        'Farmer Name': r.farmer_name || 'N/A',
+        'Farmer Phone': r.phone || 'N/A',
+        'District': r.animal_district_origin || r.district || 'N/A',
+        'Sector': r.sector || 'N/A',
+        'Cell': r.cell || 'N/A',
+        'Village': r.village || 'N/A',
+        'Animal ID': r.animal_id || 'N/A',
+        'Specie': r.specie || 'N/A',
+        'Breed': r.breed || 'N/A',
+        'Sex': r.sex || 'N/A',
+        'Age': r.age || 'N/A',
+        'Vacc. Status': r.vaccination_status || 'N/A',
+        'Purpose': r.purpose || 'N/A',
+        'Health Status': r.health_status || 'N/A',
+        'PCR Result': r.rvf_pcr_results ? r.rvf_pcr_results.trim().charAt(0).toUpperCase() + r.rvf_pcr_results.trim().slice(1).toLowerCase() : 'Pending'
+      }));
+
+      const dateLabel = new Date().toISOString().split('T')[0];
+      exportToExcel(data, `My_Lab_Results_${dateLabel}`);
+    } catch (err) {
+      console.error(err);
+      addToast('error', 'Failed to export Excel.');
+    }
+    setShowExportMenu(false);
+  };
+
+  const handleExportPDF = () => {
+    try {
+      const headers = ['Date Uploaded', 'Farmer', 'District', 'Animal ID', 'Specie', 'PCR Result'];
+      const rows = filteredResults.map(r => {
+        const dateStr = new Date(r.createdAt).toLocaleDateString();
+        const timeStr = new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return [
+          `${dateStr} ${timeStr}`,
+          r.farmer_name || 'N/A',
+          r.animal_district_origin || r.district || 'N/A',
+          r.animal_id || 'N/A',
+          r.specie || 'N/A',
+          r.rvf_pcr_results ? r.rvf_pcr_results.trim().charAt(0).toUpperCase() + r.rvf_pcr_results.trim().slice(1).toLowerCase() : 'Pending'
+        ];
+      });
+
+      const dateLabel = new Date().toISOString().split('T')[0];
+      generatePDFReport('My Lab Results', headers, rows, `My_Lab_Results_${dateLabel}`);
+    } catch (err) {
+      console.error(err);
+      addToast('error', 'Failed to generate PDF.');
+    }
+    setShowExportMenu(false);
+  };
+
   const handleDownloadCertificate = async (result) => {
     setDownloadingId(result.id);
     setCertData(result);
@@ -220,29 +293,81 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap mr-1">From</span>
               <input 
                 type="date"
                 value={localFilters.dateFrom}
                 onChange={e => setLocalFilters({...localFilters, dateFrom: e.target.value})}
-                className="w-36 px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-600"
+                className="w-36 pl-3 pr-2 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
               />
-              <span className="text-slate-400">-</span>
+              <input 
+                type="time"
+                value={localFilters.timeFrom}
+                onChange={e => setLocalFilters({...localFilters, timeFrom: e.target.value})}
+                className="w-24 pl-2 pr-1 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+                title="Optional Time"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-slate-500 font-medium whitespace-nowrap mr-1">To</span>
               <input 
                 type="date"
                 value={localFilters.dateTo}
                 onChange={e => setLocalFilters({...localFilters, dateTo: e.target.value})}
-                className="w-36 px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-600"
+                className="w-36 pl-3 pr-2 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+              />
+              <input 
+                type="time"
+                value={localFilters.timeTo}
+                onChange={e => setLocalFilters({...localFilters, timeTo: e.target.value})}
+                className="w-24 pl-2 pr-1 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors outline-none focus:border-[#12aeec] focus:ring-1 focus:ring-[#12aeec]"
+                title="Optional Time"
               />
             </div>
-            {(localFilters.search || localFilters.district || localFilters.dateFrom || localFilters.dateTo) && (
+            {(localFilters.search || localFilters.district || localFilters.dateFrom || localFilters.timeFrom || localFilters.dateTo || localFilters.timeTo) && (
               <button 
-                onClick={() => setLocalFilters({ district: '', sector: '', cell: '', village: '', dateFrom: '', dateTo: '', search: '' })}
-                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                onClick={() => setLocalFilters({ district: '', sector: '', cell: '', village: '', dateFrom: '', timeFrom: '', dateTo: '', timeTo: '', search: '' })}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-full transition-colors border border-red-200"
               >
                 Clear
               </button>
             )}
+
+            <div className="relative ml-auto flex-shrink-0" ref={exportMenuRef}>
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="p-2 hover:bg-slate-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 border border-slate-200"
+                title="Export Options"
+              >
+                <MoreVertical className="w-5 h-5 text-slate-600" />
+              </button>
+
+              {showExportMenu && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 z-50 py-2">
+                  <div className="px-4 py-2 text-xs font-bold tracking-wider text-slate-400 uppercase mb-1">
+                    Export to Excel
+                  </div>
+                  <button
+                    onClick={handleExportExcel}
+                    className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4 text-emerald-500" />
+                    Lab Results
+                  </button>
+                  <div className="px-4 py-2 mt-2 text-xs font-bold tracking-wider text-slate-400 uppercase border-t border-slate-100 pt-3 mb-1">
+                    Export to PDF
+                  </div>
+                  <button
+                    onClick={handleExportPDF}
+                    className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  >
+                    <FileText className="w-4 h-4 text-red-500" />
+                    Lab Results
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
