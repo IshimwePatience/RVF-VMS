@@ -119,7 +119,7 @@ exports.getForms = async (req, res) => {
     });
 
     const formsWithFlags = forms.map(form => {
-      const formJSON = form.toJSON();
+      const formJSON = form.toJSON ? form.toJSON() : form;
       const formDate = new Date(formJSON.createdAt);
       if (formJSON.samples) {
         formJSON.samples = formJSON.samples.map(sample => {
@@ -127,34 +127,42 @@ exports.getForms = async (req, res) => {
           let pcrResult = null;
           if (sample.animal_id) {
             const searchId = String(sample.animal_id).trim().toLowerCase();
-            const actualFarmer = sample.farmer_name || formJSON.farmer_name || '';
-            const actualPhone = sample.phone || formJSON.phone_number || formJSON.veterinary_email || '';
-            const actualDistrict = sample.district_origin || formJSON.district || '';
             
-            const searchFarmer = actualFarmer ? String(actualFarmer).trim().toLowerCase() : '';
-            const searchPhone = actualPhone ? String(actualPhone).trim().toLowerCase() : '';
-            const searchDistrict = actualDistrict ? String(actualDistrict).trim().toLowerCase() : '';
-            const searchSpecie = sample.specie ? String(sample.specie).trim().toLowerCase() : '';
-            
-            // Find a lab result matching all criteria uploaded AFTER the sample was submitted
-            const lrMatch = labResults.find(lr => {
-              const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
-              const lrFarmer = lr.farmer_name ? String(lr.farmer_name).trim().toLowerCase() : '';
-              const lrPhone = lr.phone ? String(lr.phone).trim().toLowerCase() : '';
-              const lrDistrict = lr.animal_district_origin ? String(lr.animal_district_origin).trim().toLowerCase() : '';
-              const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
-
-              const isIdMatch = lrId === searchId;
-              const isFarmerMatch = !searchFarmer || !lrFarmer || lrFarmer === searchFarmer;
-              const isPhoneMatch = !searchPhone || !lrPhone || lrPhone === searchPhone;
-              const isDistrictMatch = !searchDistrict || !lrDistrict || lrDistrict === searchDistrict;
-              const isSpecieMatch = !searchSpecie || !lrSpecie || lrSpecie === searchSpecie;
-
-              return isIdMatch && isFarmerMatch && isPhoneMatch && isDistrictMatch && isSpecieMatch && new Date(lr.createdAt) >= formDate;
+            // Fast lookup using array filter instead of a full O(N^2) scan of all lab results every time
+            // Because one animal might have multiple lab results, we filter for this specific animal_id first
+            const matchingLabs = labResults.filter(lr => {
+                const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
+                return lrId === searchId;
             });
-            if (lrMatch) {
-              hasResult = true;
-              pcrResult = lrMatch.rvf_pcr_results;
+            
+            if (matchingLabs.length > 0) {
+              const actualFarmer = sample.farmer_name || formJSON.farmer_name || '';
+              const actualPhone = sample.phone || formJSON.phone_number || formJSON.veterinary_email || '';
+              const actualDistrict = sample.district_origin || formJSON.district || '';
+              
+              const searchFarmer = actualFarmer ? String(actualFarmer).trim().toLowerCase() : '';
+              const searchPhone = actualPhone ? String(actualPhone).trim().toLowerCase() : '';
+              const searchDistrict = actualDistrict ? String(actualDistrict).trim().toLowerCase() : '';
+              const searchSpecie = sample.specie ? String(sample.specie).trim().toLowerCase() : '';
+              
+              const lrMatch = matchingLabs.find(lr => {
+                const lrFarmer = lr.farmer_name ? String(lr.farmer_name).trim().toLowerCase() : '';
+                const lrPhone = lr.phone ? String(lr.phone).trim().toLowerCase() : '';
+                const lrDistrict = lr.animal_district_origin ? String(lr.animal_district_origin).trim().toLowerCase() : '';
+                const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
+  
+                const isFarmerMatch = !searchFarmer || !lrFarmer || lrFarmer === searchFarmer;
+                const isPhoneMatch = !searchPhone || !lrPhone || lrPhone === searchPhone;
+                const isDistrictMatch = !searchDistrict || !lrDistrict || lrDistrict === searchDistrict;
+                const isSpecieMatch = !searchSpecie || !lrSpecie || lrSpecie === searchSpecie;
+  
+                return isFarmerMatch && isPhoneMatch && isDistrictMatch && isSpecieMatch && new Date(lr.createdAt) >= formDate;
+              });
+              
+              if (lrMatch) {
+                hasResult = true;
+                pcrResult = lrMatch.rvf_pcr_results;
+              }
             }
           }
           return {

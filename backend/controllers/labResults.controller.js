@@ -103,6 +103,26 @@ exports.getResults = async (req, res) => {
         include: [{ model: SurveillanceSample, as: 'samples' }]
       });
 
+      // Pre-build a map of valid sample conditions for O(1) lookup
+      const validSamples = [];
+      forms.forEach(form => {
+        const formDate = new Date(form.createdAt);
+        if (form.samples) {
+          form.samples.forEach(sample => {
+            if (sample.animal_id) {
+              validSamples.push({
+                searchId: String(sample.animal_id).trim().toLowerCase(),
+                searchFarmer: (sample.farmer_name || form.farmer_name || '').trim().toLowerCase(),
+                searchPhone: (sample.phone || form.phone_number || form.veterinary_email || '').trim().toLowerCase(),
+                searchDistrict: (sample.district_origin || form.district || '').trim().toLowerCase(),
+                searchSpecie: (sample.specie || '').trim().toLowerCase(),
+                formDate
+              });
+            }
+          });
+        }
+      });
+
       // strict filtering in memory to prevent cross-vet leakage for generic animal_ids
       results = results.filter(lr => {
         const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
@@ -111,29 +131,16 @@ exports.getResults = async (req, res) => {
         const lrDistrict = lr.animal_district_origin ? String(lr.animal_district_origin).trim().toLowerCase() : '';
         const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
 
-        return forms.some(form => {
-          const formDate = new Date(form.createdAt);
-          if (!form.samples) return false;
-          return form.samples.some(sample => {
-            if (!sample.animal_id) return false;
-            const searchId = String(sample.animal_id).trim().toLowerCase();
-            const actualFarmer = sample.farmer_name || form.farmer_name || '';
-            const actualPhone = sample.phone || form.phone_number || form.veterinary_email || '';
-            const actualDistrict = sample.district_origin || form.district || '';
+        // Filter validSamples down to just matching IDs first (extremely fast)
+        const matchingSamples = validSamples.filter(s => s.searchId === lrId);
+        
+        return matchingSamples.some(s => {
+          const isFarmerMatch = !s.searchFarmer || !lrFarmer || lrFarmer === s.searchFarmer;
+          const isPhoneMatch = !s.searchPhone || !lrPhone || lrPhone === s.searchPhone;
+          const isDistrictMatch = !s.searchDistrict || !lrDistrict || lrDistrict === s.searchDistrict;
+          const isSpecieMatch = !s.searchSpecie || !lrSpecie || lrSpecie === s.searchSpecie;
 
-            const searchFarmer = actualFarmer ? String(actualFarmer).trim().toLowerCase() : '';
-            const searchPhone = actualPhone ? String(actualPhone).trim().toLowerCase() : '';
-            const searchDistrict = actualDistrict ? String(actualDistrict).trim().toLowerCase() : '';
-            const searchSpecie = sample.specie ? String(sample.specie).trim().toLowerCase() : '';
-
-            const isIdMatch = lrId === searchId;
-            const isFarmerMatch = !searchFarmer || !lrFarmer || lrFarmer === searchFarmer;
-            const isPhoneMatch = !searchPhone || !lrPhone || lrPhone === searchPhone;
-            const isDistrictMatch = !searchDistrict || !lrDistrict || lrDistrict === searchDistrict;
-            const isSpecieMatch = !searchSpecie || !lrSpecie || lrSpecie === searchSpecie;
-
-            return isIdMatch && isFarmerMatch && isPhoneMatch && isDistrictMatch && isSpecieMatch && new Date(lr.createdAt) >= formDate;
-          });
+          return isFarmerMatch && isPhoneMatch && isDistrictMatch && isSpecieMatch && new Date(lr.createdAt) >= s.formDate;
         });
       });
     }
