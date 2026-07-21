@@ -60,7 +60,7 @@ exports.getGlobalOverview = async (req, res) => {
     // 5. Lab Results
     const labResults = await LabResult.findAll({
       where: labWhere,
-      attributes: ['pcr_result', 'rvf_pcr_results']
+      attributes: ['rvf_pcr_results']
     });
     
     const totalLabResults = labResults.length;
