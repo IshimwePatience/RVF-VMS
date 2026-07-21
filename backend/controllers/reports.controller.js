@@ -6,8 +6,8 @@ exports.getGlobalOverview = async (req, res) => {
   try {
     const { province, district, sector, dateFrom, dateTo, search } = req.query;
     
-    // Construct cache key
-    const cacheKey = `global_overview_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFrom || 'all'}_${dateTo || 'all'}_${search || 'all'}`;
+    // Construct cache key (using v2 to bypass poisoned cache with invalid dates)
+    const cacheKey = `global_overview_v2_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFrom || 'all'}_${dateTo || 'all'}_${search || 'all'}`;
     
     // Check cache
     if (redisClient.isReady) {
