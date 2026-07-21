@@ -971,7 +971,14 @@ export default function Reports() {
                     {pagination.currentData.map((r) => (
                       <tr key={r.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => setSelectedReport(r)}>
                         <td className="py-4 pr-4 text-slate-600 whitespace-nowrap">
-                          {new Date(r.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                          {r.collection_date && (
+                            <div className="text-sm font-semibold text-slate-800">
+                              Collected: {new Date(r.collection_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
+                          )}
+                          <div className={r.collection_date ? "text-xs text-slate-500" : "text-sm text-slate-800"}>
+                            Submitted: {new Date(r.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </div>
                         </td>
                         <td className="py-4">
                           <div className="flex flex-col">
