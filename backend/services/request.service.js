@@ -38,7 +38,8 @@ exports.getRequests = async (user, type) => {
       { model: Batch },
       { model: Stock, as: 'RequestingStock' }
     ],
-    order: [['createdAt', 'DESC']]
+    order: [['createdAt', 'DESC']],
+    limit: 500
   });
 };
 

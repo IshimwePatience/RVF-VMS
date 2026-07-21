@@ -99,7 +99,8 @@ exports.getInventory = async (user, viewParent) => {
            ...(user.is_central ? [{ model: Supplier }] : [])
         ] 
       }
-    ]
+    ],
+    limit: 500
   });
 
   const { Transfer } = require('../models');
