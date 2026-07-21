@@ -6,8 +6,8 @@ exports.getGlobalOverview = async (req, res) => {
   try {
     const { province, district, sector, dateFrom, dateTo, search } = req.query;
     
-    // Construct cache key (using v3 to bypass poisoned cache)
-    const cacheKey = `global_overview_v3_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFrom || 'all'}_${dateTo || 'all'}_${search || 'all'}`;
+    // Construct cache key (using v4 to bypass poisoned cache)
+    const cacheKey = `global_overview_v4_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFrom || 'all'}_${dateTo || 'all'}_${search || 'all'}`;
     
     // Check cache
     if (redisClient.isReady) {
@@ -58,9 +58,15 @@ exports.getGlobalOverview = async (req, res) => {
       }
       
       if (hasDate) {
-        surveillanceWhere.createdAt = dateFilter;
+        surveillanceWhere[Op.or] = [
+          { collection_date: dateFilter },
+          { [Op.and]: [{ collection_date: null }, { createdAt: dateFilter }] }
+        ];
+        vaxWhere[Op.or] = [
+          { date_administered: dateFilter },
+          { [Op.and]: [{ date_administered: null }, { createdAt: dateFilter }] }
+        ];
         labWhere.createdAt = dateFilter;
-        vaxWhere.createdAt = dateFilter;
       }
     }
 
