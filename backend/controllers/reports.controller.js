@@ -28,7 +28,7 @@ exports.getGlobalOverview = async (req, res) => {
     }
     if (district) {
       surveillanceWhere.district = district;
-      labWhere[Op.or] = [{ animal_district_origin: district }, { district: district }];
+      labWhere.animal_district_origin = district;
       vaxWhere.district = district;
     }
     if (sector) {
