@@ -39,12 +39,23 @@ exports.getGlobalOverview = async (req, res) => {
 
     if (dateFrom || dateTo) {
       const dateFilter = {};
-      if (dateFrom) dateFilter[Op.gte] = new Date(dateFrom);
-      if (dateTo) dateFilter[Op.lte] = new Date(`${dateTo}T23:59:59Z`);
+      if (dateFrom) {
+        const dFrom = new Date(dateFrom);
+        if (!isNaN(dFrom)) dateFilter[Op.gte] = dFrom;
+      }
+      if (dateTo) {
+        const dTo = new Date(dateTo);
+        if (!isNaN(dTo)) {
+          dTo.setHours(23, 59, 59, 999);
+          dateFilter[Op.lte] = dTo;
+        }
+      }
       
-      surveillanceWhere.createdAt = dateFilter;
-      labWhere.createdAt = dateFilter;
-      vaxWhere.createdAt = dateFilter;
+      if (Object.keys(dateFilter).length > 0) {
+        surveillanceWhere.createdAt = dateFilter;
+        labWhere.createdAt = dateFilter;
+        vaxWhere.createdAt = dateFilter;
+      }
     }
 
     if (search) {

@@ -315,6 +315,11 @@ export default function Reports() {
   if (filters.sector && filters.sector.length > 0) {
     filters.sector.forEach(s => queryParams.append('sector', s));
   }
+  if (filters.search) queryParams.append('search', filters.search);
+  if (filters.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
+  if (filters.dateTo) queryParams.append('dateTo', filters.dateTo);
+  if (filters.timeFrom) queryParams.append('timeFrom', filters.timeFrom);
+  if (filters.timeTo) queryParams.append('timeTo', filters.timeTo);
 
   // 1. Sector/District simple table (Allocations basically)
   const { data: reports = [], isLoading: loadingVaccination } = useQuery({
@@ -332,7 +337,7 @@ export default function Reports() {
 
   // 2. Central Overview Data (Cached in Redis)
   const { data: globalOverview = null, isLoading: loadingOverview } = useQuery({
-    queryKey: ['global-overview', filters.province, filters.district, filters.sector],
+    queryKey: ['global-overview', filters.province, filters.district, filters.sector, filters.search, filters.dateFrom, filters.dateTo, filters.timeFrom, filters.timeTo],
     queryFn: async () => {
       const res = await axios.get(`/rvf-api/reports/overview?${queryParams.toString()}`);
       return res.data;
@@ -401,18 +406,20 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const fromDateStr = `${filters.dateFrom}T${filters.timeFrom || '00:00'}:00`;
-        if (new Date(r.createdAt) < new Date(fromDateStr)) return false;
+        const dFrom = new Date(filters.dateFrom);
+        if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const toDateStr = `${filters.dateTo}T${filters.timeTo || '23:59'}:59`;
-        if (new Date(r.createdAt) > new Date(toDateStr)) return false;
+        const dTo = new Date(filters.dateTo);
+        if (!isNaN(dTo)) {
+          dTo.setHours(23, 59, 59, 999);
+          if (new Date(r.createdAt) > dTo) return false;
+        }
       }
       return true;
     });
   }, [homeVaccinations, filters]);
 
-  // Client-side filtering for Surveillance Reports
   const filteredSurveillance = useMemo(() => {
     return surveillanceReports.filter(r => {
       if (filters.province && r.province !== filters.province) return false;
@@ -424,12 +431,15 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const fromDateStr = `${filters.dateFrom}T${filters.timeFrom || '00:00'}:00`;
-        if (new Date(r.collection_date || r.createdAt) < new Date(fromDateStr)) return false;
+        const dFrom = new Date(filters.dateFrom);
+        if (!isNaN(dFrom) && new Date(r.collection_date || r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const toDateStr = `${filters.dateTo}T${filters.timeTo || '23:59'}:59`;
-        if (new Date(r.collection_date || r.createdAt) > new Date(toDateStr)) return false;
+        const dTo = new Date(filters.dateTo);
+        if (!isNaN(dTo)) {
+          dTo.setHours(23, 59, 59, 999);
+          if (new Date(r.collection_date || r.createdAt) > dTo) return false;
+        }
       }
       return true;
     });
@@ -445,12 +455,15 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const fromDateStr = `${filters.dateFrom}T${filters.timeFrom || '00:00'}:00`;
-        if (new Date(r.createdAt) < new Date(fromDateStr)) return false;
+        const dFrom = new Date(filters.dateFrom);
+        if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const toDateStr = `${filters.dateTo}T${filters.timeTo || '23:59'}:59`;
-        if (new Date(r.createdAt) > new Date(toDateStr)) return false;
+        const dTo = new Date(filters.dateTo);
+        if (!isNaN(dTo)) {
+          dTo.setHours(23, 59, 59, 999);
+          if (new Date(r.createdAt) > dTo) return false;
+        }
       }
       if (filters.purpose && filters.purpose.length > 0) {
         if (!r.purpose || !filters.purpose.some(p => p.toLowerCase() === r.purpose.trim().toLowerCase())) return false;
