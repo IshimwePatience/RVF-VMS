@@ -789,6 +789,7 @@ export default function Reports() {
             </table>
           </div>
         </div>
+        )
       ) : activeTab === 'lab_results' && user?.role === 'Admin' ? (
         <ViewResultsTab filters={filters} />
       ) : (
