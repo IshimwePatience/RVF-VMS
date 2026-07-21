@@ -92,7 +92,28 @@ exports.getForms = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
+    // Extract all unique animal IDs from the forms to prevent fetching the entire database
+    const animalIds = new Set();
+    forms.forEach(form => {
+      const formJSON = form.toJSON ? form.toJSON() : form;
+      if (formJSON.samples) {
+        formJSON.samples.forEach(sample => {
+          if (sample.animal_id) {
+            animalIds.add(String(sample.animal_id).trim());
+            animalIds.add(String(sample.animal_id).trim().toLowerCase());
+            animalIds.add(String(sample.animal_id).trim().toUpperCase());
+          }
+        });
+      }
+    });
+
+    const { Op } = require('sequelize');
     const labResults = await LabResult.findAll({ 
+      where: {
+        animal_id: {
+          [Op.in]: Array.from(animalIds)
+        }
+      },
       attributes: ['animal_id', 'farmer_name', 'phone', 'animal_district_origin', 'specie', 'createdAt', 'rvf_pcr_results'] 
     });
 
