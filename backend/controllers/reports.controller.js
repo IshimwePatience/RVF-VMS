@@ -6,8 +6,8 @@ exports.getGlobalOverview = async (req, res) => {
   try {
     const { province, district, sector, dateFrom, dateTo, search } = req.query;
     
-    // Construct cache key (using v2 to bypass poisoned cache with invalid dates)
-    const cacheKey = `global_overview_v2_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFrom || 'all'}_${dateTo || 'all'}_${search || 'all'}`;
+    // Construct cache key (using v3 to bypass poisoned cache)
+    const cacheKey = `global_overview_v3_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFrom || 'all'}_${dateTo || 'all'}_${search || 'all'}`;
     
     // Check cache
     if (redisClient.isReady) {
@@ -39,19 +39,25 @@ exports.getGlobalOverview = async (req, res) => {
 
     if (dateFrom || dateTo) {
       const dateFilter = {};
+      let hasDate = false;
+      
       if (dateFrom) {
         const dFrom = new Date(dateFrom);
-        if (!isNaN(dFrom)) dateFilter[Op.gte] = dFrom;
+        if (!isNaN(dFrom)) {
+          dateFilter[Op.gte] = dFrom;
+          hasDate = true;
+        }
       }
       if (dateTo) {
         const dTo = new Date(dateTo);
         if (!isNaN(dTo)) {
           dTo.setHours(23, 59, 59, 999);
           dateFilter[Op.lte] = dTo;
+          hasDate = true;
         }
       }
       
-      if (Object.keys(dateFilter).length > 0) {
+      if (hasDate) {
         surveillanceWhere.createdAt = dateFilter;
         labWhere.createdAt = dateFilter;
         vaxWhere.createdAt = dateFilter;
