@@ -90,7 +90,7 @@ exports.getForms = async (req, res) => {
         }
       ],
       order: [['createdAt', 'DESC']],
-      limit: 5000
+      limit: 1000
     });
 
     // Extract all unique animal IDs from the forms to prevent fetching the entire database
