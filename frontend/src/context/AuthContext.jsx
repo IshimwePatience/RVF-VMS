@@ -26,7 +26,9 @@ export const AuthProvider = ({ children }) => {
       
       const newSocket = io('/', {
         path: '/rvf-api/socket.io',
-        auth: { token }
+        auth: { token },
+        transports: ['polling'],
+        upgrade: false // Explicitly disable WebSocket upgrade to prevent Nginx 400 errors
       });
       setSocket(newSocket);
       
