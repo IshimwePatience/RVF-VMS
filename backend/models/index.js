@@ -12,6 +12,15 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST || 'localhost',
     dialect: 'postgres',
     logging: false,
+    pool: {
+      max: 50,
+      min: 0,
+      acquire: 120000,
+      idle: 10000
+    },
+    dialectOptions: {
+      connectTimeout: 60000
+    }
   }
 );
 
