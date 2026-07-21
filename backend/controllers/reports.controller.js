@@ -4,10 +4,10 @@ const { Op } = require('sequelize');
 
 exports.getGlobalOverview = async (req, res) => {
   try {
-    const { province, district, sector } = req.query;
+    const { province, district, sector, dateFrom, dateTo, search } = req.query;
     
     // Construct cache key
-    const cacheKey = `global_overview_${province || 'all'}_${district || 'all'}_${sector || 'all'}`;
+    const cacheKey = `global_overview_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFrom || 'all'}_${dateTo || 'all'}_${search || 'all'}`;
     
     // Check cache
     if (redisClient.isReady) {
@@ -37,17 +37,37 @@ exports.getGlobalOverview = async (req, res) => {
       vaxWhere.sector = sector;
     }
 
+    if (dateFrom || dateTo) {
+      const dateFilter = {};
+      if (dateFrom) dateFilter[Op.gte] = new Date(dateFrom);
+      if (dateTo) dateFilter[Op.lte] = new Date(`${dateTo}T23:59:59Z`);
+      
+      surveillanceWhere.createdAt = dateFilter;
+      labWhere.createdAt = dateFilter;
+      vaxWhere.createdAt = dateFilter;
+    }
+
+    if (search) {
+      const searchPattern = `%${search}%`;
+      // For overview aggregate, doing a global text search across multiple tables is extremely slow.
+      // We limit search to primary identifiable fields if a search is provided
+      surveillanceWhere.farmer_name = { [Op.iLike]: searchPattern };
+      labWhere.farmer_name = { [Op.iLike]: searchPattern };
+      vaxWhere.owner_name = { [Op.iLike]: searchPattern };
+    }
+
     // 1. Total Sample Test Forms
     const totalForms = await SurveillanceForm.count({ where: surveillanceWhere });
 
     // 2. Total Samples Collected
-    const forms = await SurveillanceForm.findAll({
-      where: surveillanceWhere,
-      attributes: ['id']
-    });
-    const formIds = forms.map(f => f.id);
+    // We use an include to filter samples by their parent form's attributes (date, province, etc)
     const totalSamples = await SurveillanceSample.count({
-      where: { form_id: { [Op.in]: formIds } }
+      include: [{
+        model: SurveillanceForm,
+        where: surveillanceWhere,
+        required: true,
+        attributes: []
+      }]
     });
 
     // 3. Home Vaccination Records
@@ -58,23 +78,28 @@ exports.getGlobalOverview = async (req, res) => {
     const totalVaccinesGiven = totalVaccinesGivenResult || 0;
 
     // 5. Lab Results
-    const labResults = await LabResult.findAll({
-      where: labWhere,
-      attributes: ['rvf_pcr_results']
+    const totalLabResults = await LabResult.count({ where: labWhere });
+    
+    // We can count positive and negative directly in SQL instead of mapping in Node
+    // Or at least just query the counts!
+    const positiveCount = await LabResult.count({
+      where: {
+        ...labWhere,
+        [Op.or]: [
+          { rvf_pcr_results: { [Op.iLike]: '%positive%' } }
+        ]
+      }
     });
-    
-    const totalLabResults = labResults.length;
-    
-    let positive = 0;
-    let negative = 0;
-    
-    labResults.forEach(r => {
-      const pcr = r.pcr_result?.toLowerCase() || '';
-      const rvf = r.rvf_pcr_results?.toLowerCase() || '';
-      if (pcr === 'positive' || rvf.includes('positive')) positive++;
-      else if (pcr === 'negative' || rvf.includes('negative')) negative++;
+
+    const negativeCount = await LabResult.count({
+      where: {
+        ...labWhere,
+        [Op.or]: [
+          { rvf_pcr_results: { [Op.iLike]: '%negative%' } }
+        ]
+      }
     });
-    
+
     const pending = Math.max(0, totalSamples - totalLabResults);
 
     const data = {
@@ -83,8 +108,8 @@ exports.getGlobalOverview = async (req, res) => {
       totalVaxRecords,
       totalVaccinesGiven,
       totalLabResults,
-      positive,
-      negative,
+      positive: positiveCount,
+      negative: negativeCount,
       pending
     };
 
