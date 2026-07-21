@@ -330,7 +330,15 @@ export default function Reports() {
     enabled: !!user && user.role !== 'Admin'
   });
 
-  // Removed Central Overview Data as it is no longer used
+  // 2. Central Overview Data (Cached in Redis)
+  const { data: globalOverview = null, isLoading: loadingOverview } = useQuery({
+    queryKey: ['global-overview', filters.province, filters.district, filters.sector],
+    queryFn: async () => {
+      const res = await axios.get(`/rvf-api/reports/overview?${queryParams.toString()}`);
+      return res.data;
+    },
+    enabled: user?.role === 'Admin'
+  });
 
   // 3. Central Home Vaccinations Data
   const { data: homeVaccinations = [], isLoading: loadingHomeVaccinations } = useQuery({
@@ -720,7 +728,7 @@ export default function Reports() {
 
 
       {user?.role === 'Admin' && activeTab === 'overview' ? (
-        loadingSurveillance || loadingHomeVaccinations ? (
+        loadingOverview ? (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-12 text-center mt-4">
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-slate-500 font-medium">Calculating overview statistics...</p>
@@ -739,50 +747,50 @@ export default function Reports() {
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Sample Test Forms</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                    {filteredSurveillance?.length || 0}
+                    {globalOverview?.totalForms || 0}
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Samples Collected</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center text-blue-600 font-bold text-lg">
-                    {filteredSurveillance?.reduce((acc, r) => acc + (r?.samples?.length || 0), 0) || 0}
+                    {globalOverview?.totalSamples || 0}
                   </td>
                 </tr>
 
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Home Vaccination Records</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                    {homeVaccinations?.length || 0}
+                    {globalOverview?.totalVaxRecords || 0}
                   </td>
                 </tr>
                 <tr className="bg-slate-100 hover:bg-slate-200 transition-colors">
                   <td className="py-4 px-6 font-bold text-slate-900 border-r border-slate-300">Total Vaccines Given</td>
                   <td className="py-4 px-6 border-r border-slate-300 text-center font-bold text-xl text-slate-900">
-                    {homeVaccinations?.reduce((acc, r) => acc + (Number(r?.dose_given) || 0), 0).toLocaleString() || 0}
+                    {Number(globalOverview?.totalVaccinesGiven || 0).toLocaleString()}
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Tested (Has Results)</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                    {filteredLabResults.length}
+                    {globalOverview?.totalLabResults || 0}
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Positive Results</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-red-600">
-                    {filteredLabResults.filter(r => r.pcr_result === 'Positive' || r.rvf_pcr_results?.toUpperCase().includes('POSITIVE')).length}
+                    {globalOverview?.positive || 0}
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Negative Results</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-green-600">
-                    {filteredLabResults.filter(r => r.pcr_result === 'Negative' || r.rvf_pcr_results?.toUpperCase().includes('NEGATIVE')).length}
+                    {globalOverview?.negative || 0}
                   </td>
                 </tr>
                 <tr className="hover:bg-slate-50/50">
                   <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Pending Lab Results</td>
                   <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-amber-500">
-                    {Math.max(0, (filteredSurveillance?.reduce((acc, r) => acc + (r?.samples?.length || 0), 0) || 0) - filteredLabResults.length)}
+                    {globalOverview?.pending || 0}
                   </td>
                 </tr>
               </tbody>

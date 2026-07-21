@@ -5,4 +5,7 @@ const { authenticate, requireCentralStock } = require('../middleware/auth.middle
 
 router.get('/financial', authenticate, requireCentralStock, reportController.getFinancialReport);
 
+const reportsController = require('../controllers/reports.controller');
+router.get('/overview', reportsController.getGlobalOverview);
+
 module.exports = router;

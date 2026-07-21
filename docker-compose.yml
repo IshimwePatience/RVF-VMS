@@ -22,9 +22,17 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=Patience123@
       - DB_NAME=postgres
+      - REDIS_URL=redis://redis:6379
     depends_on:
       - db
+      - redis
     restart: always
+
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379"
 
   frontend:
     build: ./frontend
