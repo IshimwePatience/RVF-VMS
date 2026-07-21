@@ -205,7 +205,8 @@ exports.getAllVaccinations = async (req, res) => {
 
     const records = await HomeVaccinationRecord.findAll({
       where,
-      order: [['date_administered', 'DESC']]
+      order: [['date_administered', 'DESC']],
+      limit: 5000
     });
 
     res.json(records);

@@ -90,7 +90,8 @@ exports.getResults = async (req, res) => {
       include: [
         { model: LabTechnician, as: 'uploader', attributes: ['id', 'name', 'phone_number'] }
       ],
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
+      limit: 5000
     });
 
     if (vet_phone) {
