@@ -720,6 +720,12 @@ export default function Reports() {
 
 
       {user?.role === 'Admin' && activeTab === 'overview' ? (
+        loadingSurveillance || loadingHomeVaccinations ? (
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-12 text-center mt-4">
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-500 font-medium">Calculating overview statistics...</p>
+          </div>
+        ) : (
         <div className="bg-white shadow-sm border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-700">
