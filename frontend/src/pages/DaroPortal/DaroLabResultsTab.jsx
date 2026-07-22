@@ -48,6 +48,7 @@ export default function DaroLabResultsTab({ district }) {
       'Cell': r.cell || 'N/A',
       'Village': r.village || 'N/A',
       'Tested Site': r.tested_site || 'N/A',
+      'Purpose': r.purpose || 'N/A',
       'PCR Result': r.rvf_pcr_results || 'N/A'
     }));
     exportToExcel(formattedData, `DARO_Lab_Results_${district}`);
