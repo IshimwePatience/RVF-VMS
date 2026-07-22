@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { MapPin, ArrowLeft, Download, FileText, CheckCircle2, Clock, Check, X, Pencil, Trash2 } from 'lucide-react';
 import minisanteLogo from '../assets/images/MINISANTE.png';
 import MapModal from './MapModal';
+import { AuthContext } from '../context/AuthContext';
+import axios from 'axios';
+import { ToastContext } from '../context/ToastContext';
 
 export default function SampleTestReportView({ report, onClose }) {
+  const { user } = useContext(AuthContext);
+  const { addToast } = useContext(ToastContext);
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [editingSample, setEditingSample] = useState(null);
   if (!report) return null;
 
   return (
@@ -118,6 +125,34 @@ export default function SampleTestReportView({ report, onClose }) {
                   {sample.sn || idx + 1}
                 </span>
                 <h3 className="font-semibold text-slate-800 text-lg">Sample Details</h3>
+                {user?.role === 'Admin' && (
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      onClick={() => setEditingSample(sample)}
+                      className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                      title="Edit Sample"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (window.confirm('Are you sure you want to delete this sample?')) {
+                          try {
+                            await axios.delete(`/rvf-api/surveillance/samples/${sample.id}`);
+                            addToast('success', 'Sample deleted successfully');
+                            if (onClose) onClose(); // close or refresh
+                          } catch (error) {
+                            addToast('error', 'Failed to delete sample');
+                          }
+                        }
+                      }}
+                      className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                      title="Delete Sample"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -202,6 +237,170 @@ export default function SampleTestReportView({ report, onClose }) {
           title="Sample Collection Location"
         />
       </div>
+      
+      {editingSample && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800">Edit Sample</h3>
+              <button onClick={() => setEditingSample(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Farmer Name</label>
+                <input 
+                  type="text" 
+                  value={editingSample.farmer_name || ''}
+                  onChange={e => setEditingSample({...editingSample, farmer_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                <input 
+                  type="text" 
+                  value={editingSample.phone || ''}
+                  onChange={e => setEditingSample({...editingSample, phone: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">District Origin</label>
+                <input 
+                  type="text" 
+                  value={editingSample.district_origin || ''}
+                  onChange={e => setEditingSample({...editingSample, district_origin: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Sector</label>
+                <input 
+                  type="text" 
+                  value={editingSample.sector || ''}
+                  onChange={e => setEditingSample({...editingSample, sector: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Cell</label>
+                <input 
+                  type="text" 
+                  value={editingSample.cell || ''}
+                  onChange={e => setEditingSample({...editingSample, cell: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Village</label>
+                <input 
+                  type="text" 
+                  value={editingSample.village || ''}
+                  onChange={e => setEditingSample({...editingSample, village: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Specie</label>
+                <input 
+                  type="text" 
+                  value={editingSample.specie || ''}
+                  onChange={e => setEditingSample({...editingSample, specie: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Animal ID</label>
+                <input 
+                  type="text" 
+                  value={editingSample.animal_id || ''}
+                  onChange={e => setEditingSample({...editingSample, animal_id: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Breed</label>
+                <input 
+                  type="text" 
+                  value={editingSample.breed || ''}
+                  onChange={e => setEditingSample({...editingSample, breed: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Sex</label>
+                <input 
+                  type="text" 
+                  value={editingSample.sex || ''}
+                  onChange={e => setEditingSample({...editingSample, sex: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Age</label>
+                <input 
+                  type="text" 
+                  value={editingSample.age || ''}
+                  onChange={e => setEditingSample({...editingSample, age: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Vaccination Status</label>
+                <input 
+                  type="text" 
+                  value={editingSample.vaccination_status || ''}
+                  onChange={e => setEditingSample({...editingSample, vaccination_status: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Purpose</label>
+                <input 
+                  type="text" 
+                  value={editingSample.purpose || ''}
+                  onChange={e => setEditingSample({...editingSample, purpose: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Health Status</label>
+                <input 
+                  type="text" 
+                  value={editingSample.health_status || ''}
+                  onChange={e => setEditingSample({...editingSample, health_status: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+              <button 
+                onClick={() => setEditingSample(null)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  try {
+                    await axios.put(`/rvf-api/surveillance/samples/${editingSample.id}`, editingSample);
+                    addToast('success', 'Sample updated successfully');
+                    setEditingSample(null);
+                    if (onClose) onClose(); // close to refresh data
+                  } catch (error) {
+                    addToast('error', 'Failed to update sample');
+                  }
+                }}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

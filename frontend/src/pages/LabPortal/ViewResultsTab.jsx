@@ -515,14 +515,33 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                         )}
                       </button>
                       */}
-                      {isLabPortal && (
-                        <button 
-                          onClick={() => setEditingResult(r)}
-                          className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
-                          title="Edit"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
+                      {user?.role === 'Admin' && (
+                        <>
+                          <button 
+                            onClick={() => setEditingResult(r)}
+                            className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                            title="Edit"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={async () => {
+                              if (window.confirm('Are you sure you want to delete this lab result? This action cannot be undone.')) {
+                                try {
+                                  await axios.delete(`/rvf-api/lab-results/${r.id}`);
+                                  addToast('success', 'Lab result deleted successfully');
+                                  refetch();
+                                } catch (error) {
+                                  addToast('error', 'Failed to delete result');
+                                }
+                              }
+                            }}
+                            className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
                       )}
                     </div>
                   </td>
@@ -554,34 +573,164 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
 
       {editingResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden">
             <div className="flex justify-between items-center p-6 border-b border-slate-100">
               <h3 className="text-lg font-bold text-slate-800">Edit Lab Result</h3>
               <button onClick={() => setEditingResult(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Animal ID</label>
-                <input 
-                  type="text" 
-                  value={editingResult.animal_id || ''}
-                  disabled
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-slate-100 text-slate-500 cursor-not-allowed"
-                />
-              </div>
-              <div>
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="col-span-1 md:col-span-2">
                 <label className="block text-sm font-medium text-slate-700 mb-1">PCR Result</label>
                 <select 
                   value={editingResult.rvf_pcr_results || ''}
                   onChange={e => setEditingResult({...editingResult, rvf_pcr_results: e.target.value})}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 font-bold"
                 >
                   <option value="">Select Result</option>
                   <option value="NEGATIVE">NEGATIVE</option>
                   <option value="POSITIVE">POSITIVE</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Farmer Name</label>
+                <input 
+                  type="text" 
+                  value={editingResult.farmer_name || ''}
+                  onChange={e => setEditingResult({...editingResult, farmer_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Farmer Phone</label>
+                <input 
+                  type="text" 
+                  value={editingResult.phone || ''}
+                  onChange={e => setEditingResult({...editingResult, phone: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Animal ID</label>
+                <input 
+                  type="text" 
+                  value={editingResult.animal_id || ''}
+                  onChange={e => setEditingResult({...editingResult, animal_id: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Tested Site</label>
+                <input 
+                  type="text" 
+                  value={editingResult.tested_site || ''}
+                  onChange={e => setEditingResult({...editingResult, tested_site: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Specie</label>
+                <input 
+                  type="text" 
+                  value={editingResult.specie || ''}
+                  onChange={e => setEditingResult({...editingResult, specie: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Breed</label>
+                <input 
+                  type="text" 
+                  value={editingResult.breed || ''}
+                  onChange={e => setEditingResult({...editingResult, breed: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Sex</label>
+                <select 
+                  value={editingResult.sex || ''}
+                  onChange={e => setEditingResult({...editingResult, sex: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                >
+                  <option value="">Select Sex</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Age</label>
+                <input 
+                  type="text" 
+                  value={editingResult.age || ''}
+                  onChange={e => setEditingResult({...editingResult, age: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Vaccination Status</label>
+                <input 
+                  type="text" 
+                  value={editingResult.vaccination_status || ''}
+                  onChange={e => setEditingResult({...editingResult, vaccination_status: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Purpose</label>
+                <input 
+                  type="text" 
+                  value={editingResult.purpose || ''}
+                  onChange={e => setEditingResult({...editingResult, purpose: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Health Status</label>
+                <input 
+                  type="text" 
+                  value={editingResult.health_status || ''}
+                  onChange={e => setEditingResult({...editingResult, health_status: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500"
+                />
+              </div>
+              
+              <div className="col-span-1 md:col-span-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mt-2 border-t pt-2">Location Information</div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">District</label>
+                <LocationDropdown 
+                  type="districts"
+                  value={editingResult.animal_district_origin || ''}
+                  onChange={(val) => setEditingResult({ ...editingResult, animal_district_origin: val, sector: '', cell: '', village: '' })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Sector</label>
+                <LocationDropdown 
+                  type="sectors"
+                  params={{ district: editingResult.animal_district_origin }}
+                  value={editingResult.sector || ''}
+                  onChange={(val) => setEditingResult({ ...editingResult, sector: val, cell: '', village: '' })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Cell</label>
+                <LocationDropdown 
+                  type="cells"
+                  params={{ district: editingResult.animal_district_origin, sector: editingResult.sector }}
+                  value={editingResult.cell || ''}
+                  onChange={(val) => setEditingResult({ ...editingResult, cell: val, village: '' })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Village</label>
+                <LocationDropdown 
+                  type="villages"
+                  params={{ district: editingResult.animal_district_origin, sector: editingResult.sector, cell: editingResult.cell }}
+                  value={editingResult.village || ''}
+                  onChange={(val) => setEditingResult({ ...editingResult, village: val })}
+                />
               </div>
             </div>
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">

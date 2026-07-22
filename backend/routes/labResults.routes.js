@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const labResultsController = require('../controllers/labResults.controller');
-const { authenticate } = require('../middleware/auth.middleware');
+const { authenticate, requireAdmin } = require('../middleware/auth.middleware');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
@@ -27,7 +27,7 @@ const optionalAuthenticate = (req, res, next) => {
 router.get('/verify/:id', labResultsController.verifyCertificate);
 router.post('/', authenticate, labResultsController.uploadResults);
 router.get('/', optionalAuthenticate, labResultsController.getResults);
-router.put('/:id', authenticate, labResultsController.updateResult);
-router.delete('/:id', authenticate, labResultsController.deleteResult);
+router.put('/:id', authenticate, requireAdmin, labResultsController.updateResult);
+router.delete('/:id', authenticate, requireAdmin, labResultsController.deleteResult);
 
 module.exports = router;

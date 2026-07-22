@@ -91,7 +91,7 @@ exports.getResults = async (req, res) => {
         { model: LabTechnician, as: 'uploader', attributes: ['id', 'name', 'phone_number'] }
       ],
       order: [['createdAt', 'DESC']],
-      limit: 1000,
+      limit: 50000,
       raw: true,
       nest: true
     });

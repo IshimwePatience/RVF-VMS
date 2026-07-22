@@ -90,7 +90,7 @@ exports.getForms = async (req, res) => {
         }
       ],
       order: [['createdAt', 'DESC']],
-      limit: 1000
+      limit: 50000
     });
 
     // Extract all unique animal IDs from the forms to prevent fetching the entire database
@@ -208,6 +208,34 @@ exports.approveSample = async (req, res) => {
     res.json({ message: 'Sample status updated', sample });
   } catch (error) {
     console.error('Error updating sample status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.updateSample = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sample = await SurveillanceSample.findByPk(id);
+    if (!sample) return res.status(404).json({ message: 'Sample not found' });
+    
+    await sample.update(req.body);
+    res.json(sample);
+  } catch (error) {
+    console.error('Error updating sample:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.deleteSample = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sample = await SurveillanceSample.findByPk(id);
+    if (!sample) return res.status(404).json({ message: 'Sample not found' });
+    
+    await sample.destroy();
+    res.json({ message: 'Sample deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting sample:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -6,4 +6,9 @@ router.post('/', surveillanceController.submitForm);
 router.get('/', surveillanceController.getForms);
 router.patch('/samples/:id/approve', surveillanceController.approveSample);
 
+// Admin only sample management
+const { authenticate, requireAdmin } = require('../middleware/auth.middleware');
+router.put('/samples/:id', authenticate, requireAdmin, surveillanceController.updateSample);
+router.delete('/samples/:id', authenticate, requireAdmin, surveillanceController.deleteSample);
+
 module.exports = router;
