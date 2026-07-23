@@ -50,7 +50,7 @@ export default function RabPortal() {
           'Amatungo yose yafuhererewe': record.amatungo_yose,
           "Izina ry'umuti ufuherera": record.izina_ryumuti,
           "Ingano y'umuti wose umaze kwakirwa (litiro)": record.ingano_yose_yemewe,
-          "Ingano y'umuti wari uhari uyu munsi mbere yo": record.ingano_ihari,
+          "Ingano y'umuti wari uhari uyu munsi mbere yo gufuherera": record.ingano_ihari,
           "Umuti wakoreshejwe uyu munsi (litiro)": record.umuti_wakoreshejwe,
           "Umuti usigaye uyu munsi (litiro)": record.umuti_usigaye,
           "Ubwoko bw'amatungo": record.ubwoko_bwamatungo,

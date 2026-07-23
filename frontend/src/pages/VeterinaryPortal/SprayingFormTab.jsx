@@ -187,7 +187,7 @@ export default function SprayingFormTab({ phone }) {
                     <input type="number" step="any" min="0" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.ingano_yose_yemewe} onChange={(e) => handleRowChange(index, 'ingano_yose_yemewe', e.target.value)} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Ingano y'umuti wari uhari uyu munsi mbere yo</label>
+                    <label className="block text-sm font-semibold mb-1">Ingano y'umuti wari uhari uyu munsi mbere yo gufuherera</label>
                     <input type="number" step="any" min="0" className="w-full bg-white border border-slate-300 rounded p-2 outline-none focus:border-blue-500" value={row.ingano_ihari} onChange={(e) => handleRowChange(index, 'ingano_ihari', e.target.value)} />
                   </div>
                   <div>
@@ -244,7 +244,7 @@ export default function SprayingFormTab({ phone }) {
                 </th>
                 <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
                   <div className="resize-x overflow-auto p-2 min-w-[150px] h-full flex items-center justify-center font-bold">
-                    Ingano y'umuti<br/>wari uhari uyu<br/>munsi mbere yo
+                    Ingano y'umuti<br/>wari uhari uyu<br/>munsi mbere yo gufuherera
                   </div>
                 </th>
                 <th className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
