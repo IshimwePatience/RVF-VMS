@@ -96,6 +96,11 @@ if (db.LabResult && LabTechnician) {
   db.LabResult.belongsTo(LabTechnician, { foreignKey: 'uploaded_by', as: 'uploader', constraints: false });
 }
 
+if (db.SprayingForm && db.SprayingRecord) {
+  db.SprayingForm.hasMany(db.SprayingRecord, { foreignKey: 'form_id', as: 'records' });
+  db.SprayingRecord.belongsTo(db.SprayingForm, { foreignKey: 'form_id' });
+}
+
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 

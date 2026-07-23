@@ -6,6 +6,7 @@ import axios from 'axios';
 import minisanteLogo from '../../assets/images/RAB_Logo2.png';
 import DaroSamplesTab from './DaroSamplesTab';
 import DaroLabResultsTab from './DaroLabResultsTab';
+import DaroSprayingFormsTab from './DaroSprayingFormsTab';
 
 export default function DaroPortal() {
   const navigate = useNavigate();
@@ -155,6 +156,16 @@ export default function DaroPortal() {
             >
               Lab Results ({labResultsCount})
             </button>
+            <button
+              onClick={() => setActiveTab('spraying_forms')}
+              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'spraying_forms'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Spraying Forms
+            </button>
           </nav>
         </div>
 
@@ -162,6 +173,7 @@ export default function DaroPortal() {
         <div>
           {activeTab === 'samples' && <DaroSamplesTab district={user.district} />}
           {activeTab === 'lab_results' && <DaroLabResultsTab district={user.district} />}
+          {activeTab === 'spraying_forms' && <DaroSprayingFormsTab district={user.district} />}
         </div>
       </div>
     </div>

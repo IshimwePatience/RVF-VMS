@@ -26,6 +26,8 @@ import LabAuth from './pages/LabAuth';
 import DaroAuth from './pages/DaroAuth';
 import DaroPortal from './pages/DaroPortal/DaroPortal';
 import VerifyCertificate from './pages/VerifyCertificate';
+import RabAuth from './pages/RAB/RabAuth';
+import RabPortal from './pages/RAB/RabPortal';
 import { AuthContext } from './context/AuthContext';
 
 const CentralOnlyRoute = ({ children }) => {
@@ -141,6 +143,8 @@ function App() {
             <Route path="/daro-login" element={<DaroAuth mode="login" />} />
             <Route path="/daro-signup" element={<DaroAuth mode="register" />} />
             <Route path="/daro-portal" element={<DaroPortal />} />
+            <Route path="/rab-login" element={<RabAuth />} />
+            <Route path="/rab-dashboard" element={<RabPortal />} />
             <Route path="/verify/:id" element={<VerifyCertificate />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

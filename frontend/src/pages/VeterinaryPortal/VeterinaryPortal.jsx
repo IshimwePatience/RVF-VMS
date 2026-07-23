@@ -4,6 +4,7 @@ import minisanteLogo from '../../assets/images/RAB_Logo2.png';
 import OverviewTab from './OverviewTab';
 import HomeVaccinationTab from './HomeVaccinationTab';
 import SampleTestFormTab from './SampleTestFormTab';
+import SprayingFormTab from './SprayingFormTab';
 import VetLabResultsTab from './VetLabResultsTab';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -129,6 +130,16 @@ export default function VeterinaryPortal() {
               Sample Test Form
             </button>
             <button
+              onClick={() => setActiveTab('spraying_form')}
+              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'spraying_form'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              Spraying Form
+            </button>
+            <button
               onClick={() => setActiveTab('lab_results')}
               className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                 activeTab === 'lab_results'
@@ -151,6 +162,7 @@ export default function VeterinaryPortal() {
           {activeTab === 'overview' && <OverviewTab phone={phone} />}
           {activeTab === 'vaccination' && settings.show_home_vaccination !== false && settings.show_home_vaccination !== 'false' && <HomeVaccinationTab phone={phone} onSubmissionComplete={() => setActiveTab('overview')} />}
           {activeTab === 'sample_test' && <SampleTestFormTab phone={phone} />}
+          {activeTab === 'spraying_form' && <SprayingFormTab phone={phone} />}
           {activeTab === 'lab_results' && <VetLabResultsTab phone={phone} />}
         </div>
       </div>
