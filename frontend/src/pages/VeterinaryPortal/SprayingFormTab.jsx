@@ -180,7 +180,7 @@ export default function SprayingFormTab({ phone }) {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Izina ry'umuti ufuherera (Trade name)</label>
-                    <SearchableDropdown options={['KilatiX', 'Ashimethrin', 'PermaPy+']} value={row.izina_ryumuti} onChange={(val) => handleRowChange(index, 'izina_ryumuti', val)} placeholder="Select Umuti" />
+                    <SearchableDropdown options={['KilatiX', 'Ashimethrin', 'PermaPy+', 'Grenade']} value={row.izina_ryumuti} onChange={(val) => handleRowChange(index, 'izina_ryumuti', val)} placeholder="Select Umuti" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1">Ingano y'umuti wose umaze kwakirwa (litiro)</label>
@@ -282,7 +282,7 @@ export default function SprayingFormTab({ phone }) {
                       <input type="text" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.amatungo_yose} onChange={(e) => handleRowChange(index, 'amatungo_yose', e.target.value)} />
                     </td>
                     <td className="border border-slate-300 p-0">
-                      <SearchableDropdown options={['KilatiX', 'Ashimethrin', 'PermaPy+']} value={row.izina_ryumuti} onChange={(val) => handleRowChange(index, 'izina_ryumuti', val)} placeholder="Select Umuti" />
+                      <SearchableDropdown options={['KilatiX', 'Ashimethrin', 'PermaPy+', 'Grenade']} value={row.izina_ryumuti} onChange={(val) => handleRowChange(index, 'izina_ryumuti', val)} placeholder="Select Umuti" />
                     </td>
                     <td className="border border-slate-300 p-0">
                       <input type="number" step="any" min="0" className="w-full h-full bg-transparent outline-none p-2 text-center focus:bg-blue-50/30" value={row.ingano_yose_yemewe} onChange={(e) => handleRowChange(index, 'ingano_yose_yemewe', e.target.value)} />

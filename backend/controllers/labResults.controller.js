@@ -56,21 +56,36 @@ exports.uploadResults = async (req, res) => {
       }
     }
     let createdCount = 0;
+    let updatedCount = 0;
 
     for (const item of results) {
-      await LabResult.create({
-        ...item,
-        sample_tracking_id: item.tracking_id ? String(item.tracking_id).trim().toUpperCase() : null,
-        animal_id: item.animal_id ? String(item.animal_id).trim() : null,
-        uploaded_by
-      });
-      createdCount++;
+      const tracking_id = item.tracking_id ? String(item.tracking_id).trim().toUpperCase() : null;
+      if (tracking_id) {
+        const existing = await LabResult.findOne({ where: { sample_tracking_id: tracking_id } });
+        if (existing) {
+          await existing.update({
+            ...item,
+            sample_tracking_id: tracking_id,
+            animal_id: item.animal_id ? String(item.animal_id).trim() : null,
+            uploaded_by
+          });
+          updatedCount++;
+        } else {
+          await LabResult.create({
+            ...item,
+            sample_tracking_id: tracking_id,
+            animal_id: item.animal_id ? String(item.animal_id).trim() : null,
+            uploaded_by
+          });
+          createdCount++;
+        }
+      }
     }
 
     res.json({
       message: 'Results processed successfully',
       created: createdCount,
-      updated: 0
+      updated: updatedCount
     });
   } catch (error) {
     console.error('Error uploading lab results:', error);
