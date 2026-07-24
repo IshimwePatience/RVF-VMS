@@ -205,6 +205,7 @@ export default function Reports() {
           if (form.samples && form.samples.length > 0) {
             form.samples.forEach(sample => {
               data.push({
+                'Tracking ID': sample.tracking_id || 'N/A',
                 'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
                 'Veterinary Phone': form.veterinary_email || form.phone_number,
                 'Test Requested': form.test_requested,

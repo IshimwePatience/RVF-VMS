@@ -156,6 +156,12 @@ export default function SampleTestReportView({ report, onClose }) {
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-3 bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-center justify-between">
+                    <div>
+                      <label className="block text-sm text-blue-600 mb-1 font-semibold">Tracking ID</label>
+                      <div className="font-bold text-xl text-blue-900">{sample.tracking_id || 'N/A'}</div>
+                    </div>
+                  </div>
                   <div>
                     <label className="block text-sm text-slate-500 mb-1">Name of farmer</label>
                     <div className="font-medium text-slate-900 border-b border-slate-200 pb-1">{sample.farmer_name || '-'}</div>
@@ -248,6 +254,15 @@ export default function SampleTestReportView({ report, onClose }) {
               </button>
             </div>
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Tracking ID (Do not change unless necessary)</label>
+                <input 
+                  type="text" 
+                  value={editingSample.tracking_id || ''}
+                  onChange={e => setEditingSample({...editingSample, tracking_id: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 bg-slate-50"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Farmer Name</label>
                 <input 
