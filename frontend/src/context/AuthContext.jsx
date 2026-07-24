@@ -4,17 +4,30 @@ import { io } from 'socket.io-client';
 
 export const AuthContext = createContext();
 
-const initialToken = localStorage.getItem('token');
+const getStoragePrefix = () => {
+  const path = window.location.pathname;
+  if (path.includes('veterinary')) return 'vet_';
+  if (path.includes('lab')) return 'lab_';
+  if (path.includes('daro')) return 'daro_';
+  if (path.includes('rab')) return 'rab_';
+  return 'admin_';
+};
+
+const prefix = getStoragePrefix();
+const TOKEN_KEY = `${prefix}token`;
+const USER_KEY = `${prefix}user`;
+
+const initialToken = localStorage.getItem(TOKEN_KEY) || localStorage.getItem('token'); // Fallback for transition
 if (initialToken) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${initialToken}`;
 }
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem(USER_KEY) || localStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
   });
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) || localStorage.getItem('token'));
   const [socket, setSocket] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -42,15 +55,17 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = (newToken, userData) => {
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem(TOKEN_KEY, newToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
     setToken(newToken);
     setUser(userData);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem('token'); // cleanup old
+    localStorage.removeItem('user'); // cleanup old
     setToken(null);
     setUser(null);
   };

@@ -104,7 +104,7 @@ export default function Layout() {
       <header className="h-16 px-4 flex items-center justify-between border-b border-transparent">
         <div className="flex items-center gap-3 w-80 shrink-0">
           <img src={minisanteLogo} alt="MINISANTE" className="h-10 object-contain" />
-          <span className="text-[22px] text-[#5f6368] font-medium tracking-tight">Rvf Vet Input hub</span>
+          <span className="text-[22px] text-[#5f6368] font-medium tracking-tight">Rift Valley Fever VMS</span>
         </div>
 
         <div className="flex-1 flex justify-center max-w-3xl px-4">
