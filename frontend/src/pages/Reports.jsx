@@ -406,15 +406,14 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const dFrom = new Date(filters.dateFrom);
+        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
+        const dFrom = new Date(fromDateStr);
         if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const dTo = new Date(filters.dateTo);
-        if (!isNaN(dTo)) {
-          dTo.setHours(23, 59, 59, 999);
-          if (new Date(r.createdAt) > dTo) return false;
-        }
+        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
+        const dTo = new Date(toDateStr);
+        if (!isNaN(dTo) && new Date(r.createdAt) > dTo) return false;
       }
       return true;
     });
@@ -431,15 +430,14 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const dFrom = new Date(filters.dateFrom);
+        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
+        const dFrom = new Date(fromDateStr);
         if (!isNaN(dFrom) && new Date(r.collection_date || r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const dTo = new Date(filters.dateTo);
-        if (!isNaN(dTo)) {
-          dTo.setHours(23, 59, 59, 999);
-          if (new Date(r.collection_date || r.createdAt) > dTo) return false;
-        }
+        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
+        const dTo = new Date(toDateStr);
+        if (!isNaN(dTo) && new Date(r.collection_date || r.createdAt) > dTo) return false;
       }
       return true;
     });
@@ -455,15 +453,14 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const dFrom = new Date(filters.dateFrom);
+        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
+        const dFrom = new Date(fromDateStr);
         if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const dTo = new Date(filters.dateTo);
-        if (!isNaN(dTo)) {
-          dTo.setHours(23, 59, 59, 999);
-          if (new Date(r.createdAt) > dTo) return false;
-        }
+        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
+        const dTo = new Date(toDateStr);
+        if (!isNaN(dTo) && new Date(r.createdAt) > dTo) return false;
       }
       if (filters.purpose && filters.purpose.length > 0) {
         if (!r.purpose || !filters.purpose.some(p => p.toLowerCase() === r.purpose.trim().toLowerCase())) return false;
