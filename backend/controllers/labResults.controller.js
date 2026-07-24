@@ -79,8 +79,17 @@ exports.uploadResults = async (req, res) => {
 
 exports.getResults = async (req, res) => {
   try {
-    const whereClause = {};
+    let canViewAll = false;
     if (req.user && req.user.role === 'Lab User') {
+      const { LabTechnician } = require('../models');
+      const tech = await LabTechnician.findByPk(req.user.id);
+      if (tech && tech.can_view_all_results) {
+        canViewAll = true;
+      }
+    }
+
+    const whereClause = {};
+    if (req.user && req.user.role === 'Lab User' && !canViewAll) {
       whereClause.uploaded_by = req.user.id;
     }
 

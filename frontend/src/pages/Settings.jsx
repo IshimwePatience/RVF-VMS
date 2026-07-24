@@ -120,6 +120,11 @@ export default function Settings() {
                 label="Enable DARO Sample Approval" 
                 description="When enabled, DAROs will be able to approve or reject samples in their portal."
               />
+              <ToggleSetting 
+                settingKey="lab_techs_view_all_results" 
+                label="Global Lab Results Access" 
+                description="When enabled, lab technicians can view and download all lab results in the system, not just the ones they uploaded."
+              />
             </div>
           </div>
         </div>

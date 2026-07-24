@@ -8,6 +8,7 @@ module.exports = (sequelize) => {
     district: { type: DataTypes.STRING, allowNull: true },
     password_hash: { type: DataTypes.STRING, allowNull: true },
     must_change_password: { type: DataTypes.BOOLEAN, defaultValue: false },
-    is_active: { type: DataTypes.BOOLEAN, defaultValue: true }
+    is_active: { type: DataTypes.BOOLEAN, defaultValue: true },
+    can_view_all_results: { type: DataTypes.BOOLEAN, defaultValue: false }
   });
 };

@@ -21,7 +21,7 @@ export default function VeterinaryPortal() {
     setSearchParams({ tab });
   };
 
-  const { data: settings = {} } = useQuery({
+  const { data: settings = {}, isLoading: settingsLoading } = useQuery({
     queryKey: ['system-settings'],
     queryFn: async () => {
       const res = await axios.get('/rvf-api/settings/system');
@@ -93,8 +93,13 @@ export default function VeterinaryPortal() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Tabs */}
+        {settingsLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <>
+            {/* Tabs */}
         <div className="mb-6 overflow-x-auto scrollbar-hide">
           <nav className="-mb-px flex space-x-6 md:space-x-8 min-w-max">
             <button
@@ -165,6 +170,8 @@ export default function VeterinaryPortal() {
           {activeTab === 'spraying_form' && <SprayingFormTab phone={phone} />}
           {activeTab === 'lab_results' && <VetLabResultsTab phone={phone} />}
         </div>
+          </>
+        )}
       </div>
     </div>
   );
