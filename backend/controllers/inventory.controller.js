@@ -20,13 +20,19 @@ exports.receiveCentralStock = async (req, res) => {
 
 exports.getInventory = async (req, res) => {
   try {
+    if (!req.user || !['Admin', 'Central Stock', 'DARO', 'Endpoint', 'District'].includes(req.user.role) && !req.user.stock_id) {
+       if (req.user.role !== 'Admin') {
+           return res.json([]); // Return empty array for non-inventory roles to prevent 500
+       }
+    }
     const viewParent = req.query.view_parent === 'true';
     const viewChildren = req.query.view_children === 'true';
     const userContext = { ...req.user, view_children: viewChildren };
     const inventory = await inventoryService.getInventory(userContext, viewParent);
     res.json(inventory);
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Inventory Error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message, stack: error.stack });
   }
 };
 exports.updateInventory = async (req, res) => {

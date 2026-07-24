@@ -79,14 +79,9 @@ exports.uploadResults = async (req, res) => {
 
 exports.getResults = async (req, res) => {
   try {
-    let canViewAll = false;
-    if (req.user && req.user.role === 'Lab User') {
-      const { LabTechnician } = require('../models');
-      const tech = await LabTechnician.findByPk(req.user.id);
-      if (tech && tech.can_view_all_results) {
-        canViewAll = true;
-      }
-    }
+    const { SystemSetting } = require('../models');
+    const viewAllSetting = await SystemSetting.findOne({ where: { key: 'lab_techs_view_all_results' } });
+    const canViewAll = viewAllSetting ? viewAllSetting.value === true || viewAllSetting.value === 'true' : false;
 
     const whereClause = {};
     if (req.user && req.user.role === 'Lab User' && !canViewAll) {
