@@ -62,7 +62,7 @@ exports.login = async (req, res) => {
         sessionId
       },
       JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '365d' }
     );
 
     // Save session
@@ -117,7 +117,7 @@ exports.verifyOTP = async (req, res) => {
         sessionId
       },
       JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '365d' }
     );
 
     // Save session
@@ -351,7 +351,7 @@ exports.labTechLogin = async (req, res) => {
     const token = jwt.sign(
       { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '365d' }
     );
 
     res.json({ token, user: { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district } });
@@ -384,9 +384,9 @@ exports.changeLabTechPassword = async (req, res) => {
     await tech.save();
 
     const token = jwt.sign(
-      { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district },
+      { phone_number: tech.phone_number, name: tech.name, role: 'RAB Technician', id: tech.id },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '365d' }
     );
 
     res.json({ token, user: { phone_number: tech.phone_number, name: tech.name, role: 'Lab User', id: tech.id, district: tech.district }, message: 'Password updated successfully' });
@@ -410,7 +410,7 @@ exports.getLabTechs = async (req, res) => {
 
 exports.createLabTech = async (req, res) => {
   try {
-    const { name, phone_number, is_active } = req.body;
+    const { name, phone_number, is_active, can_view_all_results } = req.body;
     if (!name || !phone_number) {
       return res.status(400).json({ error: 'Name and Phone Number are required.' });
     }
@@ -430,7 +430,8 @@ exports.createLabTech = async (req, res) => {
       phone_number: cleanPhone,
       password_hash,
       must_change_password: true,
-      is_active: is_active !== undefined ? is_active : true
+      is_active: is_active !== undefined ? is_active : true,
+      can_view_all_results: can_view_all_results !== undefined ? can_view_all_results : false
     });
 
     res.status(201).json(tech);
@@ -443,7 +444,7 @@ exports.createLabTech = async (req, res) => {
 exports.updateLabTech = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, phone_number, is_active } = req.body;
+    const { name, phone_number, is_active, can_view_all_results } = req.body;
 
     const tech = await LabTechnician.findByPk(id);
     if (!tech) return res.status(404).json({ error: 'Lab Technician not found' });
@@ -461,6 +462,7 @@ exports.updateLabTech = async (req, res) => {
 
     if (name) tech.name = name;
     if (is_active !== undefined) tech.is_active = is_active;
+    if (can_view_all_results !== undefined) tech.can_view_all_results = can_view_all_results;
 
     await tech.save();
     res.json(tech);

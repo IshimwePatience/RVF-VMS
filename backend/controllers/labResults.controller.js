@@ -79,9 +79,14 @@ exports.uploadResults = async (req, res) => {
 
 exports.getResults = async (req, res) => {
   try {
-    const { SystemSetting } = require('../models');
-    const viewAllSetting = await SystemSetting.findOne({ where: { key: 'lab_techs_view_all_results' } });
-    const canViewAll = viewAllSetting ? viewAllSetting.value === true || viewAllSetting.value === 'true' : false;
+    let canViewAll = false;
+    if (req.user && req.user.role === 'Lab User') {
+      const { LabTechnician } = require('../models');
+      const tech = await LabTechnician.findByPk(req.user.id);
+      if (tech && tech.can_view_all_results) {
+        canViewAll = true;
+      }
+    }
 
     const whereClause = {};
     if (req.user && req.user.role === 'Lab User' && !canViewAll) {
@@ -143,12 +148,19 @@ exports.getResults = async (req, res) => {
         const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
 
         return matchingSamples.some(s => {
-          const isFarmerMatch = !s.searchFarmer || !lrFarmer || lrFarmer === s.searchFarmer;
-          const isPhoneMatch = !s.searchPhone || !lrPhone || lrPhone === s.searchPhone;
-          const isDistrictMatch = !s.searchDistrict || !lrDistrict || lrDistrict === s.searchDistrict;
-          const isSpecieMatch = !s.searchSpecie || !lrSpecie || lrSpecie === s.searchSpecie;
+          // Relaxed matching: animal_id already matches.
+          // To prevent cross-vet leakage on generic IDs like "1", we check overlapping fields.
+          let matches = 0;
+          let conditions = 0;
 
-          return isFarmerMatch && isPhoneMatch && isDistrictMatch && isSpecieMatch && new Date(lr.createdAt) >= s.formDate;
+          if (s.searchDistrict && lrDistrict) { conditions++; if (s.searchDistrict === lrDistrict) matches++; }
+          if (s.searchPhone && lrPhone) { conditions++; if (s.searchPhone === lrPhone) matches++; }
+          if (s.searchFarmer && lrFarmer) { conditions++; if (s.searchFarmer === lrFarmer) matches++; }
+          if (s.searchSpecie && lrSpecie) { conditions++; if (s.searchSpecie === lrSpecie) matches++; }
+
+          // If there's overlapping data to compare, at least one MUST match to confirm it's the same animal.
+          // If there's no overlapping data (e.g. neither provided phone/farmer), we assume it's a match.
+          return conditions === 0 || matches > 0;
         });
       });
     }

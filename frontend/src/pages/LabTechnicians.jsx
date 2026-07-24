@@ -19,7 +19,8 @@ export default function LabTechnicians() {
   const [formData, setFormData] = useState({
     name: '',
     phone_number: '',
-    is_active: true
+    is_active: true,
+    can_view_all_results: false
   });
   const [editingId, setEditingId] = useState(null);
 
@@ -71,12 +72,12 @@ export default function LabTechnicians() {
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setFormData({ name: '', phone_number: '', is_active: true });
+    setFormData({ name: '', phone_number: '', is_active: true, can_view_all_results: false });
   };
 
   const handleAdd = () => {
     setEditingId(null);
-    setFormData({ name: '', phone_number: '', is_active: true });
+    setFormData({ name: '', phone_number: '', is_active: true, can_view_all_results: false });
     setShowModal(true);
   };
 
@@ -85,7 +86,8 @@ export default function LabTechnicians() {
     setFormData({
       name: v.name,
       phone_number: v.phone_number,
-      is_active: v.is_active !== undefined ? v.is_active : true
+      is_active: v.is_active !== undefined ? v.is_active : true,
+      can_view_all_results: v.can_view_all_results || false
     });
     setShowModal(true);
   };
@@ -187,6 +189,7 @@ export default function LabTechnicians() {
                 <tr>
                   <th className="px-4 py-4 text-left font-semibold text-slate-700">Technician Name</th>
                   <th className="px-4 py-4 text-left font-semibold text-slate-700">Phone Number</th>
+                  <th className="px-4 py-4 text-center font-semibold text-slate-700">Global Access</th>
                   <th className="px-4 py-4 text-center font-semibold text-slate-700">Account Status</th>
                   <th className="px-4 py-4 text-right font-semibold text-slate-700 pr-4">Actions</th>
                 </tr>
@@ -201,6 +204,11 @@ export default function LabTechnicians() {
                       </td>
                       <td className="py-4 text-slate-600">
                         <span>{v.phone_number}</span>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${v.can_view_all_results ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                          {v.can_view_all_results ? 'Yes' : 'No'}
+                        </span>
                       </td>
                       <td className="px-4 py-4 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -259,6 +267,22 @@ export default function LabTechnicians() {
                     onChange={(e) => setFormData({ ...formData, phone_number: e.target.value.replace(/\D/g, '') })}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
                   />
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <input
+                    type="checkbox"
+                    id="can_view_all_results"
+                    checked={formData.can_view_all_results}
+                    onChange={(e) => setFormData({...formData, can_view_all_results: e.target.checked})}
+                    className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                  />
+                  <div>
+                    <label htmlFor="can_view_all_results" className="text-sm font-medium text-slate-800">
+                      Global Lab Results Access
+                    </label>
+                    <p className="text-xs text-slate-500">Allow this technician to view and download all lab results in the system.</p>
+                  </div>
                 </div>
               </div>
 
