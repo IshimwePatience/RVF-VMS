@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
     sn: {
       type: DataTypes.INTEGER
     },
+    tracking_id: {
+      type: DataTypes.STRING,
+      unique: true
+    },
     farmer_name: {
       type: DataTypes.STRING
     },

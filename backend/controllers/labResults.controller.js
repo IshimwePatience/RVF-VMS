@@ -16,35 +16,35 @@ exports.uploadResults = async (req, res) => {
       });
     }
 
-    // Validation 2: Check if Animal IDs exist in SurveillanceSample
-    const uploadedAnimalIds = results.map(r => r.animal_id ? String(r.animal_id).trim().toLowerCase() : null).filter(Boolean);
-    if (uploadedAnimalIds.length === 0) {
-      return res.status(400).json({ message: 'Upload rejected. No Animal IDs found in the file.' });
+    // Validation 2: Check if Tracking IDs exist in SurveillanceSample
+    const uploadedTrackingIds = results.map(r => r.tracking_id ? String(r.tracking_id).trim().toUpperCase() : null).filter(Boolean);
+    if (uploadedTrackingIds.length === 0) {
+      return res.status(400).json({ message: 'Upload rejected. No Tracking IDs found in the file. Please ensure you are uploading using the Tracking ID column.' });
     }
 
     const { Op, Sequelize } = require('sequelize');
     const existingSamples = await SurveillanceSample.findAll({
       where: Sequelize.where(
-        Sequelize.fn('LOWER', Sequelize.fn('TRIM', Sequelize.col('animal_id'))),
+        Sequelize.fn('UPPER', Sequelize.fn('TRIM', Sequelize.col('tracking_id'))),
         {
-          [Op.in]: uploadedAnimalIds
+          [Op.in]: uploadedTrackingIds
         }
       ),
-      attributes: ['animal_id']
+      attributes: ['tracking_id']
     });
 
-    const existingIdSet = new Set(existingSamples.map(s => String(s.animal_id).trim().toLowerCase()));
+    const existingIdSet = new Set(existingSamples.map(s => String(s.tracking_id).trim().toUpperCase()));
     
     const mismatchedIds = [];
     for (const r of results) {
-      if (!r.animal_id || !existingIdSet.has(String(r.animal_id).trim().toLowerCase())) {
-        mismatchedIds.push(r.animal_id || 'Unknown ID');
+      if (!r.tracking_id || !existingIdSet.has(String(r.tracking_id).trim().toUpperCase())) {
+        mismatchedIds.push(r.tracking_id || 'Unknown ID');
       }
     }
 
     if (mismatchedIds.length > 0) {
       return res.status(400).json({ 
-        message: `Upload rejected. The following Animal IDs do not exist in the system (mismatch): ${mismatchedIds.join(', ')}` 
+        message: `Upload rejected. The following Tracking IDs do not exist in the system: ${mismatchedIds.join(', ')}` 
       });
     }
 
@@ -60,6 +60,7 @@ exports.uploadResults = async (req, res) => {
     for (const item of results) {
       await LabResult.create({
         ...item,
+        sample_tracking_id: item.tracking_id ? String(item.tracking_id).trim().toUpperCase() : null,
         animal_id: item.animal_id ? String(item.animal_id).trim() : null,
         uploaded_by
       });
@@ -112,56 +113,22 @@ exports.getResults = async (req, res) => {
         include: [{ model: SurveillanceSample, as: 'samples' }]
       });
 
-      // Pre-build a map of valid sample conditions for O(1) lookup
-      const validSamplesMap = {};
+      // Pre-build a set of valid tracking ids for this vet
+      const validTrackingIds = new Set();
       forms.forEach(form => {
-        const formDate = new Date(form.createdAt);
         if (form.samples) {
           form.samples.forEach(sample => {
-            if (sample.animal_id) {
-              const searchId = String(sample.animal_id).trim().toLowerCase();
-              if (!validSamplesMap[searchId]) {
-                validSamplesMap[searchId] = [];
-              }
-              validSamplesMap[searchId].push({
-                searchFarmer: (sample.farmer_name || form.farmer_name || '').trim().toLowerCase(),
-                searchPhone: (sample.phone || form.phone_number || form.veterinary_email || '').trim().toLowerCase(),
-                searchDistrict: (sample.district_origin || form.district || '').trim().toLowerCase(),
-                searchSpecie: (sample.specie || '').trim().toLowerCase(),
-                formDate
-              });
+            if (sample.tracking_id) {
+              validTrackingIds.add(String(sample.tracking_id).trim().toUpperCase());
             }
           });
         }
       });
 
-      // strict filtering in memory to prevent cross-vet leakage for generic animal_ids
+      // strict filtering in memory to prevent cross-vet leakage
       results = results.filter(lr => {
-        const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
-        const matchingSamples = validSamplesMap[lrId];
-        
-        if (!matchingSamples || matchingSamples.length === 0) return false;
-
-        const lrFarmer = lr.farmer_name ? String(lr.farmer_name).trim().toLowerCase() : '';
-        const lrPhone = lr.phone ? String(lr.phone).trim().toLowerCase() : '';
-        const lrDistrict = lr.animal_district_origin ? String(lr.animal_district_origin).trim().toLowerCase() : '';
-        const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
-
-        return matchingSamples.some(s => {
-          // Relaxed matching: animal_id already matches.
-          // To prevent cross-vet leakage on generic IDs like "1", we check overlapping fields.
-          let matches = 0;
-          let conditions = 0;
-
-          if (s.searchDistrict && lrDistrict) { conditions++; if (s.searchDistrict === lrDistrict) matches++; }
-          if (s.searchPhone && lrPhone) { conditions++; if (s.searchPhone === lrPhone) matches++; }
-          if (s.searchFarmer && lrFarmer) { conditions++; if (s.searchFarmer === lrFarmer) matches++; }
-          if (s.searchSpecie && lrSpecie) { conditions++; if (s.searchSpecie === lrSpecie) matches++; }
-
-          // If there's overlapping data to compare, at least one MUST match to confirm it's the same animal.
-          // If there's no overlapping data (e.g. neither provided phone/farmer), we assume it's a match.
-          return conditions === 0 || matches > 0;
-        });
+        const lrTrackingId = lr.sample_tracking_id ? String(lr.sample_tracking_id).trim().toUpperCase() : '';
+        return validTrackingIds.has(lrTrackingId);
       });
     }
 

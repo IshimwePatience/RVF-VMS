@@ -8,6 +8,7 @@ module.exports = (sequelize) => {
       autoIncrement: true
     },
     farmer_name: { type: DataTypes.STRING, allowNull: true },
+    sample_tracking_id: { type: DataTypes.STRING, allowNull: true },
     phone: { type: DataTypes.STRING, allowNull: true },
     animal_district_origin: { type: DataTypes.STRING, allowNull: true },
     sector: { type: DataTypes.STRING, allowNull: true },

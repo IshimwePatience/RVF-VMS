@@ -33,7 +33,8 @@ export default function SampleHistoryModal({ isOpen, onClose, forms }) {
         const matchesName = (s.farmer_name || '').toLowerCase().includes(q);
         const matchesPhone = (s.phone || '').toLowerCase().includes(q);
         const matchesAnimal = (s.animal_id || '').toLowerCase().includes(q);
-        if (!matchesName && !matchesPhone && !matchesAnimal) return false;
+        const matchesTracking = (s.tracking_id || '').toLowerCase().includes(q);
+        if (!matchesName && !matchesPhone && !matchesAnimal && !matchesTracking) return false;
       }
 
       if (activeTab === 'pending' && s.has_result) return false;
@@ -80,7 +81,7 @@ export default function SampleHistoryModal({ isOpen, onClose, forms }) {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Search farmer or animal..." 
+              placeholder="Search tracking ID, farmer or animal..." 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)} 
               className="pl-9 pr-4 py-1.5 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 w-64 bg-slate-50 focus:bg-white transition-colors" 
@@ -126,6 +127,7 @@ export default function SampleHistoryModal({ isOpen, onClose, forms }) {
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="py-3 px-4 font-semibold text-slate-900">Date</th>
+                  <th className="py-3 px-4 font-semibold text-slate-900">Tracking ID</th>
                   <th className="py-3 px-4 font-semibold text-slate-900">Farmer</th>
                   <th className="py-3 px-4 font-semibold text-slate-900">Animal ID</th>
                   <th className="py-3 px-4 font-semibold text-slate-900">Specie</th>
@@ -136,6 +138,9 @@ export default function SampleHistoryModal({ isOpen, onClose, forms }) {
                 {filteredSamples.map((s, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50">
                     <td className="py-3 px-4">{new Date(s.createdAt).toLocaleDateString()}</td>
+                    <td className="py-3 px-4">
+                      <span className="font-mono bg-slate-100 px-2 py-1 rounded text-slate-700">{s.tracking_id || 'N/A'}</span>
+                    </td>
                     <td className="py-3 px-4">
                       <div className="font-medium text-slate-800">{s.farmer_name || 'N/A'}</div>
                       <div className="text-xs text-slate-500">{s.phone}</div>

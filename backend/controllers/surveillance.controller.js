@@ -1,4 +1,5 @@
 const { SurveillanceForm, SurveillanceSample, LabResult, sequelize } = require('../models');
+const crypto = require('crypto');
 
 exports.submitForm = async (req, res) => {
   const t = await sequelize.transaction();
@@ -44,9 +45,18 @@ exports.submitForm = async (req, res) => {
     if (samples && Array.isArray(samples)) {
       const validSamples = samples.filter(s => s.farmer_name || s.animal_id);
       for (const sample of validSamples) {
+        let tracking_id;
+        while (true) {
+          const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
+          tracking_id = `RAB-${randomHex}`;
+          const exists = await SurveillanceSample.findOne({ where: { tracking_id }, transaction: t });
+          if (!exists) break;
+        }
+
         await SurveillanceSample.create({
           form_id: form.id,
           sn: sample.sn,
+          tracking_id: tracking_id,
           farmer_name: sample.farmer_name,
           phone: sample.phone,
           district_origin: sample.district_origin,
@@ -96,16 +106,14 @@ exports.getForms = async (req, res) => {
       limit: 50000
     });
 
-    // Extract all unique animal IDs from the forms to prevent fetching the entire database
-    const animalIds = new Set();
+    // Extract all unique tracking IDs from the forms to fetch matching lab results
+    const trackingIds = new Set();
     forms.forEach(form => {
       const formJSON = form.toJSON ? form.toJSON() : form;
       if (formJSON.samples) {
         formJSON.samples.forEach(sample => {
-          if (sample.animal_id) {
-            animalIds.add(String(sample.animal_id).trim());
-            animalIds.add(String(sample.animal_id).trim().toLowerCase());
-            animalIds.add(String(sample.animal_id).trim().toUpperCase());
+          if (sample.tracking_id) {
+            trackingIds.add(sample.tracking_id);
           }
         });
       }
@@ -114,67 +122,36 @@ exports.getForms = async (req, res) => {
     const { Op } = require('sequelize');
     const labResults = await LabResult.findAll({ 
       where: {
-        animal_id: {
-          [Op.in]: Array.from(animalIds)
+        sample_tracking_id: {
+          [Op.in]: Array.from(trackingIds)
         }
       },
-      attributes: ['animal_id', 'farmer_name', 'phone', 'animal_district_origin', 'specie', 'createdAt', 'rvf_pcr_results'] 
+      attributes: ['sample_tracking_id', 'rvf_pcr_results'] 
     });
 
-    // Precompute a Hash Map of lab results grouped by animal_id for O(1) lookup
+    // Precompute a Hash Map of lab results grouped by tracking_id for O(1) lookup
     const labResultsMap = {};
     for (const lr of labResults) {
-      const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
-      if (!lrId) continue;
-      
-      if (!labResultsMap[lrId]) {
-        labResultsMap[lrId] = [];
+      if (lr.sample_tracking_id) {
+        labResultsMap[lr.sample_tracking_id] = lr;
       }
-      labResultsMap[lrId].push(lr);
     }
 
     const formsWithFlags = forms.map(form => {
       const formJSON = form.toJSON ? form.toJSON() : form;
-      const formDate = new Date(formJSON.createdAt);
       if (formJSON.samples) {
         formJSON.samples = formJSON.samples.map(sample => {
           let hasResult = false;
           let pcrResult = null;
           
-          if (sample.animal_id) {
-            const searchId = String(sample.animal_id).trim().toLowerCase();
-            const matchingLabs = labResultsMap[searchId];
-            
-            if (matchingLabs && matchingLabs.length > 0) {
-              const actualFarmer = sample.farmer_name || formJSON.farmer_name || '';
-              const actualPhone = sample.phone || formJSON.phone_number || formJSON.veterinary_email || '';
-              const actualDistrict = sample.district_origin || formJSON.district || '';
-              
-              const searchFarmer = actualFarmer ? String(actualFarmer).trim().toLowerCase() : '';
-              const searchPhone = actualPhone ? String(actualPhone).trim().toLowerCase() : '';
-              const searchDistrict = actualDistrict ? String(actualDistrict).trim().toLowerCase() : '';
-              const searchSpecie = sample.specie ? String(sample.specie).trim().toLowerCase() : '';
-              
-              const lrMatch = matchingLabs.find(lr => {
-                const lrFarmer = lr.farmer_name ? String(lr.farmer_name).trim().toLowerCase() : '';
-                const lrPhone = lr.phone ? String(lr.phone).trim().toLowerCase() : '';
-                const lrDistrict = lr.animal_district_origin ? String(lr.animal_district_origin).trim().toLowerCase() : '';
-                const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
-  
-                const isFarmerMatch = !searchFarmer || !lrFarmer || lrFarmer === searchFarmer;
-                const isPhoneMatch = !searchPhone || !lrPhone || lrPhone === searchPhone;
-                const isDistrictMatch = !searchDistrict || !lrDistrict || lrDistrict === searchDistrict;
-                const isSpecieMatch = !searchSpecie || !lrSpecie || lrSpecie === searchSpecie;
-  
-                return isFarmerMatch && isPhoneMatch && isDistrictMatch && isSpecieMatch && new Date(lr.createdAt) >= formDate;
-              });
-              
-              if (lrMatch) {
-                hasResult = true;
-                pcrResult = lrMatch.rvf_pcr_results;
-              }
+          if (sample.tracking_id) {
+            const match = labResultsMap[sample.tracking_id];
+            if (match) {
+              hasResult = true;
+              pcrResult = match.rvf_pcr_results;
             }
           }
+          
           return {
             ...sample,
             has_result: hasResult,

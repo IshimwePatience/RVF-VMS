@@ -83,6 +83,7 @@ export default function UploadResultsTab() {
             village: getVal(['Village']),
             specie: getVal(['Specie', 'Species']),
             animal_id: getVal(['Animal ID', 'Eartag', 'Tag']),
+            tracking_id: getVal(['Tracking ID', 'Sample ID', 'Sample Tracking ID']),
             breed: getVal(['Breed']),
             sex: getVal(['Sex', 'Gender']),
             age: getVal(['Age']),
@@ -91,7 +92,7 @@ export default function UploadResultsTab() {
             health_status: getVal(['Health Status']),
             rvf_pcr_results: getVal(['PCR Result', 'PCR Results', 'Result']),
           };
-        }).filter(r => r.animal_id || r.farmer_name); // Filter out completely empty rows
+        }).filter(r => r.tracking_id || r.animal_id || r.farmer_name); // Filter out completely empty rows
 
         if (processedData.length === 0) {
            addToast('Could not find recognizable data in this file. Please use the downloaded template.', 'error');

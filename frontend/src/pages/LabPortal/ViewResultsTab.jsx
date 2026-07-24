@@ -398,6 +398,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                 )}
                 <th className="py-4 px-6 font-semibold text-slate-800">Farmer</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Location</th>
+                <th className="py-4 px-6 font-semibold text-slate-800">Tracking ID</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Animal ID</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Specie</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Breed</th>
@@ -464,6 +465,9 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                         </span>
                       </div>
                     </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="font-mono bg-slate-100 px-2 py-1 rounded text-slate-700">{r.sample_tracking_id || 'N/A'}</span>
                   </td>
                   <td className="py-4 px-6 font-medium text-slate-700">
                     {r.animal_id || 'N/A'}
