@@ -10,6 +10,7 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Forgot Password State
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -32,6 +33,7 @@ export default function Login() {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     try {
       const res = await axios.post('/rvf-api/auth/login', { username, password });
       if (res.data.requires_otp) {
@@ -49,7 +51,9 @@ export default function Login() {
         }
       }
     } catch (err) {
-      addToast(err.response?.data?.message || 'Login failed');
+      addToast(err.response?.data?.message || 'Login failed', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -230,9 +234,10 @@ export default function Login() {
             </div>
             <button
               type="submit"
-              className="w-full bg-[#0056D2] hover:bg-[#004BB8] text-white font-bold text-[16px] py-3 rounded transition-colors"
+              disabled={isLoading}
+              className="w-full bg-[#0056D2] hover:bg-[#004BB8] text-white font-bold text-[16px] py-3 rounded transition-colors disabled:opacity-50"
             >
-              Continue
+              {isLoading ? 'Proceeding...' : 'Proceed'}
             </button>
           </form>
         ) : (
