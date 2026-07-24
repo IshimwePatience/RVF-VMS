@@ -178,6 +178,17 @@ exports.getAdminDashboard = async (req, res) => {
       raw: true
     });
 
+    const labResultsBySpecieAndResult = await LabResult.findAll({
+      attributes: [
+        'specie',
+        'rvf_pcr_results',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+      ],
+      where: whereAllLabResult,
+      group: ['specie', 'rvf_pcr_results'],
+      raw: true
+    });
+
     // 8. Vaccine Stock Distribution
     const stockRaw = await StockInventory.findAll({
       include: [{ model: Batch, include: [{ model: Vaccine }] }]
@@ -254,6 +265,7 @@ exports.getAdminDashboard = async (req, res) => {
       vaccinationStatus,
       positiveCasesByPurpose,
       labResultsByPurposeAndResult,
+      labResultsBySpecieAndResult,
       stockByVaccine: Object.entries(stockMap).map(([name, quantity]) => ({ name, quantity })),
       mapLocations
     });

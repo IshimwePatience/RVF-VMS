@@ -126,16 +126,36 @@ export default function Dashboard() {
     }]
   };
 
+  // Helper to safely check positive/negative
+  const isPositive = (resStr) => String(resStr || '').toLowerCase().includes('positive');
+  const isNegative = (resStr) => String(resStr || '').toLowerCase().includes('negative');
+
   // 4. Species Distribution (Horizontal Bar)
+  const allSpecies = d.speciesDistribution?.map(x => x.specie || 'Unknown') || [];
   const speciesData = {
-    labels: d.speciesDistribution?.map(x => x.specie || 'Unknown') || [],
-    datasets: [{
-      label: 'Sample Count',
-      data: d.speciesDistribution?.map(x => x.count) || [],
-      backgroundColor: COLORS.active,
-      borderRadius: 2,
-      barThickness: 12
-    }]
+    labels: allSpecies,
+    datasets: [
+      {
+        label: 'Positive',
+        data: allSpecies.map(s => {
+          return d.labResultsBySpecieAndResult?.filter(x => (x.specie || 'Unknown') === s && isPositive(x.rvf_pcr_results))
+            .reduce((sum, curr) => sum + parseInt(curr.count), 0) || 0;
+        }),
+        backgroundColor: COLORS.deaths, // Red
+        borderRadius: 2,
+        barThickness: 8
+      },
+      {
+        label: 'Negative',
+        data: allSpecies.map(s => {
+          return d.labResultsBySpecieAndResult?.filter(x => (x.specie || 'Unknown') === s && isNegative(x.rvf_pcr_results))
+            .reduce((sum, curr) => sum + parseInt(curr.count), 0) || 0;
+        }),
+        backgroundColor: COLORS.warning, // Yellow
+        borderRadius: 2,
+        barThickness: 8
+      }
+    ]
   };
 
   // 5. Sex Distribution (Donut)
@@ -172,9 +192,6 @@ export default function Dashboard() {
   };
 
   // New Charts Data
-  const isPositive = (resStr) => String(resStr || '').toLowerCase().includes('positive');
-  const isNegative = (resStr) => String(resStr || '').toLowerCase().includes('negative');
-
   // Chart: Surveillance control vs New case
   const survPurposes = ['Surveillance control', 'Surveillance new case'];
   const survChartData = {
