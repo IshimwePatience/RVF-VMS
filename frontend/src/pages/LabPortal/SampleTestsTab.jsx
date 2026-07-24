@@ -134,6 +134,7 @@ export default function SampleTestsTab() {
     // Map to the required Excel format
     const exportData = selectedSamples.map((s, index) => ({
       'S/N': index + 1,
+      'Tracking ID': s.tracking_id || 'N/A',
       'Farmer Name': s.farmer_name || '',
       'Phone': s.phone || '',
       'District Origin': s.district_origin || s.form_district || '',
@@ -275,6 +276,7 @@ export default function SampleTestsTab() {
                     <Square className="w-5 h-5 text-slate-400 mx-auto" />
                   )}
                 </th>
+                <th className="py-3 px-4 font-semibold text-slate-800">Tracking ID</th>
                 <th className="py-3 px-4 font-semibold text-slate-800">Date Collected</th>
                 <th className="py-3 px-4 font-semibold text-slate-800">Animal ID</th>
                 <th className="py-3 px-4 font-semibold text-slate-800">Farmer</th>
@@ -313,6 +315,9 @@ export default function SampleTestsTab() {
                           )}
                         </button>
                       )}
+                    </td>
+                    <td className="py-3 px-4 font-bold text-blue-600 bg-blue-50/50">
+                      {sample.tracking_id || 'N/A'}
                     </td>
                     <td className="py-3 px-4 text-slate-600">
                       {sample.collection_date ? new Date(sample.collection_date).toLocaleDateString() : 'N/A'}
