@@ -66,8 +66,17 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     tableName: 'SurveillanceSamples',
-    timestamps: true
+    timestamps: true,
+    indexes: [
+      {
+        fields: ['animal_id']
+      },
+      {
+        fields: ['form_id']
+      }
+    ]
   });
 
   return SurveillanceSample;
 };
+

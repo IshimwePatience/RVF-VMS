@@ -76,10 +76,13 @@ exports.submitForm = async (req, res) => {
 
 exports.getForms = async (req, res) => {
   try {
-    const { phone } = req.query;
+    const { phone, district } = req.query;
     let whereClause = {};
     if (phone) {
       whereClause.veterinary_email = phone;
+    }
+    if (district) {
+      whereClause.district = district;
     }
     const forms = await SurveillanceForm.findAll({
       where: whereClause,
@@ -118,6 +121,18 @@ exports.getForms = async (req, res) => {
       attributes: ['animal_id', 'farmer_name', 'phone', 'animal_district_origin', 'specie', 'createdAt', 'rvf_pcr_results'] 
     });
 
+    // Precompute a Hash Map of lab results grouped by animal_id for O(1) lookup
+    const labResultsMap = {};
+    for (const lr of labResults) {
+      const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
+      if (!lrId) continue;
+      
+      if (!labResultsMap[lrId]) {
+        labResultsMap[lrId] = [];
+      }
+      labResultsMap[lrId].push(lr);
+    }
+
     const formsWithFlags = forms.map(form => {
       const formJSON = form.toJSON ? form.toJSON() : form;
       const formDate = new Date(formJSON.createdAt);
@@ -125,17 +140,12 @@ exports.getForms = async (req, res) => {
         formJSON.samples = formJSON.samples.map(sample => {
           let hasResult = false;
           let pcrResult = null;
+          
           if (sample.animal_id) {
             const searchId = String(sample.animal_id).trim().toLowerCase();
+            const matchingLabs = labResultsMap[searchId];
             
-            // Fast lookup using array filter instead of a full O(N^2) scan of all lab results every time
-            // Because one animal might have multiple lab results, we filter for this specific animal_id first
-            const matchingLabs = labResults.filter(lr => {
-                const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
-                return lrId === searchId;
-            });
-            
-            if (matchingLabs.length > 0) {
+            if (matchingLabs && matchingLabs.length > 0) {
               const actualFarmer = sample.farmer_name || formJSON.farmer_name || '';
               const actualPhone = sample.phone || formJSON.phone_number || formJSON.veterinary_email || '';
               const actualDistrict = sample.district_origin || formJSON.district || '';

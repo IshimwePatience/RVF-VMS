@@ -25,6 +25,11 @@ module.exports = (sequelize) => {
     tested_site: { type: DataTypes.STRING, allowNull: true },
     uploaded_by: { type: DataTypes.UUID, allowNull: true }
   }, {
-    timestamps: true
+    timestamps: true,
+    indexes: [
+      {
+        fields: ['animal_id']
+      }
+    ]
   });
 };

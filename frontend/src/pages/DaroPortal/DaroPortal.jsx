@@ -41,7 +41,8 @@ export default function DaroPortal() {
   const { data: forms = [] } = useQuery({
     queryKey: ['surveillance-forms'],
     queryFn: async () => {
-      const res = await axios.get('/rvf-api/surveillance');
+      const userDistrict = user?.district || '';
+      const res = await axios.get(`/rvf-api/surveillance${userDistrict ? `?district=${encodeURIComponent(userDistrict)}` : ''}`);
       return res.data;
     },
     enabled: !!user

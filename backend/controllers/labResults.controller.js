@@ -104,14 +104,17 @@ exports.getResults = async (req, res) => {
       });
 
       // Pre-build a map of valid sample conditions for O(1) lookup
-      const validSamples = [];
+      const validSamplesMap = {};
       forms.forEach(form => {
         const formDate = new Date(form.createdAt);
         if (form.samples) {
           form.samples.forEach(sample => {
             if (sample.animal_id) {
-              validSamples.push({
-                searchId: String(sample.animal_id).trim().toLowerCase(),
+              const searchId = String(sample.animal_id).trim().toLowerCase();
+              if (!validSamplesMap[searchId]) {
+                validSamplesMap[searchId] = [];
+              }
+              validSamplesMap[searchId].push({
                 searchFarmer: (sample.farmer_name || form.farmer_name || '').trim().toLowerCase(),
                 searchPhone: (sample.phone || form.phone_number || form.veterinary_email || '').trim().toLowerCase(),
                 searchDistrict: (sample.district_origin || form.district || '').trim().toLowerCase(),
@@ -126,14 +129,15 @@ exports.getResults = async (req, res) => {
       // strict filtering in memory to prevent cross-vet leakage for generic animal_ids
       results = results.filter(lr => {
         const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
+        const matchingSamples = validSamplesMap[lrId];
+        
+        if (!matchingSamples || matchingSamples.length === 0) return false;
+
         const lrFarmer = lr.farmer_name ? String(lr.farmer_name).trim().toLowerCase() : '';
         const lrPhone = lr.phone ? String(lr.phone).trim().toLowerCase() : '';
         const lrDistrict = lr.animal_district_origin ? String(lr.animal_district_origin).trim().toLowerCase() : '';
         const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
 
-        // Filter validSamples down to just matching IDs first (extremely fast)
-        const matchingSamples = validSamples.filter(s => s.searchId === lrId);
-        
         return matchingSamples.some(s => {
           const isFarmerMatch = !s.searchFarmer || !lrFarmer || lrFarmer === s.searchFarmer;
           const isPhoneMatch = !s.searchPhone || !lrPhone || lrPhone === s.searchPhone;
