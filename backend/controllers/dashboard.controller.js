@@ -152,6 +152,32 @@ exports.getAdminDashboard = async (req, res) => {
       raw: true
     });
 
+    // Positive vs Negative by Purpose
+    const whereAllLabResultAnd = [];
+    if (whereSurvForm.district) {
+      whereAllLabResultAnd.push(
+        Sequelize.where(Sequelize.fn('LOWER', Sequelize.col('animal_district_origin')), Sequelize.fn('LOWER', String(whereSurvForm.district)))
+      );
+    }
+    if (whereSurvForm.sector) {
+      whereAllLabResultAnd.push({ sector: whereSurvForm.sector });
+    }
+    if (whereAdmin.date_administered) {
+      whereAllLabResultAnd.push({ createdAt: whereAdmin.date_administered });
+    }
+    const whereAllLabResult = whereAllLabResultAnd.length > 0 ? { [Op.and]: whereAllLabResultAnd } : {};
+    
+    const labResultsByPurposeAndResult = await LabResult.findAll({
+      attributes: [
+        'purpose',
+        'rvf_pcr_results',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+      ],
+      where: whereAllLabResult,
+      group: ['purpose', 'rvf_pcr_results'],
+      raw: true
+    });
+
     // 8. Vaccine Stock Distribution
     const stockRaw = await StockInventory.findAll({
       include: [{ model: Batch, include: [{ model: Vaccine }] }]
@@ -227,6 +253,7 @@ exports.getAdminDashboard = async (req, res) => {
       sexDistribution,
       vaccinationStatus,
       positiveCasesByPurpose,
+      labResultsByPurposeAndResult,
       stockByVaccine: Object.entries(stockMap).map(([name, quantity]) => ({ name, quantity })),
       mapLocations
     });

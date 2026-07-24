@@ -171,6 +171,62 @@ export default function Dashboard() {
     }]
   };
 
+  // New Charts Data
+  const isPositive = (resStr) => String(resStr || '').toLowerCase().includes('positive');
+  const isNegative = (resStr) => String(resStr || '').toLowerCase().includes('negative');
+
+  // Chart: Surveillance control vs New case
+  const survPurposes = ['Surveillance control', 'Surveillance new case'];
+  const survChartData = {
+    labels: survPurposes,
+    datasets: [
+      {
+        label: 'Positive',
+        data: survPurposes.map(p => {
+          return d.labResultsByPurposeAndResult?.filter(x => x.purpose === p && isPositive(x.rvf_pcr_results))
+            .reduce((sum, curr) => sum + parseInt(curr.count), 0) || 0;
+        }),
+        backgroundColor: COLORS.deaths,
+        borderRadius: 2
+      },
+      {
+        label: 'Negative',
+        data: survPurposes.map(p => {
+          return d.labResultsByPurposeAndResult?.filter(x => x.purpose === p && isNegative(x.rvf_pcr_results))
+            .reduce((sum, curr) => sum + parseInt(curr.count), 0) || 0;
+        }),
+        backgroundColor: COLORS.warning,
+        borderRadius: 2
+      }
+    ]
+  };
+
+  // Chart: Slaughtering
+  const slaughterPurposes = ['Slaughter', 'Slaughtering'];
+  const slaughterChartData = {
+    labels: slaughterPurposes,
+    datasets: [
+      {
+        label: 'Positive',
+        data: slaughterPurposes.map(p => {
+          return d.labResultsByPurposeAndResult?.filter(x => x.purpose === p && isPositive(x.rvf_pcr_results))
+            .reduce((sum, curr) => sum + parseInt(curr.count), 0) || 0;
+        }),
+        backgroundColor: COLORS.deaths,
+        borderRadius: 2
+      },
+      {
+        label: 'Negative',
+        data: slaughterPurposes.map(p => {
+          return d.labResultsByPurposeAndResult?.filter(x => x.purpose === p && isNegative(x.rvf_pcr_results))
+            .reduce((sum, curr) => sum + parseInt(curr.count), 0) || 0;
+        }),
+        backgroundColor: COLORS.warning,
+        borderRadius: 2
+      }
+    ]
+  };
+
   // 7. Vaccine Stock (Bar)
   const stockLevelsData = {
     labels: d.stockByVaccine?.map(x => x.name || 'Unknown') || [],
@@ -366,6 +422,18 @@ export default function Dashboard() {
 
                 </div>
                 <div className="h-[250px] pb-4"><Doughnut data={positiveCasesData} options={CHART_OPTIONS} /></div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-[11px] font-bold text-slate-800 uppercase">Surveillance Control vs New Case</h3>
+                </div>
+                <div className="h-[250px]"><Bar data={survChartData} options={CHART_OPTIONS} /></div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 p-4 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-[11px] font-bold text-slate-800 uppercase">Slaughtering</h3>
+                </div>
+                <div className="h-[250px]"><Bar data={slaughterChartData} options={CHART_OPTIONS} /></div>
               </div>
             </>
           )}
