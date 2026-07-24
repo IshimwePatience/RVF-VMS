@@ -48,7 +48,7 @@ export default function SampleTestReportView({ report, onClose }) {
                   Rwanda Agriculture and Animal Resources Development Board (RAB)
                 </p>
                 <div className="text-sm font-semibold text-slate-800 mt-4">
-                  Veterinary Email: <span className="text-slate-600 font-normal">{report.veterinary_email}</span>
+                  Veterinary Number: <span className="text-slate-600 font-normal">{report.veterinary_email}</span>
                 </div>
               </div>
               <img src={minisanteLogo} alt="MINISANTE" className="h-24 object-contain" />
