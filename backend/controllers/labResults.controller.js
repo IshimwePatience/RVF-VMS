@@ -48,6 +48,38 @@ exports.uploadResults = async (req, res) => {
       });
     }
 
+    // Validation 3: Check for duplicates within the uploaded file itself
+    const trackingIdCounts = {};
+    for (const r of results) {
+      if (r.tracking_id) {
+        const tid = String(r.tracking_id).trim().toUpperCase();
+        trackingIdCounts[tid] = (trackingIdCounts[tid] || 0) + 1;
+      }
+    }
+    const fileDuplicates = Object.keys(trackingIdCounts).filter(tid => trackingIdCounts[tid] > 1);
+    if (fileDuplicates.length > 0) {
+      return res.status(400).json({
+        message: `Upload rejected. The following Tracking IDs appear multiple times in your file: ${fileDuplicates.join(', ')}`
+      });
+    }
+
+    // Validation 4: Check if Tracking IDs have already been tested (exist in LabResult)
+    const alreadyTested = await LabResult.findAll({
+      where: {
+        sample_tracking_id: {
+          [Op.in]: uploadedTrackingIds
+        }
+      },
+      attributes: ['sample_tracking_id']
+    });
+
+    if (alreadyTested.length > 0) {
+      const alreadyTestedIds = alreadyTested.map(r => r.sample_tracking_id);
+      return res.status(400).json({
+        message: `Upload rejected. The following Tracking IDs have already been tested (Duplicate): ${alreadyTestedIds.join(', ')}`
+      });
+    }
+
     let uploaded_by = null;
     if (req.user.role === 'Lab User') {
       const tech = await LabTechnician.findByPk(req.user.id);
@@ -55,30 +87,19 @@ exports.uploadResults = async (req, res) => {
         uploaded_by = tech.id;
       }
     }
+    
     let createdCount = 0;
-    let updatedCount = 0;
 
     for (const item of results) {
       const tracking_id = item.tracking_id ? String(item.tracking_id).trim().toUpperCase() : null;
       if (tracking_id) {
-        const existing = await LabResult.findOne({ where: { sample_tracking_id: tracking_id } });
-        if (existing) {
-          await existing.update({
-            ...item,
-            sample_tracking_id: tracking_id,
-            animal_id: item.animal_id ? String(item.animal_id).trim() : null,
-            uploaded_by
-          });
-          updatedCount++;
-        } else {
-          await LabResult.create({
-            ...item,
-            sample_tracking_id: tracking_id,
-            animal_id: item.animal_id ? String(item.animal_id).trim() : null,
-            uploaded_by
-          });
-          createdCount++;
-        }
+        await LabResult.create({
+          ...item,
+          sample_tracking_id: tracking_id,
+          animal_id: item.animal_id ? String(item.animal_id).trim() : null,
+          uploaded_by
+        });
+        createdCount++;
       }
     }
 
