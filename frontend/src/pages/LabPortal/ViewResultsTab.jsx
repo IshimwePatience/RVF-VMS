@@ -242,7 +242,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input 
                   type="text"
-                  placeholder="Search farmer or animal ID..."
+                  placeholder="Search Tracking ID, Farmer, Animal ID..."
                   value={localFilters.search}
                   onChange={(e) => setLocalFilters({...localFilters, search: e.target.value})}
                   className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-blue-500"

@@ -65,6 +65,7 @@ export default function SampleTestsTab() {
       if (searchTerm) {
         const search = searchTerm.toLowerCase();
         if (!((s.animal_id && s.animal_id.toLowerCase().includes(search)) ||
+             (s.tracking_id && s.tracking_id.toLowerCase().includes(search)) ||
              (s.farmer_name && s.farmer_name.toLowerCase().includes(search)) ||
              (s.submitted_by && s.submitted_by.toLowerCase().includes(search)) ||
              (s.veterinary_email && s.veterinary_email.toLowerCase().includes(search)) ||
@@ -191,7 +192,7 @@ export default function SampleTestsTab() {
           <div className="relative w-80">
             <input
               type="text"
-              placeholder="Search by Animal ID, Farmer, Vet, District..."
+              placeholder="Search by Tracking ID, Animal ID, Farmer, Vet..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
