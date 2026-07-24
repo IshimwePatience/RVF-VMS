@@ -1,6 +1,83 @@
 const { SurveillanceForm, SurveillanceSample, LabResult, sequelize } = require('../models');
 const crypto = require('crypto');
 
+exports.migrateTrackingIds = async (req, res) => {
+  try {
+    const samples = await SurveillanceSample.findAll({ where: { tracking_id: null } });
+    let updatedSamples = 0;
+    for (const sample of samples) {
+      let tracking_id;
+      while (true) {
+        const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
+        tracking_id = `RAB-${randomHex}`;
+        const exists = await SurveillanceSample.findOne({ where: { tracking_id } });
+        if (!exists) break;
+      }
+      await sample.update({ tracking_id });
+      updatedSamples++;
+    }
+
+    const results = await LabResult.findAll({ where: { sample_tracking_id: null } });
+    let linkedResults = 0;
+    
+    const allForms = await SurveillanceForm.findAll({
+      include: [{ model: SurveillanceSample, as: 'samples' }]
+    });
+
+    const validSamplesMap = {};
+    for (const form of allForms) {
+      if (form.samples) {
+        for (const sample of form.samples) {
+          if (sample.animal_id && sample.tracking_id) {
+            const searchId = String(sample.animal_id).trim().toLowerCase();
+            if (!validSamplesMap[searchId]) {
+              validSamplesMap[searchId] = [];
+            }
+            validSamplesMap[searchId].push({
+              tracking_id: sample.tracking_id,
+              searchFarmer: (sample.farmer_name || form.farmer_name || '').trim().toLowerCase(),
+              searchPhone: (sample.phone || form.phone_number || form.veterinary_email || '').trim().toLowerCase(),
+              searchDistrict: (sample.district_origin || form.district || '').trim().toLowerCase(),
+              searchSpecie: (sample.specie || '').trim().toLowerCase()
+            });
+          }
+        }
+      }
+    }
+
+    for (const lr of results) {
+      const lrId = lr.animal_id ? String(lr.animal_id).trim().toLowerCase() : '';
+      const matchingSamples = validSamplesMap[lrId];
+      if (!matchingSamples || matchingSamples.length === 0) continue;
+
+      const lrFarmer = lr.farmer_name ? String(lr.farmer_name).trim().toLowerCase() : '';
+      const lrPhone = lr.phone ? String(lr.phone).trim().toLowerCase() : '';
+      const lrDistrict = lr.animal_district_origin ? String(lr.animal_district_origin).trim().toLowerCase() : '';
+      const lrSpecie = lr.specie ? String(lr.specie).trim().toLowerCase() : '';
+
+      const match = matchingSamples.find(s => {
+        let matches = 0;
+        let conditions = 0;
+        if (s.searchDistrict && lrDistrict) { conditions++; if (s.searchDistrict === lrDistrict) matches++; }
+        if (s.searchPhone && lrPhone) { conditions++; if (s.searchPhone === lrPhone) matches++; }
+        if (s.searchFarmer && lrFarmer) { conditions++; if (s.searchFarmer === lrFarmer) matches++; }
+        if (s.searchSpecie && lrSpecie) { conditions++; if (s.searchSpecie === lrSpecie) matches++; }
+        return conditions === 0 || matches > 0;
+      });
+
+      if (match) {
+        await lr.update({ sample_tracking_id: match.tracking_id });
+        linkedResults++;
+      }
+    }
+
+    res.json({ message: 'Migration complete', updatedSamples, linkedResults });
+  } catch (error) {
+    console.error('Migration error:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.submitForm = async (req, res) => {
   const t = await sequelize.transaction();
   try {

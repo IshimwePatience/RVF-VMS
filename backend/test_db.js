@@ -1,0 +1,1 @@
+const { sequelize } = require('./models'); async function run() { try { const [samples] = await sequelize.query('SELECT * FROM "SurveillanceSamples"'); console.log('Samples count:', samples.length); const [results] = await sequelize.query('SELECT * FROM "LabResults"'); console.log('Results count:', results.length); } catch (e) { console.error(e); } process.exit(); } run();
