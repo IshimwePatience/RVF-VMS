@@ -89,6 +89,7 @@ exports.uploadResults = async (req, res) => {
     }
     
     let createdCount = 0;
+    let updatedCount = 0;
 
     for (const item of results) {
       const tracking_id = item.tracking_id ? String(item.tracking_id).trim().toUpperCase() : null;
