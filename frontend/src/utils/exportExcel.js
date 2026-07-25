@@ -2,15 +2,35 @@ import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-export const exportToExcel = (data, filename) => {
+export const exportToExcel = (data, filename, metadata) => {
   if (!data || data.length === 0) {
     alert("No data available to export.");
     return;
   }
 
-  // Create a new workbook and add the worksheet
-  const worksheet = XLSX.utils.json_to_sheet(data);
   const workbook = XLSX.utils.book_new();
+  let worksheet;
+
+  if (metadata) {
+    const timeStr = metadata.timeDownloaded || new Date().toLocaleString();
+    const vetInfo = metadata.vetName ? `Downloaded by: ${metadata.vetName} (${metadata.vetPhone || ''})` : '';
+    
+    // Create an Array of Arrays for the metadata header
+    const aoa = [
+      [metadata.title || "Report"],
+      [vetInfo],
+      [`Time Downloaded: ${timeStr}`],
+      [`Copyright Government of Rwanda`],
+      [] // Empty row before the actual data
+    ];
+    
+    worksheet = XLSX.utils.aoa_to_sheet(aoa);
+    // Append the JSON data starting at row 6 (origin A6)
+    XLSX.utils.sheet_add_json(worksheet, data, { origin: 'A6' });
+  } else {
+    worksheet = XLSX.utils.json_to_sheet(data);
+  }
+
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
 
   // Download the file
