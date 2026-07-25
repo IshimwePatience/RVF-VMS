@@ -16,11 +16,8 @@ exports.uploadResults = async (req, res) => {
       });
     }
 
-    // Validation 2: Check if Tracking IDs exist in SurveillanceSample
+    // Validation 2: Removed. We will try to auto-resolve missing Tracking IDs below.
     const uploadedTrackingIds = results.map(r => r.tracking_id ? String(r.tracking_id).trim().toUpperCase() : null).filter(Boolean);
-    if (uploadedTrackingIds.length === 0) {
-      return res.status(400).json({ message: 'Upload rejected. No Tracking IDs found in the file. Please ensure you are uploading using the Tracking ID column.' });
-    }
 
     const { Op, Sequelize } = require('sequelize');
     const existingSamples = await SurveillanceSample.findAll({
@@ -37,8 +34,8 @@ exports.uploadResults = async (req, res) => {
     
     const mismatchedIds = [];
     for (const r of results) {
-      if (!r.tracking_id || !existingIdSet.has(String(r.tracking_id).trim().toUpperCase())) {
-        mismatchedIds.push(r.tracking_id || 'Unknown ID');
+      if (r.tracking_id && !existingIdSet.has(String(r.tracking_id).trim().toUpperCase())) {
+        mismatchedIds.push(r.tracking_id);
       }
     }
 
@@ -92,7 +89,34 @@ exports.uploadResults = async (req, res) => {
     let updatedCount = 0;
 
     for (const item of results) {
-      const tracking_id = item.tracking_id ? String(item.tracking_id).trim().toUpperCase() : null;
+      let tracking_id = item.tracking_id ? String(item.tracking_id).trim().toUpperCase() : null;
+
+      // Auto-resolve missing tracking ID for legacy templates
+      if (!tracking_id && item.animal_id) {
+        const searchId = String(item.animal_id).trim();
+        const whereClause = { animal_id: searchId };
+        
+        if (item.farmer_name) {
+          whereClause.farmer_name = String(item.farmer_name).trim();
+        }
+        if (item.specie) {
+          whereClause.specie = String(item.specie).trim();
+        }
+
+        const possibleSamples = await SurveillanceSample.findAll({
+          where: whereClause,
+          order: [['createdAt', 'ASC']]
+        });
+        
+        for (const s of possibleSamples) {
+          const hasResult = await LabResult.findOne({ where: { sample_tracking_id: s.tracking_id } });
+          if (!hasResult) {
+            tracking_id = s.tracking_id;
+            break;
+          }
+        }
+      }
+
       if (tracking_id) {
         await LabResult.create({
           ...item,
