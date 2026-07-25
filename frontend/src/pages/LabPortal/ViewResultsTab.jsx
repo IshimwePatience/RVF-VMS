@@ -106,7 +106,15 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
       const searchTerm = activeFilters?.search;
       if (searchTerm) {
         const searchVal = searchTerm.toLowerCase();
-        if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
+        let searchString = JSON.stringify(r).toLowerCase();
+        
+        // Inject Vet Name and Phone into the search string so Admin can search by Vet
+        if (!isLabPortal && animalIdToVetMap[r.animal_id]) {
+          const vetInfo = animalIdToVetMap[r.animal_id];
+          searchString += ` ${vetInfo.name.toLowerCase()} ${vetInfo.phone.toLowerCase()}`;
+        }
+
+        if (!searchString.includes(searchVal)) return false;
       }
       if (activeFilters?.dateFrom) {
          const fromDateStr = activeFilters.timeFrom ? `${activeFilters.dateFrom}T${activeFilters.timeFrom}:00` : activeFilters.dateFrom;

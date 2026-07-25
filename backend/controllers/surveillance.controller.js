@@ -61,8 +61,8 @@ exports.migrateTrackingIds = async (req, res) => {
         if (s.searchDistrict && lrDistrict) { conditions++; if (s.searchDistrict === lrDistrict) matches++; }
         if (s.searchPhone && lrPhone) { conditions++; if (s.searchPhone === lrPhone) matches++; }
         if (s.searchFarmer && lrFarmer) { conditions++; if (s.searchFarmer === lrFarmer) matches++; }
-        if (s.searchSpecie && lrSpecie) { conditions++; if (s.searchSpecie === lrSpecie) matches++; }
-        return conditions === 0 || matches > 0;
+        // Strict matching: all provided conditions must match, and there must be at least one condition checked
+        return conditions > 0 && conditions === matches;
       });
 
       if (match) {
