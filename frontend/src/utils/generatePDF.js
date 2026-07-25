@@ -8,22 +8,22 @@ export const generatePDFReport = (title, headers, rows, filename, metadata) => {
   let currentY = 22;
   
   const addHeaderAndTable = () => {
-    doc.setFontSize(10);
+    doc.setFontSize(14);
     doc.setTextColor(100);
     
     if (metadata) {
       if (metadata.vetName) {
         doc.text(`Given by: ${metadata.vetName} (${metadata.vetPhone || ''})`, 14, currentY);
-        currentY += 6;
+        currentY += 8;
       }
       const timeStr = metadata.timeDownloaded || new Date().toLocaleString();
       doc.text(`Time Downloaded: ${timeStr}`, 14, currentY);
-      currentY += 6;
-      doc.text(`Copyright Government of Rwanda`, 14, currentY);
       currentY += 8;
+      doc.text(`Copyright Government of Rwanda`, 14, currentY);
+      currentY += 12;
     } else {
       doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, currentY);
-      currentY += 8;
+      currentY += 12;
     }
 
     // Table
@@ -32,9 +32,32 @@ export const generatePDFReport = (title, headers, rows, filename, metadata) => {
       head: [headers],
       body: rows,
       theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' }, // reduced font size for better fit
-      alternateRowStyles: { fillColor: [245, 245, 245] },
+      headStyles: { fillColor: [41, 128, 185], textColor: 255, fontSize: 13, cellPadding: 5 },
+      styles: { fontSize: 12, cellPadding: 5, overflow: 'linebreak', textColor: [60, 60, 60] },
+      alternateRowStyles: { fillColor: [255, 255, 255] }, // white rows instead of gray
+      didParseCell: function (data) {
+        // Color PCR Result
+        if (data.section === 'body' && data.column.index === headers.length - 1) { // Assuming PCR Result is the last column
+          const text = data.cell.raw || '';
+          if (typeof text === 'string') {
+            if (text.toLowerCase().includes('positive')) {
+              data.cell.styles.textColor = [220, 38, 38]; // Red
+              data.cell.styles.fontStyle = 'bold';
+            } else if (text.toLowerCase().includes('negative')) {
+              data.cell.styles.textColor = [22, 163, 74]; // Green
+              data.cell.styles.fontStyle = 'bold';
+            }
+          }
+        }
+      },
+      didDrawPage: function (data) {
+        // Add Pagination
+        const str = 'Page ' + doc.internal.getNumberOfPages();
+        doc.setFontSize(12);
+        const pageSize = doc.internal.pageSize;
+        const pageHeight = pageSize.height ? pageSize.height : pageSize.getHeight();
+        doc.text(str, data.settings.margin.left, pageHeight - 10);
+      }
     });
 
     doc.save(`${filename}_${new Date().toISOString().split('T')[0]}.pdf`);
