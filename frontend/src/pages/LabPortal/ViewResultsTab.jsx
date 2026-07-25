@@ -14,7 +14,7 @@ import { generatePDFReport } from '../../utils/generatePDF';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, onFilteredDataChange }) {
+export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, onFilteredDataChange, onFarmersLoad }) {
   const { user, token: authContextToken } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
   const [mapLocationData, setMapLocationData] = useState(null);
@@ -64,7 +64,11 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
       if (form.samples && Array.isArray(form.samples)) {
         form.samples.forEach(sample => {
           if (sample.animal_id) {
-            map[sample.animal_id] = { name: form.submitted_by, phone: form.veterinary_email || form.phone_number };
+            map[sample.animal_id] = { 
+              name: form.submitted_by, 
+              phone: form.veterinary_email || form.phone_number,
+              collectedAt: sample.createdAt || form.createdAt
+            };
           }
         });
       }
@@ -87,7 +91,13 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
   const filteredResults = useMemo(() => {
     const activeFilters = isLabPortal ? localFilters : filters;
     
-    let baseResults = results;
+    let baseResults = results.map(r => {
+      let collectedAt = null;
+      if (!isLabPortal && animalIdToVetMap[r.animal_id]) {
+        collectedAt = animalIdToVetMap[r.animal_id].collectedAt;
+      }
+      return { ...r, collectedAt };
+    });
 
     return baseResults.filter(r => {
       if (activeFilters?.district && activeFilters.district.length > 0) {
@@ -132,21 +142,38 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
         const results = Array.isArray(activeFilters.pcr_result) ? activeFilters.pcr_result.map(p => p.toLowerCase()) : [String(activeFilters.pcr_result).toLowerCase()];
         if (!results.includes(String(r.rvf_pcr_results || '').trim().toLowerCase())) return false;
       }
+      if (activeFilters?.farmer && activeFilters.farmer.length > 0) {
+        const farmers = Array.isArray(activeFilters.farmer) ? activeFilters.farmer.map(f => f.toLowerCase()) : [String(activeFilters.farmer).toLowerCase()];
+        if (!farmers.includes(String(r.farmer_name || '').trim().toLowerCase())) return false;
+      }
       return true;
     });
-  }, [results, filters, localFilters, isLabPortal]);
+  }, [results, filters, localFilters, isLabPortal, animalIdToVetMap]);
 
   // Use a ref to store the latest callback to avoid unnecessary dependency changes
   const onFilteredDataChangeRef = React.useRef(onFilteredDataChange);
+  const onFarmersLoadRef = React.useRef(onFarmersLoad);
+  
   React.useEffect(() => {
     onFilteredDataChangeRef.current = onFilteredDataChange;
   }, [onFilteredDataChange]);
+
+  React.useEffect(() => {
+    onFarmersLoadRef.current = onFarmersLoad;
+  }, [onFarmersLoad]);
 
   React.useEffect(() => {
     if (onFilteredDataChangeRef.current) {
       onFilteredDataChangeRef.current(filteredResults);
     }
   }, [filteredResults]);
+
+  React.useEffect(() => {
+    if (results && onFarmersLoadRef.current) {
+      const farmers = Array.from(new Set(results.map(r => r.farmer_name).filter(Boolean)));
+      onFarmersLoadRef.current(farmers);
+    }
+  }, [results]);
 
   const pagination = usePagination(filteredResults || [], 10);
 

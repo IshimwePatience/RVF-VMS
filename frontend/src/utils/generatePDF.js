@@ -2,7 +2,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 export const generatePDFReport = (title, headers, rows, filename, metadata) => {
-  const doc = new jsPDF('landscape');
+  // Use A2 format to provide enough horizontal space for many columns without wrapping
+  const doc = new jsPDF({ orientation: 'landscape', format: 'a2' });
 
   let currentY = 22;
   
@@ -12,7 +13,7 @@ export const generatePDFReport = (title, headers, rows, filename, metadata) => {
     
     if (metadata) {
       if (metadata.vetName) {
-        doc.text(`Downloaded by: ${metadata.vetName} (${metadata.vetPhone || ''})`, 14, currentY);
+        doc.text(`Given by: ${metadata.vetName} (${metadata.vetPhone || ''})`, 14, currentY);
         currentY += 6;
       }
       const timeStr = metadata.timeDownloaded || new Date().toLocaleString();

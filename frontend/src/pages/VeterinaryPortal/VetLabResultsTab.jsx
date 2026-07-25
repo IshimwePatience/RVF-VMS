@@ -12,6 +12,7 @@ export default function VetLabResultsTab({ phone }) {
   const { user } = React.useContext(AuthContext);
   const [filters, setFilters] = useState({
     search: '',
+    farmer: [],
     district: '',
     sector: '',
     dateFrom: '',
@@ -20,6 +21,7 @@ export default function VetLabResultsTab({ phone }) {
   });
 
   const [filteredData, setFilteredData] = useState([]);
+  const [farmersList, setFarmersList] = useState([]);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const exportMenuRef = React.useRef(null);
 
@@ -37,7 +39,8 @@ export default function VetLabResultsTab({ phone }) {
     try {
       const data = filteredData.map(r => ({
         'Tracking ID': r.sample_tracking_id || 'N/A',
-        'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`,
+        'Date Collected': r.collectedAt ? `${new Date(r.collectedAt).toLocaleDateString()} ${new Date(r.collectedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'N/A',
+        'Got Results On': `${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`,
         'Tested Site': r.tested_site || 'N/A',
         'Farmer Name': r.farmer_name || 'N/A',
         'Farmer Phone': r.phone || 'N/A',
@@ -73,13 +76,16 @@ export default function VetLabResultsTab({ phone }) {
   const handleExportPDF = () => {
     try {
       // Adding all requested columns per user request, though PDF width might constrain it
-      const headers = ['Tracking ID', 'Date Uploaded', 'Farmer', 'Phone', 'District', 'Sector', 'Cell', 'Village', 'Animal ID', 'Specie', 'Breed', 'Sex', 'Age', 'Vacc. Status', 'Purpose', 'Health Status', 'PCR Result'];
+      const headers = ['Tracking ID', 'Date Collected', 'Got Results On', 'Tested Site', 'Farmer', 'Phone', 'District', 'Sector', 'Cell', 'Village', 'Animal ID', 'Specie', 'Breed', 'Sex', 'Age', 'Vacc. Status', 'Purpose', 'Health Status', 'PCR Result'];
       const rows = filteredData.map(r => {
         const dateStr = new Date(r.createdAt).toLocaleDateString();
         const timeStr = new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const collectedStr = r.collectedAt ? `${new Date(r.collectedAt).toLocaleDateString()} ${new Date(r.collectedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'N/A';
         return [
           r.sample_tracking_id || 'N/A',
+          collectedStr,
           `${dateStr} ${timeStr}`,
+          r.tested_site || 'N/A',
           r.farmer_name || 'N/A',
           r.phone || 'N/A',
           r.animal_district_origin || r.district || 'N/A',
@@ -177,6 +183,19 @@ export default function VetLabResultsTab({ phone }) {
           </div>
 
           <div className="flex items-center gap-2 text-sm">
+            <span className="text-slate-500">Farmer:</span>
+            <div className="w-48">
+              <SearchableDropdown
+                options={farmersList}
+                value={filters.farmer}
+                onChange={val => setFilters({ ...filters, farmer: val })}
+                placeholder="All Farmers"
+                isMulti={true}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm">
             <span className="text-slate-500">PCR Result:</span>
             <div className="w-40">
               <SearchableDropdown
@@ -189,9 +208,9 @@ export default function VetLabResultsTab({ phone }) {
             </div>
           </div>
 
-          {(filters.search || filters.district || filters.sector || filters.dateFrom || filters.dateTo || (filters.pcr_result && filters.pcr_result.length > 0)) && (
+          {(filters.search || filters.farmer?.length > 0 || filters.district || filters.sector || filters.dateFrom || filters.dateTo || (filters.pcr_result && filters.pcr_result.length > 0)) && (
             <button 
-              onClick={() => setFilters({ search: '', district: '', sector: '', dateFrom: '', dateTo: '', pcr_result: [] })}
+              onClick={() => setFilters({ search: '', farmer: [], district: '', sector: '', dateFrom: '', dateTo: '', pcr_result: [] })}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
             >
               Clear
@@ -236,7 +255,13 @@ export default function VetLabResultsTab({ phone }) {
       </div>
 
       <div className="w-full">
-        <ViewResultsTab veterinaryPhone={phone} filters={filters} isLabPortal={false} onFilteredDataChange={setFilteredData} />
+        <ViewResultsTab 
+          veterinaryPhone={phone} 
+          filters={filters} 
+          isLabPortal={false} 
+          onFilteredDataChange={setFilteredData} 
+          onFarmersLoad={setFarmersList}
+        />
       </div>
     </div>
   );

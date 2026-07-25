@@ -13,7 +13,7 @@ export const exportToExcel = (data, filename, metadata) => {
 
   if (metadata) {
     const timeStr = metadata.timeDownloaded || new Date().toLocaleString();
-    const vetInfo = metadata.vetName ? `Downloaded by: ${metadata.vetName} (${metadata.vetPhone || ''})` : '';
+    const vetInfo = metadata.vetName ? `Given by: ${metadata.vetName} (${metadata.vetPhone || ''})` : '';
     
     // Create an Array of Arrays for the metadata header
     const aoa = [
