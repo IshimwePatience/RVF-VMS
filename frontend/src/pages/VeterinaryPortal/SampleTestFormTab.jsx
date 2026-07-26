@@ -142,7 +142,7 @@ export default function SampleTestFormTab({ phone }) {
         from_abattoir: headerData.fromAbattoir,
         samples_type: headerData.samplesType,
         abattoir_details: headerData.abattoirDetails,
-        collection_date: headerData.collectionDate,
+        collection_date: new Date().toISOString().split('T')[0],
         test_requested: headerData.testRequested,
         submitted_by: headerData.submittedBy,
         phone_number: headerData.phoneNumber,
@@ -202,7 +202,7 @@ export default function SampleTestFormTab({ phone }) {
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
               <label className="font-bold mr-2 whitespace-nowrap">Date of Sample Collection <span className="text-red-500">*</span>:</label>
-              <input type="date" required value={headerData.collectionDate} onChange={(e) => handleHeaderChange('collectionDate', e.target.value)} className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 focus:border-blue-600" />
+              <input type="date" required value={new Date().toISOString().split('T')[0]} readOnly className="flex-1 bg-transparent border-b border-dotted border-slate-400 outline-none pb-1 text-slate-500 cursor-not-allowed" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-0">
               <label className="font-bold mr-2 whitespace-nowrap text-blue-700">Submitted by (Name & Title) <span className="text-red-500">*</span>:</label>
