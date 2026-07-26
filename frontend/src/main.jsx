@@ -11,28 +11,35 @@ axios.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       const currentPath = window.location.pathname;
       
+      const baseUrl = import.meta.env.BASE_URL || '/';
+      const redirect = (path) => {
+        const b = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+        const p = path.startsWith('/') ? path : `/${path}`;
+        window.location.href = `${b}${p}`;
+      };
+
       // Don't intercept if already on a login page
       if (!currentPath.includes('login') && !currentPath.includes('report-usage')) {
         if (currentPath.includes('/veterinary-portal')) {
           localStorage.removeItem('vet_token');
           localStorage.removeItem('vet_user');
-          window.location.href = '/report-usage';
+          redirect('/report-usage');
         } else if (currentPath.includes('/lab-portal')) {
           localStorage.removeItem('lab_token');
           localStorage.removeItem('lab_user');
-          window.location.href = '/lab-login';
+          redirect('/lab-login');
         } else if (currentPath.includes('/daro-portal')) {
           localStorage.removeItem('daro_token');
           localStorage.removeItem('daro_user');
-          window.location.href = '/daro-login';
+          redirect('/daro-login');
         } else if (currentPath.includes('/rab-portal')) {
           localStorage.removeItem('rab_token');
           localStorage.removeItem('rab_user');
-          window.location.href = '/rab-login';
+          redirect('/rab-login');
         } else {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          redirect('/login');
         }
       }
     }
