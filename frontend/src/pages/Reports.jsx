@@ -128,7 +128,7 @@ export default function Reports() {
               r.farmer_name || 'N/A',
               r.animal_district_origin || r.district || 'N/A',
               r.specie || 'N/A',
-              r.pcr_result || 'Pending'
+              r.rvf_pcr_results ? r.rvf_pcr_results.trim().charAt(0).toUpperCase() + r.rvf_pcr_results.trim().slice(1).toLowerCase() : 'Pending'
             ];
           });
         }

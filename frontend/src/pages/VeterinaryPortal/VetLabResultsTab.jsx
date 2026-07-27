@@ -228,6 +228,7 @@ export default function VetLabResultsTab({ phone }) {
 
             {showExportMenu && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-slate-200 z-50 py-2">
+                {/* Excel export hidden for Vet
                 <div className="px-4 py-2 text-xs font-bold tracking-wider text-slate-400 uppercase mb-1">
                   Export to Excel
                 </div>
@@ -238,7 +239,8 @@ export default function VetLabResultsTab({ phone }) {
                   <Download className="w-4 h-4 text-emerald-500" />
                   Lab Results
                 </button>
-                <div className="px-4 py-2 mt-2 text-xs font-bold tracking-wider text-slate-400 uppercase border-t border-slate-100 pt-3 mb-1">
+                */}
+                <div className="px-4 py-2 text-xs font-bold tracking-wider text-slate-400 uppercase border-t border-slate-100 pt-3 mb-1">
                   Export to PDF
                 </div>
                 <button
