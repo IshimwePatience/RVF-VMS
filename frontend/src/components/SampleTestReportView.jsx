@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { MapPin, ArrowLeft, Download, FileText, CheckCircle2, Clock, Check, X, Pencil, Trash2 } from 'lucide-react';
+import { MapPin, ArrowLeft, Download, FileText, CheckCircle2, Clock, Check, X, Pencil, Trash2, Search } from 'lucide-react';
 import minisanteLogo from '../assets/images/MINISANTE.png';
 import MapModal from './MapModal';
 import { AuthContext } from '../context/AuthContext';
@@ -11,7 +11,17 @@ export default function SampleTestReportView({ report, onClose }) {
   const { addToast } = useContext(ToastContext);
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [editingSample, setEditingSample] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
   if (!report) return null;
+
+  const filteredSamples = (report.samples || []).filter(sample => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return Object.values(sample).some(val => 
+      val && val.toString().toLowerCase().includes(term)
+    );
+  });
 
   return (
     <div className="fixed inset-0 z-[100] bg-slate-100 overflow-y-auto font-sans pt-8 pb-16">
@@ -116,9 +126,23 @@ export default function SampleTestReportView({ report, onClose }) {
 
         {/* Sample Rows */}
         <div className="space-y-4">
-          <h2 className="text-xl font-bold text-slate-800 mt-8 mb-4 px-2">Samples Submitted ({report.samples?.length || 0})</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-8 mb-4 px-2 gap-4">
+            <h2 className="text-xl font-bold text-slate-800">Samples Submitted ({filteredSamples.length || 0})</h2>
+            <div className="relative max-w-md w-full sm:w-72">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search sample details..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg leading-5 bg-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 sm:text-sm transition-colors"
+              />
+            </div>
+          </div>
           
-          {([...(report.samples || [])].sort((a, b) => (parseInt(a.sn) || 0) - (parseInt(b.sn) || 0))).map((sample, idx) => (
+          {([...filteredSamples].sort((a, b) => (parseInt(a.sn) || 0) - (parseInt(b.sn) || 0))).map((sample, idx) => (
             <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex items-center">
                 <span className="bg-purple-100 text-purple-800 w-8 h-8 rounded-full flex items-center justify-center font-bold mr-3 shadow-sm">
@@ -223,11 +247,15 @@ export default function SampleTestReportView({ report, onClose }) {
             </div>
           ))}
 
-          {(!report.samples || report.samples.length === 0) && (
+          {(!report.samples || report.samples.length === 0) ? (
             <div className="bg-white p-8 text-center rounded-xl border border-slate-200 shadow-sm text-slate-500 italic">
               No samples were included in this submission.
             </div>
-          )}
+          ) : filteredSamples.length === 0 ? (
+            <div className="bg-white p-8 text-center rounded-xl border border-slate-200 shadow-sm text-slate-500 italic">
+              No samples match your search.
+            </div>
+          ) : null}
         </div>
 
         <MapModal
