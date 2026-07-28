@@ -374,8 +374,19 @@ export default function Reports() {
   const { data: centralLabResults = [] } = useQuery({
     queryKey: ['central-lab-results'],
     queryFn: async () => {
-      const res = await axios.get('/rvf-api/lab-results');
-      return res.data;
+      const prefix = window.location.pathname.includes('veterinary') ? 'vet_' :
+                     window.location.pathname.includes('lab') ? 'lab_' :
+                     window.location.pathname.includes('daro') ? 'daro_' :
+                     window.location.pathname.includes('rab') ? 'rab_' : 'admin_';
+      const token = localStorage.getItem(`${prefix}token`) || localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      const res = await axios.get('/rvf-api/lab-results', { headers });
+      
+      if (res.data && res.data.data && Array.isArray(res.data.data)) {
+        return res.data.data;
+      }
+      return Array.isArray(res.data) ? res.data : [];
     },
     enabled: user?.role === 'Admin'
   });
