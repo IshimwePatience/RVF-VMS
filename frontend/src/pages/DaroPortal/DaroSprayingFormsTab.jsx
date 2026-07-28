@@ -45,8 +45,6 @@ export default function DaroSprayingFormsTab({ district }) {
     onError: () => addToast('Failed to delete form', 'error')
   });
 
-  if (isLoading) return <div className="p-8 text-center text-slate-500">Loading spraying forms...</div>;
-
   const filteredForms = forms.filter(form => {
     let matches = true;
     if (statusFilter !== 'All' && form.status !== statusFilter) matches = false;
@@ -72,6 +70,10 @@ export default function DaroSprayingFormsTab({ district }) {
     prev,
     jump
   } = usePagination(filteredForms, 10);
+
+  if (isLoading) return <div className="p-8 text-center text-slate-500">Loading spraying forms...</div>;
+
+
 
   return (
     <div className="space-y-6">

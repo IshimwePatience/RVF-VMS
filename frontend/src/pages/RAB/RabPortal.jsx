@@ -108,7 +108,7 @@ export default function RabPortal() {
     XLSX.writeFile(workbook, "Approved_Spraying_Forms.xlsx");
   };
 
-  if (!user) return null;
+
 
   const {
     currentData: paginatedForms,
@@ -121,6 +121,8 @@ export default function RabPortal() {
     prev,
     jump
   } = usePagination(filteredForms, 10);
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-white">
