@@ -149,7 +149,7 @@ function App() {
             <Route path="/daro-portal" element={<DaroPortal />} />
             <Route path="/rab-login" element={<RabAuth mode="login" />} />
             <Route path="/rab-signup" element={<RabAuth mode="register" />} />
-            <Route path="/rab-dashboard" element={<RabPortal />} />
+            <Route path="/rab-portal" element={<RabPortal />} />
             <Route path="/verify/:id" element={<VerifyCertificate />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
