@@ -582,3 +582,139 @@ exports.daroRegister = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+exports.getDaros = async (req, res) => {
+  try {
+    const daros = await Daro.findAll({ order: [['createdAt', 'DESC']] });
+    res.json(daros);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.createDaro = async (req, res) => {
+  try {
+    const { full_names, phone_number, district, is_active, can_view_all_results } = req.body;
+    if (!full_names || !phone_number || !district) {
+      return res.status(400).json({ error: 'Full Names, Phone Number and District are required.' });
+    }
+    const cleanPhone = phone_number.replace(/\s+/g, '').trim();
+    const existing = await Daro.findOne({ where: { phone_number: cleanPhone } });
+    if (existing) {
+      return res.status(400).json({ error: 'This phone number is already registered.' });
+    }
+    const daro = await Daro.create({
+      full_names,
+      phone_number: cleanPhone,
+      district,
+      is_active: is_active !== undefined ? is_active : true,
+      can_view_all_results: can_view_all_results !== undefined ? can_view_all_results : false
+    });
+    res.status(201).json(daro);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.updateDaro = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { full_names, phone_number, district, is_active, can_view_all_results } = req.body;
+    const daro = await Daro.findByPk(id);
+    if (!daro) return res.status(404).json({ error: 'DARO not found' });
+
+    if (phone_number) {
+      const cleanPhone = phone_number.replace(/\s+/g, '').trim();
+      if (cleanPhone !== daro.phone_number) {
+        const existing = await Daro.findOne({ where: { phone_number: cleanPhone } });
+        if (existing) return res.status(400).json({ error: 'Phone number in use.' });
+        daro.phone_number = cleanPhone;
+      }
+    }
+    if (full_names) daro.full_names = full_names;
+    if (district) daro.district = district;
+    if (is_active !== undefined) daro.is_active = is_active;
+    if (can_view_all_results !== undefined) daro.can_view_all_results = can_view_all_results;
+
+    await daro.save();
+    res.json(daro);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.deleteDaro = async (req, res) => {
+  try {
+    const daro = await Daro.findByPk(req.params.id);
+    if (!daro) return res.status(404).json({ error: 'Not found' });
+    await daro.destroy();
+    res.json({ message: 'Deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+const { RabUser } = require('../models');
+
+exports.getRabUsers = async (req, res) => {
+  try {
+    const users = await RabUser.findAll({ order: [['createdAt', 'DESC']] });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.createRabUser = async (req, res) => {
+  try {
+    const { full_names, phone_number, is_active, can_view_all_results } = req.body;
+    if (!full_names || !phone_number) return res.status(400).json({ error: 'Required fields missing.' });
+    const cleanPhone = phone_number.replace(/\s+/g, '').trim();
+    const existing = await RabUser.findOne({ where: { phone_number: cleanPhone } });
+    if (existing) return res.status(400).json({ error: 'Phone in use.' });
+    const u = await RabUser.create({
+      full_names, phone_number: cleanPhone,
+      is_active: is_active !== undefined ? is_active : true,
+      can_view_all_results: can_view_all_results !== undefined ? can_view_all_results : true
+    });
+    res.status(201).json(u);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.updateRabUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { full_names, phone_number, is_active, can_view_all_results } = req.body;
+    const u = await RabUser.findByPk(id);
+    if (!u) return res.status(404).json({ error: 'Not found' });
+    if (phone_number) {
+      const cleanPhone = phone_number.replace(/\s+/g, '').trim();
+      if (cleanPhone !== u.phone_number) {
+        const existing = await RabUser.findOne({ where: { phone_number: cleanPhone } });
+        if (existing) return res.status(400).json({ error: 'Phone in use.' });
+        u.phone_number = cleanPhone;
+      }
+    }
+    if (full_names) u.full_names = full_names;
+    if (is_active !== undefined) u.is_active = is_active;
+    if (can_view_all_results !== undefined) u.can_view_all_results = can_view_all_results;
+    await u.save();
+    res.json(u);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.deleteRabUser = async (req, res) => {
+  try {
+    const u = await RabUser.findByPk(req.params.id);
+    if (!u) return res.status(404).json({ error: 'Not found' });
+    await u.destroy();
+    res.json({ message: 'Deleted' });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};

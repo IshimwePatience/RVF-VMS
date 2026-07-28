@@ -257,7 +257,7 @@ export default function Layout() {
           </div>
 
           <div className="py-4">
-            {((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('stock_overview')) || hasPerm('inventory') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (hasPerm('vaccines') || hasPerm('suppliers'))) || ((user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('veterinaries')) || ((user?.role === 'Admin') && hasPerm('lab_technicians')) ? (
+            {((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('stock_overview')) || hasPerm('inventory') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (hasPerm('vaccines') || hasPerm('suppliers'))) ? (
               <div className="px-6 mb-2">
                 <h3 className="text-sm font-medium text-slate-900 mb-2">Management</h3>
                 <nav className="space-y-0.5 flex flex-col">
@@ -273,17 +273,34 @@ export default function Layout() {
                     {hasPerm('suppliers') && <NavLink to="/suppliers" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Suppliers</NavLink>}
                   </>
                 )}
-                {(user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('veterinaries') && (
-                  <NavLink to="/veterinaries" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Veterinaries</NavLink>
-                )}
-                {(user?.role === 'Admin') && hasPerm('lab_technicians') && (
-                  <NavLink to="/lab-technicians" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Lab Technicians</NavLink>
-                )}
               </nav>
             </div>
             ) : null}
 
-            {(((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('stock_overview')) || hasPerm('inventory') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (hasPerm('vaccines') || hasPerm('suppliers'))) || ((user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('veterinaries')) || ((user?.role === 'Admin') && hasPerm('lab_technicians'))) && ((!(user?.is_central || user?.stock?.is_central) && hasPerm('new_request')) || (user?.stock?.is_endpoint && hasPerm('administer')) || hasPerm('transfers') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.is_endpoint)) && hasPerm('reports'))) ? (
+            {((user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('veterinaries')) || ((user?.role === 'Admin') && (hasPerm('lab_technicians') || hasPerm('daro_users') || hasPerm('rab_users'))) ? (
+              <>
+                <div className="mx-6 my-3 border-t border-slate-200"></div>
+                <div className="px-6 mb-2">
+                  <h3 className="text-sm font-medium text-slate-900 mb-2">Field Personnel</h3>
+                  <nav className="space-y-0.5 flex flex-col">
+                    {(user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('veterinaries') && (
+                      <NavLink to="/veterinaries" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Veterinaries</NavLink>
+                    )}
+                    {(user?.role === 'Admin') && hasPerm('lab_technicians') && (
+                      <NavLink to="/lab-technicians" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>Lab Technicians</NavLink>
+                    )}
+                    {(user?.role === 'Admin') && hasPerm('daro_users') && (
+                      <NavLink to="/daro-users" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>DARO Users</NavLink>
+                    )}
+                    {(user?.role === 'Admin') && hasPerm('rab_users') && (
+                      <NavLink to="/rab-users" className={({ isActive }) => `flex items-center px-4 py-2 text-sm rounded-full transition-colors ${isActive ? 'bg-blue-100/50 text-blue-700 font-medium' : 'text-slate-800 font-medium hover:bg-slate-100'}`}>RAB Users</NavLink>
+                    )}
+                  </nav>
+                </div>
+              </>
+            ) : null}
+
+            {(((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('stock_overview')) || hasPerm('inventory') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin') && (hasPerm('vaccines') || hasPerm('suppliers'))) || ((user?.role === 'Admin' || user?.stock?.is_endpoint || (user?.stock?.district && !user?.stock?.sector && !user?.stock?.is_endpoint)) && hasPerm('veterinaries')) || ((user?.role === 'Admin') && (hasPerm('lab_technicians') || hasPerm('daro_users') || hasPerm('rab_users')))) && ((!(user?.is_central || user?.stock?.is_central) && hasPerm('new_request')) || (user?.stock?.is_endpoint && hasPerm('administer')) || hasPerm('transfers') || ((user?.is_central || user?.stock?.is_central || user?.role === 'Admin' || (user?.stock?.district && !user?.stock?.is_endpoint)) && hasPerm('reports'))) ? (
               <div className="mx-6 my-3 border-t border-slate-200"></div>
             ) : null}
 

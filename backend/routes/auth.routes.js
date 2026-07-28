@@ -24,4 +24,16 @@ router.delete('/lab-techs/:id', authenticate, authController.deleteLabTech);
 router.post('/daro/login', authController.daroLogin);
 router.post('/daro/register', authController.daroRegister);
 
+// DARO Admin CRUD
+router.get('/daros', authenticate, authController.getDaros);
+router.post('/daros', authenticate, authController.createDaro);
+router.put('/daros/:id', authenticate, authController.updateDaro);
+router.delete('/daros/:id', authenticate, authController.deleteDaro);
+
+// RAB Admin CRUD
+router.get('/rab-users', authenticate, authController.getRabUsers);
+router.post('/rab-users', authenticate, authController.createRabUser);
+router.put('/rab-users/:id', authenticate, authController.updateRabUser);
+router.delete('/rab-users/:id', authenticate, authController.deleteRabUser);
+
 module.exports = router;

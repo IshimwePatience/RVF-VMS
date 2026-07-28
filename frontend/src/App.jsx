@@ -21,6 +21,8 @@ import Reports from './pages/Reports';
 import VeterinaryPortal from './pages/VeterinaryPortal/VeterinaryPortal';
 import Veterinaries from './pages/Veterinaries';
 import LabTechnicians from './pages/LabTechnicians';
+import DaroUsers from './pages/DaroUsers';
+import RabUsers from './pages/RabUsers';
 import LabPortal from './pages/LabPortal/LabPortal';
 import LabAuth from './pages/LabAuth';
 import DaroAuth from './pages/DaroAuth';
@@ -127,6 +129,8 @@ function App() {
               <Route path="administrations" element={<EndpointOnlyRoute><Administration /></EndpointOnlyRoute>} />
               <Route path="veterinaries" element={<Veterinaries />} />
               <Route path="lab-technicians" element={<LabTechnicians />} />
+              <Route path="daro-users" element={<DaroUsers />} />
+              <Route path="rab-users" element={<RabUsers />} />
               <Route path="stocks" element={<DistrictOrCentralRoute><Stocks /></DistrictOrCentralRoute>} />
               <Route path="vaccines" element={<CentralOnlyRoute><Vaccines /></CentralOnlyRoute>} />
               <Route path="suppliers" element={<CentralOnlyRoute><Suppliers /></CentralOnlyRoute>} />
