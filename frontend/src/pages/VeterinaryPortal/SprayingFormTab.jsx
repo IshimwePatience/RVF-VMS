@@ -145,7 +145,7 @@ export default function SprayingFormTab({ phone }) {
       {/* Header section */}
       <div className="flex flex-col mb-8 text-center">
         <h1 className="text-xl md:text-2xl font-bold tracking-wide underline underline-offset-4 decoration-2">
-          Raporo y'imikoreshereze y' umuti wo gufuherera amatungo
+          Raporo ya buri munsi y'imikoreshereze y' umuti wo gufuherera amatungo
         </h1>
       </div>
 
