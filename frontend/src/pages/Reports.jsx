@@ -322,8 +322,16 @@ export default function Reports() {
     filters.sector.forEach(s => queryParams.append('sector', s));
   }
   if (filters.search) queryParams.append('search', filters.search);
-  if (filters.dateFrom) queryParams.append('dateFrom', filters.dateFrom);
-  if (filters.dateTo) queryParams.append('dateTo', filters.dateTo);
+  if (filters.dateFrom) {
+    queryParams.append('dateFrom', filters.dateFrom);
+    const dFrom = new Date(filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`);
+    if (!isNaN(dFrom)) queryParams.append('dateFromIso', dFrom.toISOString());
+  }
+  if (filters.dateTo) {
+    queryParams.append('dateTo', filters.dateTo);
+    const dTo = new Date(filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`);
+    if (!isNaN(dTo)) queryParams.append('dateToIso', dTo.toISOString());
+  }
   if (filters.timeFrom) queryParams.append('timeFrom', filters.timeFrom);
   if (filters.timeTo) queryParams.append('timeTo', filters.timeTo);
 

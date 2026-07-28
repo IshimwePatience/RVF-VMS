@@ -4,10 +4,10 @@ const { Op } = require('sequelize');
 
 exports.getGlobalOverview = async (req, res) => {
   try {
-    const { province, district, sector, dateFrom, dateTo, timeFrom, timeTo, search } = req.query;
+    const { province, district, sector, dateFrom, dateTo, timeFrom, timeTo, dateFromIso, dateToIso, search } = req.query;
     
-    // Construct cache key (using v4 to bypass poisoned cache)
-    const cacheKey = `global_overview_v5_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFrom || 'all'}_${dateTo || 'all'}_${timeFrom || 'all'}_${timeTo || 'all'}_${search || 'all'}`;
+    // Construct cache key (using v6 to bypass poisoned cache)
+    const cacheKey = `global_overview_v6_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFromIso || dateFrom || 'all'}_${dateToIso || dateTo || 'all'}_${search || 'all'}`;
     
     // Check cache
     if (redisClient.isReady) {
@@ -41,17 +41,15 @@ exports.getGlobalOverview = async (req, res) => {
       const dateFilter = {};
       let hasDate = false;
       
-      if (dateFrom) {
-        const fromStr = timeFrom ? `${dateFrom}T${timeFrom}:00` : `${dateFrom}T00:00:00`;
-        const dFrom = new Date(fromStr);
+      if (dateFromIso || dateFrom) {
+        const dFrom = dateFromIso ? new Date(dateFromIso) : new Date(timeFrom ? `${dateFrom}T${timeFrom}:00` : `${dateFrom}T00:00:00`);
         if (!isNaN(dFrom)) {
           dateFilter[Op.gte] = dFrom;
           hasDate = true;
         }
       }
-      if (dateTo) {
-        const toStr = timeTo ? `${dateTo}T${timeTo}:59` : `${dateTo}T23:59:59`;
-        const dTo = new Date(toStr);
+      if (dateToIso || dateTo) {
+        const dTo = dateToIso ? new Date(dateToIso) : new Date(timeTo ? `${dateTo}T${timeTo}:59` : `${dateTo}T23:59:59`);
         if (!isNaN(dTo)) {
           dateFilter[Op.lte] = dTo;
           hasDate = true;
