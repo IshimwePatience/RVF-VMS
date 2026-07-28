@@ -221,28 +221,51 @@ export default function RabPortal() {
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+              <table className="w-full text-left text-sm text-slate-700">
+                <thead className="border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3">Form ID</th>
-                    <th className="px-4 py-3">District</th>
-                    <th className="px-4 py-3">Sector</th>
-                    <th className="px-4 py-3">Vet Phone</th>
-                    <th className="px-4 py-3 text-center">Total Records</th>
-                    <th className="px-4 py-3">Approved Date</th>
+                    <th className="py-3 font-semibold text-slate-800">Date Approved</th>
+                    <th className="py-3 font-semibold text-slate-800">Veterinary</th>
+                    <th className="py-3 font-semibold text-slate-800">Location</th>
+                    <th className="py-3 font-semibold text-slate-800">Records</th>
+                    <th className="py-3 font-semibold text-slate-800">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredForms.map(form => (
-                    <tr key={form.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-slate-900">#{form.id}</td>
-                      <td className="px-4 py-3 text-slate-600 font-medium">{form.district}</td>
-                      <td className="px-4 py-3 text-slate-600">{form.sector}</td>
-                      <td className="px-4 py-3 text-slate-600">{form.veterinary_phone}</td>
-                      <td className="px-4 py-3 text-slate-600 text-center">{(form.records || []).length}</td>
-                      <td className="px-4 py-3 text-slate-600">{new Date(form.updatedAt).toLocaleDateString()}</td>
+                    <tr key={form.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => {}}>
+                      <td className="py-4 pr-4 text-slate-600 whitespace-nowrap">
+                        <div className="text-sm text-slate-800 font-medium">
+                          Approved: {new Date(form.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </div>
+                      </td>
+                      <td className="py-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-900">ID: #{form.id}</span>
+                          <span className="text-xs text-slate-500">{form.veterinary_phone}</span>
+                        </div>
+                      </td>
+                      <td className="py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-slate-800">{form.sector || 'N/A'}</span>
+                          <span className="text-xs text-slate-500">{form.district || 'Unknown'} District</span>
+                        </div>
+                      </td>
+                      <td className="py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs font-medium">
+                          {(form.records || []).length} Records
+                        </span>
+                      </td>
+                      <td className="py-4">
+                        <div className="flex items-center gap-3">
+                          <button className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center">
+                            View Report
+                            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

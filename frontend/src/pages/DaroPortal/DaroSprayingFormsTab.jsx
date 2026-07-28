@@ -42,57 +42,79 @@ export default function DaroSprayingFormsTab({ district }) {
   if (isLoading) return <div className="p-8 text-center text-slate-500">Loading spraying forms...</div>;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+        <table className="w-full text-left text-sm text-slate-700">
+          <thead className="border-b border-slate-200">
             <tr>
-              <th className="px-4 py-3">Form ID</th>
-              <th className="px-4 py-3">Vet Phone</th>
-              <th className="px-4 py-3">Sector</th>
-              <th className="px-4 py-3">Date Submitted</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="py-3 font-semibold text-slate-800">Date Submitted</th>
+              <th className="py-3 font-semibold text-slate-800">Veterinary</th>
+              <th className="py-3 font-semibold text-slate-800">Location</th>
+              <th className="py-3 font-semibold text-slate-800">Records</th>
+              <th className="py-3 font-semibold text-slate-800">Status</th>
+              <th className="py-3 font-semibold text-slate-800">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {forms.map(form => (
               <React.Fragment key={form.id}>
-                <tr className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-900">#{form.id}</td>
-                  <td className="px-4 py-3 text-slate-600">{form.veterinary_phone}</td>
-                  <td className="px-4 py-3 text-slate-600">{form.sector}</td>
-                  <td className="px-4 py-3 text-slate-600">{new Date(form.createdAt).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${form.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                <tr className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => setExpandedFormId(expandedFormId === form.id ? null : form.id)}>
+                  <td className="py-4 pr-4 text-slate-600 whitespace-nowrap">
+                    <div className="text-sm text-slate-800 font-medium">
+                      Submitted: {new Date(form.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </div>
+                  </td>
+                  <td className="py-4">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-slate-900">ID: #{form.id}</span>
+                      <span className="text-xs text-slate-500">{form.veterinary_phone}</span>
+                    </div>
+                  </td>
+                  <td className="py-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-slate-800">{form.sector || 'N/A'}</span>
+                      <span className="text-xs text-slate-500">{district} District</span>
+                    </div>
+                  </td>
+                  <td className="py-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs font-medium">
+                      {(form.records || []).length} Records
+                    </span>
+                  </td>
+                  <td className="py-4">
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${form.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                       {form.status.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    <button 
-                      onClick={() => setExpandedFormId(expandedFormId === form.id ? null : form.id)}
-                      className="text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      {expandedFormId === form.id ? 'Hide' : 'View'}
-                    </button>
-                    {form.status !== 'approved' && (
+                  <td className="py-4">
+                    <div className="flex items-center gap-4">
                       <button 
-                        onClick={() => updateMutation.mutate({ id: form.id, status: 'approved' })}
-                        className="text-green-600 hover:text-green-800 font-medium"
+                        onClick={(e) => { e.stopPropagation(); setExpandedFormId(expandedFormId === form.id ? null : form.id); }}
+                        className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center"
                       >
-                        Approve
+                        {expandedFormId === form.id ? 'Hide Details' : 'View Details'}
+                        <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                       </button>
-                    )}
-                    <button 
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to delete this form?')) {
-                          deleteMutation.mutate(form.id);
-                        }
-                      }}
-                      className="text-red-600 hover:text-red-800 font-medium"
-                    >
-                      Delete
-                    </button>
+                      {form.status !== 'approved' && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: form.id, status: 'approved' }); }}
+                          className="text-green-600 hover:text-green-800 font-medium text-sm"
+                        >
+                          Approve
+                        </button>
+                      )}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm('Are you sure you want to delete this form?')) {
+                            deleteMutation.mutate(form.id);
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-800 font-medium text-sm"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
                 {expandedFormId === form.id && (
