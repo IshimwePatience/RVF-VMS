@@ -2,16 +2,15 @@ const { SprayingForm, SprayingRecord } = require('../models');
 
 exports.createReport = async (req, res) => {
   try {
-    const { veterinary_phone, district, sector, records } = req.body;
+    const { veterinary_phone, itariki, records } = req.body;
 
-    if (!veterinary_phone || !district || !sector || !records || !Array.isArray(records)) {
+    if (!veterinary_phone || !itariki || !records || !Array.isArray(records)) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
     const form = await SprayingForm.create({
       veterinary_phone,
-      district,
-      sector,
+      itariki,
       status: 'pending'
     });
 
@@ -33,12 +32,16 @@ exports.getReports = async (req, res) => {
   try {
     const { district, status } = req.query;
     const whereClause = {};
-    if (district) whereClause.district = district;
     if (status) whereClause.status = status;
 
     const forms = await SprayingForm.findAll({
       where: whereClause,
-      include: [{ model: SprayingRecord, as: 'records' }],
+      include: [{ 
+        model: SprayingRecord, 
+        as: 'records',
+        where: district ? { district } : undefined,
+        required: district ? true : false
+      }],
       order: [['createdAt', 'DESC']]
     });
 

@@ -12,8 +12,21 @@ module.exports = (sequelize, DataTypes) => {
     sn: {
       type: DataTypes.INTEGER
     },
-    itariki: {
-      type: DataTypes.DATEONLY
+    district: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    sector: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    cell: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    village: {
+      type: DataTypes.STRING,
+      allowNull: true
     },
     amatungo_yose: {
       type: DataTypes.STRING
@@ -24,20 +37,23 @@ module.exports = (sequelize, DataTypes) => {
     ingano_yose_yemewe: {
       type: DataTypes.FLOAT
     },
-    ingano_ihari: {
-      type: DataTypes.FLOAT
-    },
     umuti_wakoreshejwe: {
       type: DataTypes.FLOAT
     },
     umuti_usigaye: {
       type: DataTypes.FLOAT
     },
-    ubwoko_bwamatungo: {
-      type: DataTypes.STRING
+    inka: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
     },
-    umubare_wafuherewe: {
-      type: DataTypes.INTEGER
+    ihene: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
+    intama: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
     }
   }, {
     tableName: 'SprayingRecords',

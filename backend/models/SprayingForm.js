@@ -9,12 +9,8 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    district: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    sector: {
-      type: DataTypes.STRING,
+    itariki: {
+      type: DataTypes.DATEONLY,
       allowNull: false
     },
     status: {
