@@ -217,7 +217,7 @@ export default function SprayingFormTab({ phone }) {
                   
                   {/* Animal Counts */}
                   <div className="bg-white p-4 border border-slate-200 rounded shadow-sm">
-                    <h3 className="font-bold text-slate-700 border-b pb-2 mb-3">Umubare w' amatungo yafuherewe</h3>
+                    <h3 className="font-bold text-slate-700 border-b pb-2 mb-3">Umubare w' amatungo yafuherewe uyu munsi</h3>
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <label className="block text-xs font-semibold mb-1 text-center">Inka</label>
@@ -295,7 +295,7 @@ export default function SprayingFormTab({ phone }) {
                   </div>
                 </th>
                 <th colSpan={3} className="border border-slate-300 p-2 text-slate-800 bg-slate-200 font-bold">
-                  Umubare w' amatungo yafuherewe
+                  Umubare w' amatungo yafuherewe uyu munsi
                 </th>
                 <th rowSpan={2} className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
                   <div className="resize-x overflow-auto p-2 min-w-[150px] h-full flex items-center justify-center font-bold">
