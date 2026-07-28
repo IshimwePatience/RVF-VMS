@@ -151,7 +151,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
       }
       return true;
     });
-  }, [results, filters, localFilters, isLabPortal, animalIdToVetMap]);
+  }, [results, filters, localFilters, isLabPortal, trackingIdToVetMap]);
 
   // Use a ref to store the latest callback to avoid unnecessary dependency changes
   const onFilteredDataChangeRef = React.useRef(onFilteredDataChange);

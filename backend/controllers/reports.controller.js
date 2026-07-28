@@ -74,7 +74,7 @@ exports.getGlobalOverview = async (req, res) => {
       const searchPattern = `%${search}%`;
       // For overview aggregate, doing a global text search across multiple tables is extremely slow.
       // We limit search to primary identifiable fields if a search is provided
-      surveillanceWhere.farmer_name = { [Op.iLike]: searchPattern };
+      surveillanceWhere.submitted_by = { [Op.iLike]: searchPattern };
       labWhere.farmer_name = { [Op.iLike]: searchPattern };
       vaxWhere.owner_name = { [Op.iLike]: searchPattern };
     }
