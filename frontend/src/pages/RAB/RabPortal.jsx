@@ -237,10 +237,10 @@ export default function RabPortal() {
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-700">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="border-b border-slate-200">
                   <tr>
                     <th className="py-3 px-4 font-semibold text-slate-800">Date Approved</th>
                     <th className="py-3 px-4 font-semibold text-slate-800">Veterinary</th>

@@ -100,7 +100,7 @@ export default function DaroSprayingFormsTab({ district }) {
         </select>
       </div>
 
-      <div className="overflow-x-auto bg-white rounded-lg border border-slate-200">
+      <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-700">
           <thead className="border-b border-slate-200">
             <tr>
