@@ -138,20 +138,30 @@ export default function DaroSprayingFormsTab({ district }) {
                             </tr>
                           </thead>
                           <tbody>
-                            {(form.records || []).map((record, idx) => (
-                              <tr key={idx}>
-                                <td className="p-2 border border-slate-200">{record.sn}</td>
-                                <td className="p-2 border border-slate-200">{record.itariki}</td>
-                                <td className="p-2 border border-slate-200">{record.amatungo_yose}</td>
-                                <td className="p-2 border border-slate-200">{record.izina_ryumuti}</td>
-                                <td className="p-2 border border-slate-200">{record.ingano_yose_yemewe}</td>
-                                <td className="p-2 border border-slate-200">{record.ingano_ihari}</td>
-                                <td className="p-2 border border-slate-200">{record.umuti_wakoreshejwe}</td>
-                                <td className="p-2 border border-slate-200">{record.umuti_usigaye}</td>
-                                <td className="p-2 border border-slate-200">{record.ubwoko_bwamatungo}</td>
-                                <td className="p-2 border border-slate-200">{record.umubare_wafuherewe}</td>
-                              </tr>
-                            ))}
+                            {(form.records || []).map((record, idx) => {
+                                  const types = [];
+                                  if (record.inka > 0) types.push('Inka');
+                                  if (record.ihene > 0) types.push('Ihene');
+                                  if (record.intama > 0) types.push('Intama');
+                                  const ubwoko = types.length > 0 ? types.join(', ') : 'N/A';
+                                  const umubare = (record.inka || 0) + (record.ihene || 0) + (record.intama || 0);
+                                  const inganoIhari = (Number(record.umuti_wakoreshejwe || 0) + Number(record.umuti_usigaye || 0));
+
+                                  return (
+                                    <tr key={idx} className="hover:bg-slate-50">
+                                      <td className="p-3 border border-slate-200 text-slate-600 font-medium">{record.sn}</td>
+                                      <td className="p-3 border border-slate-200 text-slate-600">{form.itariki || new Date(form.createdAt).toLocaleDateString()}</td>
+                                      <td className="p-3 border border-slate-200 text-slate-600">{record.amatungo_yose}</td>
+                                      <td className="p-3 border border-slate-200 text-slate-600">{record.izina_ryumuti}</td>
+                                      <td className="p-3 border border-slate-200 text-slate-600">{record.ingano_yose_yemewe}</td>
+                                      <td className="p-3 border border-slate-200 text-slate-600">{inganoIhari}</td>
+                                      <td className="p-3 border border-slate-200 text-slate-600">{record.umuti_wakoreshejwe}</td>
+                                      <td className="p-3 border border-slate-200 text-slate-600">{record.umuti_usigaye}</td>
+                                      <td className="p-3 border border-slate-200 text-slate-600">{ubwoko}</td>
+                                      <td className="p-3 border border-slate-200 text-slate-600 font-medium">{umubare > 0 ? umubare : ''}</td>
+                                    </tr>
+                                  );
+                                })}
                           </tbody>
                         </table>
                       </div>
