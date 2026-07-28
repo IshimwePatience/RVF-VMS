@@ -29,7 +29,7 @@ export default function DaroAuth({ mode = 'login' }) {
     onSuccess: (res) => {
       localStorage.setItem('daro_token', res.data.token);
       localStorage.setItem('daro_user', JSON.stringify(res.data.user));
-      navigate(`/daro-portal`);
+      window.location.href = import.meta.env.BASE_URL + 'daro-portal';
     },
     onError: (err) => {
       if (err.response?.status === 404 && mode === 'login') {

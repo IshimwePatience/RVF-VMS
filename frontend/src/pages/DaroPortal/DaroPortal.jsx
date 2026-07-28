@@ -88,6 +88,20 @@ export default function DaroPortal() {
     }).length;
   }, [results, user]);
 
+  const { data: sprayingForms = [] } = useQuery({
+    queryKey: ['spraying-forms', user?.district],
+    queryFn: async () => {
+      const res = await axios.get(`/rvf-api/spraying-reports?district=${encodeURIComponent(user?.district || '')}`);
+      return res.data;
+    },
+    enabled: !!user?.district
+  });
+
+  const todaySprayingFormsCount = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    return sprayingForms.filter(f => f.createdAt && f.createdAt.startsWith(todayStr)).length;
+  }, [sprayingForms]);
+
   if (!user) return null;
 
   return (
@@ -159,13 +173,18 @@ export default function DaroPortal() {
             </button>
             <button
               onClick={() => setActiveTab('spraying_forms')}
-              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+              className={`whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
                 activeTab === 'spraying_forms'
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
               }`}
             >
               Spraying Forms
+              {todaySprayingFormsCount > 0 && (
+                <span className="bg-blue-100 text-blue-700 py-0.5 px-2 rounded-full text-xs font-bold">
+                  {todaySprayingFormsCount} New Today
+                </span>
+              )}
             </button>
           </nav>
         </div>

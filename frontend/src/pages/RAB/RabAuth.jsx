@@ -19,7 +19,7 @@ export default function RabAuth({ mode = 'login' }) {
     onSuccess: (res) => {
       localStorage.setItem('rab_token', res.data.token);
       localStorage.setItem('rab_user', JSON.stringify(res.data.user));
-      navigate(`/rab-dashboard`);
+      window.location.href = import.meta.env.BASE_URL + 'rab-portal';
     },
     onError: (err) => {
       if (err.response?.status === 404 && mode === 'login') {
