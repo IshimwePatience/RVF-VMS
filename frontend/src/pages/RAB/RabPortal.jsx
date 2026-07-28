@@ -5,6 +5,8 @@ import axios from 'axios';
 import * as XLSX from 'xlsx';
 import minisanteLogo from '../../assets/images/RAB_Logo2.png';
 import { Search } from 'lucide-react';
+import { usePagination } from '../../hooks/usePagination';
+import Pagination from '../../components/Pagination';
 
 export default function RabPortal() {
   const navigate = useNavigate();
@@ -107,6 +109,18 @@ export default function RabPortal() {
   };
 
   if (!user) return null;
+
+  const {
+    currentData: paginatedForms,
+    currentPage,
+    totalPages,
+    totalItems,
+    startIndex,
+    endIndex,
+    next,
+    prev,
+    jump
+  } = usePagination(filteredForms, 10);
 
   return (
     <div className="min-h-screen bg-white">
@@ -212,8 +226,8 @@ export default function RabPortal() {
 
         {isLoading ? (
           <div className="text-center py-12 text-slate-500">Loading approved forms...</div>
-        ) : filteredForms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-xl">
+        ) : paginatedForms.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-xl border border-slate-200">
             <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No forms found" className="h-40 object-contain mb-6 opacity-75" />
             <h3 className="text-lg font-semibold text-slate-800 mb-2">No Approved Spraying Forms</h3>
             <p className="text-slate-500 max-w-sm">
@@ -221,27 +235,28 @@ export default function RabPortal() {
             </p>
           </div>
         ) : (
-          <div>
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm text-slate-700">
-                <thead className="border-b border-slate-200">
+                <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="py-3 font-semibold text-slate-800">Date Approved</th>
-                    <th className="py-3 font-semibold text-slate-800">Veterinary</th>
-                    <th className="py-3 font-semibold text-slate-800">Location</th>
-                    <th className="py-3 font-semibold text-slate-800">Records</th>
-                    <th className="py-3 font-semibold text-slate-800">Action</th>
+                    <th className="py-3 px-4 font-semibold text-slate-800">Date Approved</th>
+                    <th className="py-3 px-4 font-semibold text-slate-800">Veterinary</th>
+                    <th className="py-3 px-4 font-semibold text-slate-800">Location</th>
+                    <th className="py-3 px-4 font-semibold text-slate-800">Records</th>
+                    <th className="py-3 px-4 font-semibold text-slate-800">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredForms.map(form => (
-                    <tr key={form.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => {}}>
-                      <td className="py-4 pr-4 text-slate-600 whitespace-nowrap">
-                        <div className="text-sm text-slate-800 font-medium">
-                          Approved: {new Date(form.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </div>
-                      </td>
-                      <td className="py-4">
+                  {paginatedForms.map(form => (
+                    <React.Fragment key={form.id}>
+                      <tr className="hover:bg-slate-50/50 transition-colors group cursor-pointer">
+                        <td className="py-4 pr-4 text-slate-600 whitespace-nowrap px-4">
+                          <div className="text-sm text-slate-800 font-medium">
+                            Approved: {new Date(form.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900">ID: #{form.id}</span>
                           <span className="text-xs text-slate-500">{form.veterinary_phone}</span>
@@ -311,10 +326,26 @@ export default function RabPortal() {
                         </table>
                       </td>
                     </tr>
+                  </React.Fragment>
                   ))}
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {totalItems > 0 && !isLoading && (
+          <div className="mt-6">
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              startIndex={startIndex}
+              endIndex={endIndex}
+              onPageChange={jump}
+              onNext={next}
+              onPrev={prev}
+            />
           </div>
         )}
       </main>

@@ -2,11 +2,17 @@ import React, { useState, useContext } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { ToastContext } from '../../context/ToastContext';
+import { Search } from 'lucide-react';
+import { usePagination } from '../../hooks/usePagination';
+import Pagination from '../../components/Pagination';
 
 export default function DaroSprayingFormsTab({ district }) {
   const { addToast } = useContext(ToastContext);
   const queryClient = useQueryClient();
   const [expandedFormId, setExpandedFormId] = useState(null);
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
   const { data: forms = [], isLoading } = useQuery({
     queryKey: ['spraying-forms', district],
@@ -41,9 +47,58 @@ export default function DaroSprayingFormsTab({ district }) {
 
   if (isLoading) return <div className="p-8 text-center text-slate-500">Loading spraying forms...</div>;
 
+  const filteredForms = forms.filter(form => {
+    let matches = true;
+    if (statusFilter !== 'All' && form.status !== statusFilter) matches = false;
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = 
+        String(form.id).toLowerCase().includes(term) ||
+        String(form.veterinary_phone || '').toLowerCase().includes(term) ||
+        String(form.sector || '').toLowerCase().includes(term);
+      if (!matchesSearch) matches = false;
+    }
+    return matches;
+  });
+
+  const {
+    currentData: paginatedForms,
+    currentPage,
+    totalPages,
+    totalItems,
+    startIndex,
+    endIndex,
+    next,
+    prev,
+    jump
+  } = usePagination(filteredForms, 10);
+
   return (
-    <div>
-      <div className="overflow-x-auto">
+    <div className="space-y-6">
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by Form ID, Phone, Sector..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+          />
+        </div>
+        <select 
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+        >
+          <option value="All">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+        </select>
+      </div>
+
+      <div className="overflow-x-auto bg-white rounded-lg border border-slate-200">
         <table className="w-full text-left text-sm text-slate-700">
           <thead className="border-b border-slate-200">
             <tr>
@@ -56,7 +111,7 @@ export default function DaroSprayingFormsTab({ district }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {forms.map(form => (
+            {paginatedForms.map(form => (
               <React.Fragment key={form.id}>
                 <tr className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => setExpandedFormId(expandedFormId === form.id ? null : form.id)}>
                   <td className="py-4 pr-4 text-slate-600 whitespace-nowrap">
@@ -172,16 +227,30 @@ export default function DaroSprayingFormsTab({ district }) {
                 )}
               </React.Fragment>
             ))}
-            {forms.length === 0 && (
+            {paginatedForms.length === 0 && (
               <tr>
-                <td colSpan="6" className="px-4 py-8 text-center text-slate-500">
-                  No spraying forms found for {district}.
+                <td colSpan="6" className="px-4 py-12 text-center text-slate-500 bg-slate-50">
+                  <p className="font-medium text-slate-600 mb-1">No spraying forms found</p>
+                  <p className="text-sm">Try adjusting your filters or search term.</p>
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {totalItems > 0 && (
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          onPageChange={jump}
+          onNext={next}
+          onPrev={prev}
+        />
+      )}
     </div>
   );
 }
