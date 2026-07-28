@@ -88,7 +88,7 @@ export default function DaroSprayingFormsTab({ district }) {
                   </td>
                   <td className="py-4">
                     <div className="flex items-center gap-4">
-                      <button 
+                      <button
                         onClick={(e) => { e.stopPropagation(); setExpandedFormId(expandedFormId === form.id ? null : form.id); }}
                         className="text-blue-600 font-medium hover:text-blue-800 text-sm flex items-center"
                       >
@@ -96,14 +96,14 @@ export default function DaroSprayingFormsTab({ district }) {
                         <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
                       </button>
                       {form.status !== 'approved' && (
-                        <button 
+                        <button
                           onClick={(e) => { e.stopPropagation(); updateMutation.mutate({ id: form.id, status: 'approved' }); }}
                           className="text-green-600 hover:text-green-800 font-medium text-sm"
                         >
                           Approve
                         </button>
                       )}
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           if (window.confirm('Are you sure you want to delete this form?')) {
@@ -125,40 +125,42 @@ export default function DaroSprayingFormsTab({ district }) {
                         <table className="w-full text-xs text-center">
                           <thead className="bg-slate-100 text-slate-700">
                             <tr>
-                              <th className="p-2 border border-slate-200">S/N</th>
-                              <th className="p-2 border border-slate-200">Itariki</th>
-                              <th className="p-2 border border-slate-200">Amatungo yose yafuhererewe</th>
-                              <th className="p-2 border border-slate-200">Izina ry'umuti</th>
-                              <th className="p-2 border border-slate-200">Ingano yose (litiro)</th>
-                              <th className="p-2 border border-slate-200">Ingano ihari</th>
-                              <th className="p-2 border border-slate-200">Umuti wakoreshejwe</th>
-                              <th className="p-2 border border-slate-200">Umuti usigaye</th>
-                              <th className="p-2 border border-slate-200">Ubwoko bw'amatungo</th>
-                              <th className="p-2 border border-slate-200">Umubare wafuherewe</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">S/N</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">District</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">Sector</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">Cell</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">Village</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">Izina ry'umuti ufuherera<br/>wakoreshejwe uyu munsi</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">Ingano y'umuti wose umaze<br/>kwakirwa (litiro)</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">Umuti wakoreshejwe uyu<br/>munsi (litiro)</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">Umuti usigaye uyu<br/>munsi (litiro)</th>
+                              <th colSpan="3" className="p-2 border border-slate-200 text-center font-semibold bg-slate-100">Umubare w' amatungo yafuherewe uyu munsi</th>
+                              <th rowSpan="2" className="p-2 border border-slate-200 align-middle font-semibold bg-slate-100">Amatungo yose<br/>yafuhererewe uyu munsi</th>
+                            </tr>
+                            <tr>
+                              <th className="p-2 border border-slate-200 font-semibold bg-slate-100">Inka</th>
+                              <th className="p-2 border border-slate-200 font-semibold bg-slate-100">Ihene</th>
+                              <th className="p-2 border border-slate-200 font-semibold bg-slate-100">Intama</th>
                             </tr>
                           </thead>
                           <tbody>
                             {(form.records || []).map((record, idx) => {
-                                  const types = [];
-                                  if (record.inka > 0) types.push('Inka');
-                                  if (record.ihene > 0) types.push('Ihene');
-                                  if (record.intama > 0) types.push('Intama');
-                                  const ubwoko = types.length > 0 ? types.join(', ') : 'N/A';
-                                  const umubare = (record.inka || 0) + (record.ihene || 0) + (record.intama || 0);
-                                  const inganoIhari = (Number(record.umuti_wakoreshejwe || 0) + Number(record.umuti_usigaye || 0));
-
+                                  const totalAnimals = record.amatungo_yose || ((record.inka || 0) + (record.ihene || 0) + (record.intama || 0));
                                   return (
-                                    <tr key={idx} className="hover:bg-slate-50">
-                                      <td className="p-3 border border-slate-200 text-slate-600 font-medium">{record.sn}</td>
-                                      <td className="p-3 border border-slate-200 text-slate-600">{form.itariki || new Date(form.createdAt).toLocaleDateString()}</td>
-                                      <td className="p-3 border border-slate-200 text-slate-600">{record.amatungo_yose}</td>
-                                      <td className="p-3 border border-slate-200 text-slate-600">{record.izina_ryumuti}</td>
-                                      <td className="p-3 border border-slate-200 text-slate-600">{record.ingano_yose_yemewe}</td>
-                                      <td className="p-3 border border-slate-200 text-slate-600">{inganoIhari}</td>
-                                      <td className="p-3 border border-slate-200 text-slate-600">{record.umuti_wakoreshejwe}</td>
-                                      <td className="p-3 border border-slate-200 text-slate-600">{record.umuti_usigaye}</td>
-                                      <td className="p-3 border border-slate-200 text-slate-600">{ubwoko}</td>
-                                      <td className="p-3 border border-slate-200 text-slate-600 font-medium">{umubare > 0 ? umubare : ''}</td>
+                                    <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                      <td className="p-2 border border-slate-200 text-slate-700 font-medium text-center">{record.sn || (idx + 1)}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700">{record.district || form.district || 'N/A'}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700">{record.sector || form.sector || 'N/A'}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700">{record.cell || form.cell || 'N/A'}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700">{record.village || form.village || 'N/A'}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700">{record.izina_ryumuti || '-'}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700">{record.ingano_yose_yemewe || 0}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700">{record.umuti_wakoreshejwe || 0}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700">{record.umuti_usigaye || 0}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700 text-center">{record.inka || 0}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700 text-center">{record.ihene || 0}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700 text-center">{record.intama || 0}</td>
+                                      <td className="p-2 border border-slate-200 text-slate-700 text-center font-bold">{totalAnimals}</td>
                                     </tr>
                                   );
                                 })}
