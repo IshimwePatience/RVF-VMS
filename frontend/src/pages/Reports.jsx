@@ -241,6 +241,7 @@ export default function Reports() {
             });
           }
         });
+      } else if (type === 'lab_results') {
         data = filtered.map(r => {
           const lookupKey = r.sample_tracking_id || r.animal_id;
           return {
