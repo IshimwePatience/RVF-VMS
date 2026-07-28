@@ -122,6 +122,28 @@ exports.submitForm = async (req, res) => {
     if (samples && Array.isArray(samples)) {
       const validSamples = samples.filter(s => s.farmer_name || s.animal_id);
       for (const sample of validSamples) {
+          const existingSample = await SurveillanceSample.findOne({
+            where: {
+              form_id: form.id, // Must be part of the same form submission!
+              animal_id: sample.animal_id || null,
+              farmer_name: sample.farmer_name || null,
+              phone: sample.phone || null,
+              specie: sample.specie || null,
+              breed: sample.breed || null,
+              sex: sample.sex || null,
+              age: sample.age || null,
+              vaccination_status: sample.vaccination_status || null,
+              purpose: sample.purpose || null,
+              health_status: sample.health_status || null
+            },
+            transaction: t
+          });
+
+          if (existingSample) {
+            console.log(`Prevented EXACT duplicate submission in same form for animal_id: ${sample.animal_id}`);
+            continue; // Skip this exact duplicate sample within the same form
+          }
+
         let tracking_id;
         while (true) {
           const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
