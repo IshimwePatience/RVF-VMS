@@ -23,6 +23,8 @@ export default function Users() {
     { id: 'suppliers', label: 'Suppliers' },
     { id: 'veterinaries', label: 'Veterinaries' },
     { id: 'lab_technicians', label: 'Lab Technicians' },
+    { id: 'rab_users', label: 'RAB Users' },
+    { id: 'daro_users', label: 'DARO Users' },
     { id: 'requests', label: 'Requests' },
     { id: 'new_request', label: 'New Request' },
     { id: 'administer', label: 'Administer Vaccines' },

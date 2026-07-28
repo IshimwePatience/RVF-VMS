@@ -213,7 +213,7 @@ export default function RabPortal() {
         {isLoading ? (
           <div className="text-center py-12 text-slate-500">Loading approved forms...</div>
         ) : filteredForms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-xl shadow-sm border border-slate-200">
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-xl">
             <img src={`${import.meta.env.BASE_URL}empty_mascot.png`} alt="No forms found" className="h-40 object-contain mb-6 opacity-75" />
             <h3 className="text-lg font-semibold text-slate-800 mb-2">No Approved Spraying Forms</h3>
             <p className="text-slate-500 max-w-sm">

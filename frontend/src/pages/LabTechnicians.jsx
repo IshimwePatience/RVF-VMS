@@ -159,13 +159,6 @@ export default function LabTechnicians() {
               className="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 w-64 bg-slate-50 focus:bg-white transition-colors" 
             />
           </div>
-          <button
-            onClick={handleAdd}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Add Technician
-          </button>
         </div>
       </div>
 
