@@ -199,7 +199,7 @@ export default function SprayingFormTab({ phone }) {
                     <LocationDropdown type="villages" params={{ district: row.district, sector: row.sector, cell: row.cell }} value={row.village} onChange={(val) => handleRowChange(index, 'village', val)} placeholder="Select Village" disabled={!row.cell} />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Izina ry'umuti ufuherera (Trade name)</label>
+                    <label className="block text-sm font-semibold mb-1">Izina ry'umuti ufuherera wakoreshejwe uyu munsi</label>
                     <SearchableDropdown options={['KilatiX', 'Ashimethrin', 'PermaPy+', 'Grenade']} value={row.izina_ryumuti} onChange={(val) => handleRowChange(index, 'izina_ryumuti', val)} placeholder="Select Umuti" />
                   </div>
                   <div>
@@ -276,7 +276,7 @@ export default function SprayingFormTab({ phone }) {
                 </th>
                 <th rowSpan={2} className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
                   <div className="resize-x overflow-auto p-2 min-w-[150px] h-full flex items-center justify-center font-bold">
-                    Izina ry'umuti<br/>ufuherera (Trade name)
+                    Izina ry'umuti<br/>ufuherera wakoreshejwe<br/>uyu munsi
                   </div>
                 </th>
                 <th rowSpan={2} className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
