@@ -235,7 +235,7 @@ export default function SprayingFormTab({ phone }) {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-1">Amatungo yose yafuhererewe (Total)</label>
+                    <label className="block text-sm font-semibold mb-1">Amatungo yose yafuhererewe uyu munsi (Total)</label>
                     <input type="text" readOnly className="w-full bg-slate-100 border border-slate-300 rounded p-2 outline-none text-slate-600 font-bold" value={row.amatungo_yose} placeholder="Auto-calculated" />
                   </div>
                 </div>
@@ -299,7 +299,7 @@ export default function SprayingFormTab({ phone }) {
                 </th>
                 <th rowSpan={2} className="border border-slate-300 p-0 text-slate-800 bg-slate-100">
                   <div className="resize-x overflow-auto p-2 min-w-[150px] h-full flex items-center justify-center font-bold">
-                    Amatungo yose<br/>yafuhererewe
+                    Amatungo yose<br/>yafuhererewe<br/>uyu munsi
                   </div>
                 </th>
               </tr>
