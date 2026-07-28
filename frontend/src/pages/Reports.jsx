@@ -168,14 +168,16 @@ export default function Reports() {
       if (type === 'lab_results') {
         surveillanceReports.forEach(r => {
           r.samples?.forEach(s => {
-            if (s.animal_id) {
-              vetMap[s.animal_id] = { name: r.submitted_by || r.veterinary_name, phone: r.phone_number || r.veterinary_email };
+            const key = s.tracking_id || s.animal_id;
+            if (key) {
+              vetMap[key] = { name: r.submitted_by || r.veterinary_name, phone: r.phone_number || r.veterinary_email };
             }
           });
         });
         homeVaccinations.forEach(r => {
-          if (r.animal_id) {
-            vetMap[r.animal_id] = { name: r.veterinary_name, phone: r.veterinary_email };
+          const key = r.animal_id;
+          if (key) {
+            vetMap[key] = { name: r.veterinary_name, phone: r.veterinary_email };
           }
         });
       }
@@ -239,15 +241,16 @@ export default function Reports() {
             });
           }
         });
-      } else if (type === 'lab_results') {
-        data = filtered.map(r => ({
-          'Lab Technician Name': r.uploader?.name || 'N/A',
-          'Technician Number': r.uploader?.phone_number || 'N/A',
-          'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`,
-          'Tested Site': r.tested_site || 'N/A',
-          'Veterinary (Result Owner)': vetMap[r.animal_id]?.name || 'N/A',
-          'Veterinary Phone': vetMap[r.animal_id]?.phone || 'N/A',
-          'Farmer Name': r.farmer_name || 'N/A',
+        data = filtered.map(r => {
+          const lookupKey = r.sample_tracking_id || r.animal_id;
+          return {
+            'Lab Technician Name': r.uploader?.name || 'N/A',
+            'Technician Number': r.uploader?.phone_number || 'N/A',
+            'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`,
+            'Tested Site': r.tested_site || 'N/A',
+            'Veterinary (Result Owner)': vetMap[lookupKey]?.name || 'N/A',
+            'Veterinary Phone': vetMap[lookupKey]?.phone || 'N/A',
+            'Farmer Name': r.farmer_name || 'N/A',
           'Farmer Phone': r.phone || 'N/A',
           'District': r.animal_district_origin || r.district || 'N/A',
           'Sector': r.sector || 'N/A',
@@ -259,10 +262,11 @@ export default function Reports() {
           'Sex': r.sex || 'N/A',
           'Age': r.age || 'N/A',
           'Vacc. Status': r.vaccination_status || 'N/A',
-          'Purpose': r.purpose || 'N/A',
-          'Health Status': r.health_status || 'N/A',
-          'PCR Result': r.rvf_pcr_results ? r.rvf_pcr_results.trim().charAt(0).toUpperCase() + r.rvf_pcr_results.trim().slice(1).toLowerCase() : 'Pending'
-        }));
+            'Purpose': r.purpose || 'N/A',
+            'Health Status': r.health_status || 'N/A',
+            'PCR Result': r.rvf_pcr_results ? r.rvf_pcr_results.trim().charAt(0).toUpperCase() + r.rvf_pcr_results.trim().slice(1).toLowerCase() : 'Pending'
+          };
+        });
       }
 
       const fromLabel = filters.dateFrom ? `${filters.dateFrom}${filters.timeFrom ? '_' + filters.timeFrom.replace(':', '') : ''}` : '';

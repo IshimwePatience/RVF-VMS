@@ -58,13 +58,14 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
     enabled: !isLabPortal // Only fetch if we are in Reports
   });
 
-  const animalIdToVetMap = useMemo(() => {
+  const trackingIdToVetMap = useMemo(() => {
     const map = {};
     surveillanceForms.forEach(form => {
       if (form.samples && Array.isArray(form.samples)) {
         form.samples.forEach(sample => {
-          if (sample.animal_id) {
-            map[sample.animal_id] = { 
+          const key = sample.tracking_id || sample.animal_id;
+          if (key) {
+            map[key] = { 
               name: form.submitted_by, 
               phone: form.veterinary_email || form.phone_number,
               collectedAt: sample.createdAt || form.createdAt
@@ -93,8 +94,9 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
     
     let baseResults = results.map(r => {
       let collectedAt = null;
-      if (!isLabPortal && animalIdToVetMap[r.animal_id]) {
-        collectedAt = animalIdToVetMap[r.animal_id].collectedAt;
+      const lookupKey = r.sample_tracking_id || r.animal_id;
+      if (!isLabPortal && lookupKey && trackingIdToVetMap[lookupKey]) {
+        collectedAt = trackingIdToVetMap[lookupKey].collectedAt;
       }
       return { ...r, collectedAt };
     });
@@ -119,8 +121,9 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
         let searchString = JSON.stringify(r).toLowerCase();
         
         // Inject Vet Name and Phone into the search string so Admin can search by Vet
-        if (!isLabPortal && animalIdToVetMap[r.animal_id]) {
-          const vetInfo = animalIdToVetMap[r.animal_id];
+        const lookupKey = r.sample_tracking_id || r.animal_id;
+        if (!isLabPortal && lookupKey && trackingIdToVetMap[lookupKey]) {
+          const vetInfo = trackingIdToVetMap[lookupKey];
           searchString += ` ${vetInfo.name.toLowerCase()} ${vetInfo.phone.toLowerCase()}`;
         }
 
@@ -428,9 +431,7 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                 )}
                 <th className="py-4 px-6 font-semibold text-slate-800">Date Uploaded</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Tested Site</th>
-                {!isLabPortal && (
-                  <th className="py-4 px-6 font-semibold text-slate-800">Veterinary (Result Owner)</th>
-                )}
+                {!isLabPortal && <th className="py-4 pl-4 pr-3 font-semibold text-slate-800">Veterinary (Result Owner)</th>}
                 <th className="py-4 px-6 font-semibold text-slate-800">Farmer</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Location</th>
                 <th className="py-4 px-6 font-semibold text-slate-800">Tracking ID</th>
@@ -480,9 +481,22 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
                     {r.tested_site || 'N/A'}
                   </td>
                   {!isLabPortal && (
-                    <td className="py-4 px-6">
-                      <div className="font-medium text-slate-900">{animalIdToVetMap[r.animal_id]?.name || 'N/A'}</div>
-                      <div className="text-xs text-slate-500">{animalIdToVetMap[r.animal_id]?.phone || ''}</div>
+                    <td className="py-4 pl-4 pr-3">
+                      {(!isLabPortal) ? (() => {
+                        const lookupKey = r.sample_tracking_id || r.animal_id;
+                        const vet = trackingIdToVetMap[lookupKey];
+                        if (vet) {
+                          return (
+                            <div className="flex flex-col">
+                              <span className="font-semibold text-slate-900">{vet.name}</span>
+                              <span className="text-xs text-slate-500">{vet.phone}</span>
+                            </div>
+                          );
+                        }
+                        return <span className="text-slate-400 italic">Unknown</span>;
+                      })() : (
+                        <span className="text-slate-700">{r.veterinary_name || 'N/A'}</span>
+                      )}
                     </td>
                   )}
                   <td className="py-4 px-6">
