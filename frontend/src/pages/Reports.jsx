@@ -247,7 +247,7 @@ export default function Reports() {
           return {
             'Lab Technician Name': r.uploader?.name || 'N/A',
             'Technician Number': r.uploader?.phone_number || 'N/A',
-            'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}`,
+            'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString('en-GB')} ${new Date(r.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
             'Tested Site': r.tested_site || 'N/A',
             'Veterinary (Result Owner)': vetMap[lookupKey]?.name || 'N/A',
             'Veterinary Phone': vetMap[lookupKey]?.phone || 'N/A',
