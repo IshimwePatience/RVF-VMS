@@ -17,7 +17,7 @@ export default function RabUsers() {
 
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    full_names: '',
     phone_number: '',
     is_active: true,
     can_view_all_results: false
@@ -72,19 +72,19 @@ export default function RabUsers() {
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setFormData({ name: '', phone_number: '', is_active: true, can_view_all_results: false });
+    setFormData({ full_names: '', phone_number: '', is_active: true, can_view_all_results: false });
   };
 
   const handleAdd = () => {
     setEditingId(null);
-    setFormData({ name: '', phone_number: '', is_active: true, can_view_all_results: false });
+    setFormData({ full_names: '', phone_number: '', is_active: true, can_view_all_results: false });
     setShowModal(true);
   };
 
   const handleEdit = (v) => {
     setEditingId(v.id);
     setFormData({
-      name: v.name,
+      full_names: v.full_names,
       phone_number: v.phone_number,
       is_active: v.is_active !== undefined ? v.is_active : true,
       can_view_all_results: v.can_view_all_results || false
@@ -180,7 +180,7 @@ export default function RabUsers() {
             <table className="w-full text-left text-sm text-slate-700">
               <thead className="border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-4 text-left font-semibold text-slate-700">Technician Name</th>
+                  <th className="px-4 py-4 text-left font-semibold text-slate-700">RAB User Name</th>
                   <th className="px-4 py-4 text-left font-semibold text-slate-700">Phone Number</th>
                   <th className="px-4 py-4 text-center font-semibold text-slate-700">Global Access</th>
                   <th className="px-4 py-4 text-center font-semibold text-slate-700">Account Status</th>
@@ -193,7 +193,7 @@ export default function RabUsers() {
                   return (
                     <tr key={v.id} className={`group hover:bg-slate-50/50 transition-colors ${!isActive ? 'opacity-60' : ''}`}>
                       <td className="py-4 pr-6">
-                        <span className="font-medium text-slate-900 text-base">{v.name}</span>
+                        <span className="font-medium text-slate-900 text-base">{v.full_names}</span>
                       </td>
                       <td className="py-4 text-slate-600">
                         <span>{v.phone_number}</span>
@@ -245,8 +245,8 @@ export default function RabUsers() {
                   <input
                     type="text" required
                     placeholder="e.g. Jane Doe"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.full_names}
+                    onChange={(e) => setFormData({ ...formData, full_names: e.target.value })}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
                   />
                 </div>

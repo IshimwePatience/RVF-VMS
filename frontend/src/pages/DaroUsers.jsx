@@ -17,8 +17,9 @@ export default function DaroUsers() {
 
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    full_names: '',
     phone_number: '',
+    district: '',
     is_active: true,
     can_view_all_results: false
   });
@@ -27,7 +28,7 @@ export default function DaroUsers() {
   const { data: daroUsers = [], isLoading: loading } = useQuery({
     queryKey: ['daro'],
     queryFn: async () => {
-      const res = await axios.get('/rvf-api/auth/daro');
+      const res = await axios.get('/rvf-api/auth/daros');
       return res.data;
     },
     enabled: !!user && user.role === 'Admin'
@@ -36,9 +37,9 @@ export default function DaroUsers() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (editingId) {
-        return axios.put(`/rvf-api/auth/daro/${editingId}`, formData);
+        return axios.put(`/rvf-api/auth/daros/${editingId}`, formData);
       } else {
-        return axios.post('/rvf-api/auth/daro', formData);
+        return axios.post('/rvf-api/auth/daros', formData);
       }
     },
     onSuccess: () => {
@@ -53,7 +54,7 @@ export default function DaroUsers() {
   });
 
   const toggleStatusMutation = useMutation({
-    mutationFn: async ({ id, is_active }) => axios.put(`/rvf-api/auth/daro/${id}`, { is_active }),
+    mutationFn: async ({ id, is_active }) => axios.put(`/rvf-api/auth/daros/${id}`, { is_active }),
     onSuccess: (_, variables) => {
       addToast(`DARO User account ${variables.is_active ? 'activated' : 'stopped'} successfully`, 'success');
       queryClient.invalidateQueries({ queryKey: ['daro'] });
@@ -72,20 +73,21 @@ export default function DaroUsers() {
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setFormData({ name: '', phone_number: '', is_active: true, can_view_all_results: false });
+    setFormData({ full_names: '', phone_number: '', district: '', is_active: true, can_view_all_results: false });
   };
 
   const handleAdd = () => {
     setEditingId(null);
-    setFormData({ name: '', phone_number: '', is_active: true, can_view_all_results: false });
+    setFormData({ full_names: '', phone_number: '', district: '', is_active: true, can_view_all_results: false });
     setShowModal(true);
   };
 
   const handleEdit = (v) => {
     setEditingId(v.id);
     setFormData({
-      name: v.name,
+      full_names: v.full_names,
       phone_number: v.phone_number,
+      district: v.district,
       is_active: v.is_active !== undefined ? v.is_active : true,
       can_view_all_results: v.can_view_all_results || false
     });
@@ -99,7 +101,7 @@ export default function DaroUsers() {
   };
 
   const deleteMutation = useMutation({
-    mutationFn: async (id) => axios.delete(`/rvf-api/auth/daro/${id}`),
+    mutationFn: async (id) => axios.delete(`/rvf-api/auth/daros/${id}`),
     onSuccess: () => {
       addToast('DARO User deleted successfully', 'success');
       queryClient.invalidateQueries({ queryKey: ['daro'] });
@@ -180,8 +182,9 @@ export default function DaroUsers() {
             <table className="w-full text-left text-sm text-slate-700">
               <thead className="border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-4 text-left font-semibold text-slate-700">Technician Name</th>
+                  <th className="px-4 py-4 text-left font-semibold text-slate-700">DARO User Name</th>
                   <th className="px-4 py-4 text-left font-semibold text-slate-700">Phone Number</th>
+                  <th className="px-4 py-4 text-left font-semibold text-slate-700">District</th>
                   <th className="px-4 py-4 text-center font-semibold text-slate-700">Global Access</th>
                   <th className="px-4 py-4 text-center font-semibold text-slate-700">Account Status</th>
                   <th className="px-4 py-4 text-right font-semibold text-slate-700 pr-4">Actions</th>
@@ -193,10 +196,13 @@ export default function DaroUsers() {
                   return (
                     <tr key={v.id} className={`group hover:bg-slate-50/50 transition-colors ${!isActive ? 'opacity-60' : ''}`}>
                       <td className="py-4 pr-6">
-                        <span className="font-medium text-slate-900 text-base">{v.name}</span>
+                        <span className="font-medium text-slate-900 text-base">{v.full_names}</span>
                       </td>
                       <td className="py-4 text-slate-600">
                         <span>{v.phone_number}</span>
+                      </td>
+                      <td className="py-4 text-slate-600">
+                        <span>{v.district}</span>
                       </td>
                       <td className="px-4 py-4 text-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${v.can_view_all_results ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
@@ -245,8 +251,19 @@ export default function DaroUsers() {
                   <input
                     type="text" required
                     placeholder="e.g. Jane Doe"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.full_names}
+                    onChange={(e) => setFormData({ ...formData, full_names: e.target.value })}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">District *</label>
+                  <input
+                    type="text" required
+                    placeholder="e.g. Gasabo"
+                    value={formData.district}
+                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all text-sm"
                   />
                 </div>
