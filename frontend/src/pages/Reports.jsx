@@ -186,7 +186,7 @@ export default function Reports() {
 
       if (type === 'home_vaccination') {
         data = filtered.map(r => ({
-          'Date Submitted': new Date(r.date_administered || r.createdAt).toLocaleDateString(),
+          'Date Submitted': `${new Date(r.date_administered || r.createdAt).toLocaleDateString()} ${new Date(r.date_administered || r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
           'Veterinary Phone': r.veterinary_email,
           'Province': r.province,
           'District': r.district,
@@ -204,11 +204,15 @@ export default function Reports() {
         }));
       } else if (type === 'surveillance') {
         filtered.forEach(form => {
+          const submittedStr = `${new Date(form.createdAt).toLocaleDateString()} ${new Date(form.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          const collectionStr = form.collection_date ? new Date(form.collection_date).toLocaleDateString() : '';
+          
           if (form.samples && form.samples.length > 0) {
             form.samples.forEach(sample => {
               data.push({
                 'Tracking ID': sample.tracking_id || 'N/A',
-                'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
+                'Date Submitted': submittedStr,
+                'Collection Date': collectionStr,
                 'Veterinary Phone': form.veterinary_email || form.phone_number,
                 'Test Requested': form.test_requested,
                 'District': sample.district_origin || sample.district || form.district || '',
@@ -231,7 +235,8 @@ export default function Reports() {
             });
           } else {
             data.push({
-              'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
+              'Date Submitted': submittedStr,
+              'Collection Date': collectionStr,
               'Veterinary Phone': form.veterinary_email || form.phone_number,
               'Test Requested': form.test_requested,
               'District': form.district,
@@ -247,7 +252,7 @@ export default function Reports() {
           return {
             'Lab Technician Name': r.uploader?.name || 'N/A',
             'Technician Number': r.uploader?.phone_number || 'N/A',
-            'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString('en-GB')} ${new Date(r.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
+            'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
             'Tested Site': r.tested_site || 'N/A',
             'Veterinary (Result Owner)': vetMap[lookupKey]?.name || 'N/A',
             'Veterinary Phone': vetMap[lookupKey]?.phone || 'N/A',
