@@ -473,6 +473,9 @@ export default function Reports() {
       const rCreatedAt = new Date(r.createdAt);
       const rCollectionDate = r.collection_date ? new Date(r.collection_date) : null;
 
+      let passCreated = true;
+      let passCollected = rCollectionDate !== null;
+
       if (filters.dateFrom) {
         const dFrom = new Date(filters.dateFrom);
         if (filters.timeFrom) {
@@ -482,9 +485,8 @@ export default function Reports() {
           dFrom.setHours(0, 0, 0, 0);
         }
         if (!isNaN(dFrom)) {
-          const passCreatedAt = rCreatedAt >= dFrom;
-          const passCollection = rCollectionDate && rCollectionDate >= dFrom;
-          if (!passCreatedAt && !passCollection) return false;
+          passCreated = passCreated && (rCreatedAt >= dFrom);
+          passCollected = passCollected && (rCollectionDate >= dFrom);
         }
       }
       if (filters.dateTo) {
@@ -496,11 +498,11 @@ export default function Reports() {
           dTo.setHours(23, 59, 59, 999);
         }
         if (!isNaN(dTo)) {
-          const passCreatedAt = rCreatedAt <= dTo;
-          const passCollection = rCollectionDate && rCollectionDate <= dTo;
-          if (!passCreatedAt && !passCollection) return false;
+          passCreated = passCreated && (rCreatedAt <= dTo);
+          passCollected = passCollected && (rCollectionDate <= dTo);
         }
       }
+      if (!passCreated && !passCollected) return false;
       return true;
     });
   }, [surveillanceReports, filters, user]);
