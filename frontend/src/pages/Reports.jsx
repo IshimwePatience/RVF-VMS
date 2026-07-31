@@ -186,7 +186,7 @@ export default function Reports() {
 
       if (type === 'home_vaccination') {
         data = filtered.map(r => ({
-          'Date Submitted': new Date(r.date_administered || r.createdAt).toLocaleDateString(),
+          'Date Submitted': `${new Date(r.date_administered || r.createdAt).toLocaleDateString('en-GB')} ${new Date(r.date_administered || r.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
           'Veterinary Phone': r.veterinary_email,
           'Province': r.province,
           'District': r.district,
@@ -208,7 +208,8 @@ export default function Reports() {
             form.samples.forEach(sample => {
               data.push({
                 'Tracking ID': sample.tracking_id || 'N/A',
-                'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
+                'Date Submitted': `${new Date(form.createdAt).toLocaleDateString('en-GB')} ${new Date(form.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
+                'Collection Date': form.collection_date ? new Date(form.collection_date).toLocaleDateString('en-GB') : 'N/A',
                 'Veterinary Phone': form.veterinary_email || form.phone_number,
                 'Test Requested': form.test_requested,
                 'District': sample.district_origin || sample.district || form.district || '',
@@ -231,7 +232,8 @@ export default function Reports() {
             });
           } else {
             data.push({
-              'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
+              'Date Submitted': `${new Date(form.createdAt).toLocaleDateString('en-GB')} ${new Date(form.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
+              'Collection Date': form.collection_date ? new Date(form.collection_date).toLocaleDateString('en-GB') : 'N/A',
               'Veterinary Phone': form.veterinary_email || form.phone_number,
               'Test Requested': form.test_requested,
               'District': form.district,
