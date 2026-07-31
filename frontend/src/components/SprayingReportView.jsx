@@ -50,7 +50,7 @@ export default function SprayingReportView({ report, onClose }) {
                   Rwanda Agriculture and Animal Resources Development Board (RAB)
                 </p>
                 <div className="text-sm font-semibold text-slate-800 mt-4">
-                  Veterinary Phone: <span className="text-slate-600 font-normal">{report.veterinary_phone || 'N/A'}</span>
+                  Veterinary: <span className="text-slate-600 font-normal">{report.veterinary_name || 'Unknown'} ({report.veterinary_phone || 'N/A'})</span>
                 </div>
               </div>
               <img src={minisanteLogo} alt="MINISANTE" className="h-24 object-contain" />
@@ -58,12 +58,6 @@ export default function SprayingReportView({ report, onClose }) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
               <div className="space-y-6">
-                <div>
-                  <label className="block text-base text-slate-800 mb-2 font-medium">District</label>
-                  <div className="px-3 py-2 bg-slate-50 rounded text-slate-800 border-b border-slate-300 min-h-[40px]">
-                    {report.district || 'N/A'}
-                  </div>
-                </div>
                 <div>
                   <label className="block text-base text-slate-800 mb-2 font-medium">Status</label>
                   <div className="px-3 py-2 bg-slate-50 rounded text-slate-800 border-b border-slate-300 min-h-[40px] uppercase font-semibold">
@@ -73,12 +67,6 @@ export default function SprayingReportView({ report, onClose }) {
               </div>
 
               <div className="space-y-6">
-                <div>
-                  <label className="block text-base text-slate-800 mb-2 font-medium">Sector</label>
-                  <div className="px-3 py-2 bg-slate-50 rounded text-slate-800 border-b border-slate-300 min-h-[40px]">
-                    {report.sector || 'N/A'}
-                  </div>
-                </div>
                 <div>
                   <label className="block text-base text-slate-800 mb-2 font-medium">Date Approved</label>
                   <div className="px-3 py-2 bg-slate-50 rounded text-slate-800 border-b border-slate-300 min-h-[40px]">

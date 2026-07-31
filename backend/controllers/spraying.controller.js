@@ -34,6 +34,8 @@ exports.getReports = async (req, res) => {
     const whereClause = {};
     if (status) whereClause.status = status;
 
+    const { SprayingForm, SprayingRecord, Veterinary } = require('../models');
+
     const forms = await SprayingForm.findAll({
       where: whereClause,
       include: [{ 
@@ -45,7 +47,23 @@ exports.getReports = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    res.json(forms);
+    // Manually map veterinary names
+    const phones = [...new Set(forms.map(f => f.veterinary_phone))].filter(Boolean);
+    const veterinaries = await Veterinary.findAll({
+      where: { phone_number: phones },
+      attributes: ['phone_number', 'name']
+    });
+
+    const vetMap = {};
+    veterinaries.forEach(v => vetMap[v.phone_number] = v.name);
+
+    const formsWithVet = forms.map(f => {
+      const data = f.toJSON();
+      data.veterinary_name = vetMap[f.veterinary_phone] || null;
+      return data;
+    });
+
+    res.json(formsWithVet);
   } catch (error) {
     console.error('Error fetching spraying reports:', error);
     res.status(500).json({ message: 'Internal server error' });

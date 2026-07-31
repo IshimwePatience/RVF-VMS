@@ -454,15 +454,27 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
+      
+      const rCreatedAt = new Date(r.createdAt);
+      const rCollectionDate = r.collection_date ? new Date(r.collection_date) : null;
+      
       if (filters.dateFrom) {
         const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
         const dFrom = new Date(fromDateStr);
-        if (!isNaN(dFrom) && new Date(r.collection_date || r.createdAt) < dFrom) return false;
+        if (!isNaN(dFrom)) {
+          const passCreatedAt = rCreatedAt >= dFrom;
+          const passCollection = rCollectionDate && rCollectionDate >= dFrom;
+          if (!passCreatedAt && !passCollection) return false;
+        }
       }
       if (filters.dateTo) {
         const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
         const dTo = new Date(toDateStr);
-        if (!isNaN(dTo) && new Date(r.collection_date || r.createdAt) > dTo) return false;
+        if (!isNaN(dTo)) {
+          const passCreatedAt = rCreatedAt <= dTo;
+          const passCollection = rCollectionDate && rCollectionDate <= dTo;
+          if (!passCreatedAt && !passCollection) return false;
+        }
       }
       return true;
     });

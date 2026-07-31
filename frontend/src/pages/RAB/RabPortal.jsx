@@ -84,11 +84,14 @@ export default function RabPortal() {
     const exportData = [];
     filteredForms.forEach(form => {
       (form.records || []).forEach(record => {
+        const displaySector = form.sector || record.sector || 'N/A';
+        const displayDistrict = form.district || record.district || 'Unknown';
         exportData.push({
           'Form ID': form.id,
+          'Veterinary Name': form.veterinary_name || 'Unknown',
           'Veterinary Phone': form.veterinary_phone,
-          'District': form.district,
-          'Sector': form.sector,
+          'District': displayDistrict,
+          'Sector': displaySector,
           'Date Approved': new Date(form.updatedAt).toLocaleDateString(),
           'S/N': record.sn,
           'Itariki (Date)': record.itariki,
@@ -256,32 +259,37 @@ export default function RabPortal() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {paginatedForms.map(form => (
-                    <React.Fragment key={form.id}>
-                      <tr className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => setSelectedReport(form)}>
-                        <td className="py-4 pr-4 text-slate-600 whitespace-nowrap px-4">
-                          <div className="text-sm text-slate-800 font-medium">
-                            Approved: {new Date(form.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {paginatedForms.map(form => {
+                    const firstRecord = form.records?.[0] || {};
+                    const displaySector = form.sector || firstRecord.sector || 'N/A';
+                    const displayDistrict = form.district || firstRecord.district || 'Unknown';
+                    
+                    return (
+                      <React.Fragment key={form.id}>
+                        <tr className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => setSelectedReport(form)}>
+                          <td className="py-4 pr-4 text-slate-600 whitespace-nowrap px-4">
+                            <div className="text-sm text-slate-800 font-medium">
+                              Approved: {new Date(form.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-900">{form.veterinary_name || 'Unknown Veterinary'}</span>
+                            <span className="text-xs text-slate-500">{form.veterinary_phone}</span>
                           </div>
                         </td>
-                        <td className="py-4 px-4">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-slate-900">ID: #{form.id}</span>
-                          <span className="text-xs text-slate-500">{form.veterinary_phone}</span>
-                        </div>
-                      </td>
-                      <td className="py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-slate-800">{form.sector || 'N/A'}</span>
-                          <span className="text-xs text-slate-500">{form.district || 'Unknown'} District</span>
-                        </div>
-                      </td>
-                      <td className="py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs font-medium">
-                          {(form.records || []).length} Records
-                        </span>
-                      </td>
-                      <td className="py-4">
+                        <td className="py-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-slate-800">{displaySector}</span>
+                            <span className="text-xs text-slate-500">{displayDistrict} District</span>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-xs font-medium">
+                            {(form.records || []).length} Records
+                          </span>
+                        </td>
+                        <td className="py-4">
                         <div className="flex items-center gap-3">
                           <button 
                             onClick={(e) => { e.stopPropagation(); setSelectedReport(form); }}
@@ -294,7 +302,8 @@ export default function RabPortal() {
                       </td>
                     </tr>
                   </React.Fragment>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
             </div>
