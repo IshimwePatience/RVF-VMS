@@ -431,23 +431,13 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const dFrom = new Date(filters.dateFrom);
-        if (filters.timeFrom) {
-          const [hours, minutes] = filters.timeFrom.split(':');
-          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
-        } else {
-          dFrom.setHours(0, 0, 0, 0);
-        }
+        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
+        const dFrom = new Date(fromDateStr);
         if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const dTo = new Date(filters.dateTo);
-        if (filters.timeTo) {
-          const [hours, minutes] = filters.timeTo.split(':');
-          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
-        } else {
-          dTo.setHours(23, 59, 59, 999);
-        }
+        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
+        const dTo = new Date(toDateStr);
         if (!isNaN(dTo) && new Date(r.createdAt) > dTo) return false;
       }
       return true;
@@ -469,13 +459,8 @@ export default function Reports() {
       const rCollectionDate = r.collection_date ? new Date(r.collection_date) : null;
 
       if (filters.dateFrom) {
-        const dFrom = new Date(filters.dateFrom);
-        if (filters.timeFrom) {
-          const [hours, minutes] = filters.timeFrom.split(':');
-          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
-        } else {
-          dFrom.setHours(0, 0, 0, 0);
-        }
+        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
+        const dFrom = new Date(fromDateStr);
         if (!isNaN(dFrom)) {
           const passCreatedAt = rCreatedAt >= dFrom;
           const passCollection = rCollectionDate && rCollectionDate >= dFrom;
@@ -483,13 +468,8 @@ export default function Reports() {
         }
       }
       if (filters.dateTo) {
-        const dTo = new Date(filters.dateTo);
-        if (filters.timeTo) {
-          const [hours, minutes] = filters.timeTo.split(':');
-          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
-        } else {
-          dTo.setHours(23, 59, 59, 999);
-        }
+        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
+        const dTo = new Date(toDateStr);
         if (!isNaN(dTo)) {
           const passCreatedAt = rCreatedAt <= dTo;
           const passCollection = rCollectionDate && rCollectionDate <= dTo;
@@ -510,23 +490,13 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const dFrom = new Date(filters.dateFrom);
-        if (filters.timeFrom) {
-          const [hours, minutes] = filters.timeFrom.split(':');
-          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
-        } else {
-          dFrom.setHours(0, 0, 0, 0);
-        }
+        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
+        const dFrom = new Date(fromDateStr);
         if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const dTo = new Date(filters.dateTo);
-        if (filters.timeTo) {
-          const [hours, minutes] = filters.timeTo.split(':');
-          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
-        } else {
-          dTo.setHours(23, 59, 59, 999);
-        }
+        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
+        const dTo = new Date(toDateStr);
         if (!isNaN(dTo) && new Date(r.createdAt) > dTo) return false;
       }
       if (filters.purpose && filters.purpose.length > 0) {

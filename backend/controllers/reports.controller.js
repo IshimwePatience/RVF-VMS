@@ -42,26 +42,14 @@ exports.getGlobalOverview = async (req, res) => {
       let hasDate = false;
 
       if (dateFromIso || dateFrom) {
-        let dFrom;
-        if (dateFromIso) {
-          dFrom = new Date(dateFromIso);
-        } else {
-          const cleanTime = timeFrom ? timeFrom.substring(0, 5) : '00:00';
-          dFrom = new Date(`${dateFrom}T${cleanTime}:00`);
-        }
+        const dFrom = dateFromIso ? new Date(dateFromIso) : new Date(timeFrom ? `${dateFrom}T${timeFrom}:00` : `${dateFrom}T00:00:00`);
         if (!isNaN(dFrom)) {
           dateFilter[Op.gte] = dFrom;
           hasDate = true;
         }
       }
       if (dateToIso || dateTo) {
-        let dTo;
-        if (dateToIso) {
-          dTo = new Date(dateToIso);
-        } else {
-          const cleanTime = timeTo ? timeTo.substring(0, 5) : '23:59';
-          dTo = new Date(`${dateTo}T${cleanTime}:59`);
-        }
+        const dTo = dateToIso ? new Date(dateToIso) : new Date(timeTo ? `${dateTo}T${timeTo}:59` : `${dateTo}T23:59:59`);
         if (!isNaN(dTo)) {
           dateFilter[Op.lte] = dTo;
           hasDate = true;
