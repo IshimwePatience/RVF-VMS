@@ -207,9 +207,9 @@ export default function Reports() {
           if (form.samples && form.samples.length > 0) {
             form.samples.forEach(sample => {
               data.push({
-                'Tracking ID': sample.tracking_id || 'N/A',
+                'Tracking ID': sample.tracking_id || '',
                 'Date Submitted': `${new Date(form.createdAt).toLocaleDateString('en-GB')} ${new Date(form.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
-                'Collection Date': form.collection_date ? new Date(form.collection_date).toLocaleDateString('en-GB') : 'N/A',
+                'Collection Date': form.collection_date ? new Date(form.collection_date).toLocaleDateString('en-GB') : '',
                 'Veterinary Phone': form.veterinary_email || form.phone_number,
                 'Test Requested': form.test_requested,
                 'District': sample.district_origin || sample.district || form.district || '',
@@ -233,7 +233,7 @@ export default function Reports() {
           } else {
             data.push({
               'Date Submitted': `${new Date(form.createdAt).toLocaleDateString('en-GB')} ${new Date(form.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
-              'Collection Date': form.collection_date ? new Date(form.collection_date).toLocaleDateString('en-GB') : 'N/A',
+              'Collection Date': form.collection_date ? new Date(form.collection_date).toLocaleDateString('en-GB') : '',
               'Veterinary Phone': form.veterinary_email || form.phone_number,
               'Test Requested': form.test_requested,
               'District': form.district,
@@ -247,26 +247,26 @@ export default function Reports() {
         data = filtered.map(r => {
           const lookupKey = r.sample_tracking_id || r.animal_id;
           return {
-            'Lab Technician Name': r.uploader?.name || 'N/A',
-            'Technician Number': r.uploader?.phone_number || 'N/A',
+            'Lab Technician Name': r.uploader?.name || '',
+            'Technician Number': r.uploader?.phone_number || '',
             'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString('en-GB')} ${new Date(r.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
-            'Tested Site': r.tested_site || 'N/A',
-            'Veterinary (Result Owner)': vetMap[lookupKey]?.name || 'N/A',
-            'Veterinary Phone': vetMap[lookupKey]?.phone || 'N/A',
-            'Farmer Name': r.farmer_name || 'N/A',
-          'Farmer Phone': r.phone || 'N/A',
-          'District': r.animal_district_origin || r.district || 'N/A',
-          'Sector': r.sector || 'N/A',
-          'Cell': r.cell || 'N/A',
-          'Village': r.village || 'N/A',
-          'Animal ID': r.animal_id || 'N/A',
-          'Specie': r.specie || 'N/A',
-          'Breed': r.breed || 'N/A',
-          'Sex': r.sex || 'N/A',
-          'Age': r.age || 'N/A',
-          'Vacc. Status': r.vaccination_status || 'N/A',
-            'Purpose': r.purpose || 'N/A',
-            'Health Status': r.health_status || 'N/A',
+            'Tested Site': r.tested_site || '',
+            'Veterinary (Result Owner)': vetMap[lookupKey]?.name || '',
+            'Veterinary Phone': vetMap[lookupKey]?.phone || '',
+            'Farmer Name': r.farmer_name || '',
+          'Farmer Phone': r.phone || '',
+          'District': r.animal_district_origin || r.district || '',
+          'Sector': r.sector || '',
+          'Cell': r.cell || '',
+          'Village': r.village || '',
+          'Animal ID': r.animal_id || '',
+          'Specie': r.specie || '',
+          'Breed': r.breed || '',
+          'Sex': r.sex || '',
+          'Age': r.age || '',
+          'Vacc. Status': r.vaccination_status || '',
+            'Purpose': r.purpose || '',
+            'Health Status': r.health_status || '',
             'PCR Result': r.rvf_pcr_results ? r.rvf_pcr_results.trim().charAt(0).toUpperCase() + r.rvf_pcr_results.trim().slice(1).toLowerCase() : 'Pending'
           };
         });
@@ -433,13 +433,23 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
-        const dFrom = new Date(fromDateStr);
+        const dFrom = new Date(filters.dateFrom);
+        if (filters.timeFrom) {
+          const [hours, minutes] = filters.timeFrom.split(':');
+          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
+        } else {
+          dFrom.setHours(0, 0, 0, 0);
+        }
         if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
-        const dTo = new Date(toDateStr);
+        const dTo = new Date(filters.dateTo);
+        if (filters.timeTo) {
+          const [hours, minutes] = filters.timeTo.split(':');
+          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
+        } else {
+          dTo.setHours(23, 59, 59, 999);
+        }
         if (!isNaN(dTo) && new Date(r.createdAt) > dTo) return false;
       }
       return true;
@@ -461,8 +471,13 @@ export default function Reports() {
       const rCollectionDate = r.collection_date ? new Date(r.collection_date) : null;
       
       if (filters.dateFrom) {
-        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
-        const dFrom = new Date(fromDateStr);
+        const dFrom = new Date(filters.dateFrom);
+        if (filters.timeFrom) {
+          const [hours, minutes] = filters.timeFrom.split(':');
+          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
+        } else {
+          dFrom.setHours(0, 0, 0, 0);
+        }
         if (!isNaN(dFrom)) {
           const passCreatedAt = rCreatedAt >= dFrom;
           const passCollection = rCollectionDate && rCollectionDate >= dFrom;
@@ -470,8 +485,13 @@ export default function Reports() {
         }
       }
       if (filters.dateTo) {
-        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
-        const dTo = new Date(toDateStr);
+        const dTo = new Date(filters.dateTo);
+        if (filters.timeTo) {
+          const [hours, minutes] = filters.timeTo.split(':');
+          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
+        } else {
+          dTo.setHours(23, 59, 59, 999);
+        }
         if (!isNaN(dTo)) {
           const passCreatedAt = rCreatedAt <= dTo;
           const passCollection = rCollectionDate && rCollectionDate <= dTo;
@@ -492,13 +512,23 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
-        const dFrom = new Date(fromDateStr);
+        const dFrom = new Date(filters.dateFrom);
+        if (filters.timeFrom) {
+          const [hours, minutes] = filters.timeFrom.split(':');
+          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
+        } else {
+          dFrom.setHours(0, 0, 0, 0);
+        }
         if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
-        const dTo = new Date(toDateStr);
+        const dTo = new Date(filters.dateTo);
+        if (filters.timeTo) {
+          const [hours, minutes] = filters.timeTo.split(':');
+          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
+        } else {
+          dTo.setHours(23, 59, 59, 999);
+        }
         if (!isNaN(dTo) && new Date(r.createdAt) > dTo) return false;
       }
       if (filters.purpose && filters.purpose.length > 0) {
