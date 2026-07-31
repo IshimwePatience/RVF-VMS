@@ -439,7 +439,7 @@ export default function Reports() {
         const dFrom = new Date(filters.dateFrom);
         if (filters.timeFrom) {
           const [hours, minutes] = filters.timeFrom.split(':');
-          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
+          dFrom.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
         } else {
           dFrom.setHours(0, 0, 0, 0);
         }
@@ -449,7 +449,7 @@ export default function Reports() {
         const dTo = new Date(filters.dateTo);
         if (filters.timeTo) {
           const [hours, minutes] = filters.timeTo.split(':');
-          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
+          dTo.setHours(parseInt(hours, 10), parseInt(minutes, 10), 59, 999);
         } else {
           dTo.setHours(23, 59, 59, 999);
         }
@@ -480,7 +480,7 @@ export default function Reports() {
         const dFrom = new Date(filters.dateFrom);
         if (filters.timeFrom) {
           const [hours, minutes] = filters.timeFrom.split(':');
-          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
+          dFrom.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
         } else {
           dFrom.setHours(0, 0, 0, 0);
         }
@@ -493,7 +493,7 @@ export default function Reports() {
         const dTo = new Date(filters.dateTo);
         if (filters.timeTo) {
           const [hours, minutes] = filters.timeTo.split(':');
-          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
+          dTo.setHours(parseInt(hours, 10), parseInt(minutes, 10), 59, 999);
         } else {
           dTo.setHours(23, 59, 59, 999);
         }
@@ -520,7 +520,7 @@ export default function Reports() {
         const dFrom = new Date(filters.dateFrom);
         if (filters.timeFrom) {
           const [hours, minutes] = filters.timeFrom.split(':');
-          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
+          dFrom.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
         } else {
           dFrom.setHours(0, 0, 0, 0);
         }
@@ -530,7 +530,7 @@ export default function Reports() {
         const dTo = new Date(filters.dateTo);
         if (filters.timeTo) {
           const [hours, minutes] = filters.timeTo.split(':');
-          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
+          dTo.setHours(parseInt(hours, 10), parseInt(minutes, 10), 59, 999);
         } else {
           dTo.setHours(23, 59, 59, 999);
         }
