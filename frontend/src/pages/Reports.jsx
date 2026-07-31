@@ -186,7 +186,7 @@ export default function Reports() {
 
       if (type === 'home_vaccination') {
         data = filtered.map(r => ({
-          'Date Submitted': `${new Date(r.date_administered || r.createdAt).toLocaleDateString('en-GB')} ${new Date(r.date_administered || r.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
+          'Date Submitted': new Date(r.date_administered || r.createdAt).toLocaleDateString(),
           'Veterinary Phone': r.veterinary_email,
           'Province': r.province,
           'District': r.district,
@@ -207,9 +207,8 @@ export default function Reports() {
           if (form.samples && form.samples.length > 0) {
             form.samples.forEach(sample => {
               data.push({
-                'Tracking ID': sample.tracking_id || '',
-                'Date Submitted': `${new Date(form.createdAt).toLocaleDateString('en-GB')} ${new Date(form.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
-                'Collection Date': form.collection_date ? new Date(form.collection_date).toLocaleDateString('en-GB') : '',
+                'Tracking ID': sample.tracking_id || 'N/A',
+                'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
                 'Veterinary Phone': form.veterinary_email || form.phone_number,
                 'Test Requested': form.test_requested,
                 'District': sample.district_origin || sample.district || form.district || '',
@@ -232,8 +231,7 @@ export default function Reports() {
             });
           } else {
             data.push({
-              'Date Submitted': `${new Date(form.createdAt).toLocaleDateString('en-GB')} ${new Date(form.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
-              'Collection Date': form.collection_date ? new Date(form.collection_date).toLocaleDateString('en-GB') : '',
+              'Date Submitted': new Date(form.createdAt).toLocaleDateString(),
               'Veterinary Phone': form.veterinary_email || form.phone_number,
               'Test Requested': form.test_requested,
               'District': form.district,
@@ -247,26 +245,26 @@ export default function Reports() {
         data = filtered.map(r => {
           const lookupKey = r.sample_tracking_id || r.animal_id;
           return {
-            'Lab Technician Name': r.uploader?.name || '',
-            'Technician Number': r.uploader?.phone_number || '',
+            'Lab Technician Name': r.uploader?.name || 'N/A',
+            'Technician Number': r.uploader?.phone_number || 'N/A',
             'Date Uploaded': `${new Date(r.createdAt).toLocaleDateString('en-GB')} ${new Date(r.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}`,
-            'Tested Site': r.tested_site || '',
-            'Veterinary (Result Owner)': vetMap[lookupKey]?.name || '',
-            'Veterinary Phone': vetMap[lookupKey]?.phone || '',
-            'Farmer Name': r.farmer_name || '',
-          'Farmer Phone': r.phone || '',
-          'District': r.animal_district_origin || r.district || '',
-          'Sector': r.sector || '',
-          'Cell': r.cell || '',
-          'Village': r.village || '',
-          'Animal ID': r.animal_id || '',
-          'Specie': r.specie || '',
-          'Breed': r.breed || '',
-          'Sex': r.sex || '',
-          'Age': r.age || '',
-          'Vacc. Status': r.vaccination_status || '',
-            'Purpose': r.purpose || '',
-            'Health Status': r.health_status || '',
+            'Tested Site': r.tested_site || 'N/A',
+            'Veterinary (Result Owner)': vetMap[lookupKey]?.name || 'N/A',
+            'Veterinary Phone': vetMap[lookupKey]?.phone || 'N/A',
+            'Farmer Name': r.farmer_name || 'N/A',
+            'Farmer Phone': r.phone || 'N/A',
+            'District': r.animal_district_origin || r.district || 'N/A',
+            'Sector': r.sector || 'N/A',
+            'Cell': r.cell || 'N/A',
+            'Village': r.village || 'N/A',
+            'Animal ID': r.animal_id || 'N/A',
+            'Specie': r.specie || 'N/A',
+            'Breed': r.breed || 'N/A',
+            'Sex': r.sex || 'N/A',
+            'Age': r.age || 'N/A',
+            'Vacc. Status': r.vaccination_status || 'N/A',
+            'Purpose': r.purpose || 'N/A',
+            'Health Status': r.health_status || 'N/A',
             'PCR Result': r.rvf_pcr_results ? r.rvf_pcr_results.trim().charAt(0).toUpperCase() + r.rvf_pcr_results.trim().slice(1).toLowerCase() : 'Pending'
           };
         });
@@ -386,14 +384,14 @@ export default function Reports() {
     queryKey: ['central-lab-results'],
     queryFn: async () => {
       const prefix = window.location.pathname.includes('veterinary') ? 'vet_' :
-                     window.location.pathname.includes('lab') ? 'lab_' :
-                     window.location.pathname.includes('daro') ? 'daro_' :
-                     window.location.pathname.includes('rab') ? 'rab_' : 'admin_';
+        window.location.pathname.includes('lab') ? 'lab_' :
+          window.location.pathname.includes('daro') ? 'daro_' :
+            window.location.pathname.includes('rab') ? 'rab_' : 'admin_';
       const token = localStorage.getItem(`${prefix}token`) || localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
+
       const res = await axios.get('/rvf-api/lab-results', { headers });
-      
+
       if (res.data && res.data.data && Array.isArray(res.data.data)) {
         return res.data.data;
       }
@@ -433,23 +431,13 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const dFrom = new Date(filters.dateFrom);
-        if (filters.timeFrom) {
-          const [hours, minutes] = filters.timeFrom.split(':');
-          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
-        } else {
-          dFrom.setHours(0, 0, 0, 0);
-        }
+        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
+        const dFrom = new Date(fromDateStr);
         if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const dTo = new Date(filters.dateTo);
-        if (filters.timeTo) {
-          const [hours, minutes] = filters.timeTo.split(':');
-          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
-        } else {
-          dTo.setHours(23, 59, 59, 999);
-        }
+        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
+        const dTo = new Date(toDateStr);
         if (!isNaN(dTo) && new Date(r.createdAt) > dTo) return false;
       }
       return true;
@@ -466,18 +454,13 @@ export default function Reports() {
         const searchVal = filters.search.toLowerCase();
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
-      
+
       const rCreatedAt = new Date(r.createdAt);
       const rCollectionDate = r.collection_date ? new Date(r.collection_date) : null;
-      
+
       if (filters.dateFrom) {
-        const dFrom = new Date(filters.dateFrom);
-        if (filters.timeFrom) {
-          const [hours, minutes] = filters.timeFrom.split(':');
-          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
-        } else {
-          dFrom.setHours(0, 0, 0, 0);
-        }
+        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
+        const dFrom = new Date(fromDateStr);
         if (!isNaN(dFrom)) {
           const passCreatedAt = rCreatedAt >= dFrom;
           const passCollection = rCollectionDate && rCollectionDate >= dFrom;
@@ -485,13 +468,8 @@ export default function Reports() {
         }
       }
       if (filters.dateTo) {
-        const dTo = new Date(filters.dateTo);
-        if (filters.timeTo) {
-          const [hours, minutes] = filters.timeTo.split(':');
-          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
-        } else {
-          dTo.setHours(23, 59, 59, 999);
-        }
+        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
+        const dTo = new Date(toDateStr);
         if (!isNaN(dTo)) {
           const passCreatedAt = rCreatedAt <= dTo;
           const passCollection = rCollectionDate && rCollectionDate <= dTo;
@@ -512,23 +490,13 @@ export default function Reports() {
         if (!JSON.stringify(r).toLowerCase().includes(searchVal)) return false;
       }
       if (filters.dateFrom) {
-        const dFrom = new Date(filters.dateFrom);
-        if (filters.timeFrom) {
-          const [hours, minutes] = filters.timeFrom.split(':');
-          dFrom.setHours(parseInt(hours) || 0, parseInt(minutes) || 0, 0, 0);
-        } else {
-          dFrom.setHours(0, 0, 0, 0);
-        }
+        const fromDateStr = filters.timeFrom ? `${filters.dateFrom}T${filters.timeFrom}:00` : `${filters.dateFrom}T00:00:00`;
+        const dFrom = new Date(fromDateStr);
         if (!isNaN(dFrom) && new Date(r.createdAt) < dFrom) return false;
       }
       if (filters.dateTo) {
-        const dTo = new Date(filters.dateTo);
-        if (filters.timeTo) {
-          const [hours, minutes] = filters.timeTo.split(':');
-          dTo.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
-        } else {
-          dTo.setHours(23, 59, 59, 999);
-        }
+        const toDateStr = filters.timeTo ? `${filters.dateTo}T${filters.timeTo}:59` : `${filters.dateTo}T23:59:59`;
+        const dTo = new Date(toDateStr);
         if (!isNaN(dTo) && new Date(r.createdAt) > dTo) return false;
       }
       if (filters.purpose && filters.purpose.length > 0) {
@@ -813,69 +781,69 @@ export default function Reports() {
             <p className="text-slate-500 font-medium">Calculating overview statistics...</p>
           </div>
         ) : (
-        <div className="bg-white shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-700">
-              <thead className="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200 bg-slate-100/50">Summary</th>
-                  <th className="py-4 px-6 font-semibold text-slate-800 border-r border-slate-200 whitespace-nowrap text-center">County Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Sample Test Forms</td>
-                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                    {globalOverview?.totalForms || 0}
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Samples Collected</td>
-                  <td className="py-3 px-6 border-r border-slate-200 text-center text-blue-600 font-bold text-lg">
-                    {globalOverview?.totalSamples || 0}
-                  </td>
-                </tr>
+          <div className="bg-white shadow-sm border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-700">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="py-4 px-6 font-semibold text-slate-900 border-r border-slate-200 bg-slate-100/50">Summary</th>
+                    <th className="py-4 px-6 font-semibold text-slate-800 border-r border-slate-200 whitespace-nowrap text-center">County Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Sample Test Forms</td>
+                    <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
+                      {globalOverview?.totalForms || 0}
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Samples Collected</td>
+                    <td className="py-3 px-6 border-r border-slate-200 text-center text-blue-600 font-bold text-lg">
+                      {globalOverview?.totalSamples || 0}
+                    </td>
+                  </tr>
 
-                <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Home Vaccination Records</td>
-                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                    {globalOverview?.totalVaxRecords || 0}
-                  </td>
-                </tr>
-                <tr className="bg-slate-100 hover:bg-slate-200 transition-colors">
-                  <td className="py-4 px-6 font-bold text-slate-900 border-r border-slate-300">Total Vaccines Given</td>
-                  <td className="py-4 px-6 border-r border-slate-300 text-center font-bold text-xl text-slate-900">
-                    {Number(globalOverview?.totalVaccinesGiven || 0).toLocaleString()}
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Tested (Has Results)</td>
-                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                    {globalOverview?.totalLabResults || 0}
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Positive Results</td>
-                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-red-600">
-                    {globalOverview?.positive || 0}
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Negative Results</td>
-                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-green-600">
-                    {globalOverview?.negative || 0}
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/50">
-                  <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Pending Lab Results</td>
-                  <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-amber-500">
-                    {globalOverview?.pending || 0}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Home Vaccination Records</td>
+                    <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
+                      {globalOverview?.totalVaxRecords || 0}
+                    </td>
+                  </tr>
+                  <tr className="bg-slate-100 hover:bg-slate-200 transition-colors">
+                    <td className="py-4 px-6 font-bold text-slate-900 border-r border-slate-300">Total Vaccines Given</td>
+                    <td className="py-4 px-6 border-r border-slate-300 text-center font-bold text-xl text-slate-900">
+                      {Number(globalOverview?.totalVaccinesGiven || 0).toLocaleString()}
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Tested (Has Results)</td>
+                    <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
+                      {globalOverview?.totalLabResults || 0}
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Positive Results</td>
+                    <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-red-600">
+                      {globalOverview?.positive || 0}
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Negative Results</td>
+                    <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-green-600">
+                      {globalOverview?.negative || 0}
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-50/50">
+                    <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Pending Lab Results</td>
+                    <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-amber-500">
+                      {globalOverview?.pending || 0}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
         )
       ) : activeTab === 'lab_results' && user?.role === 'Admin' ? (
         <ViewResultsTab filters={filters} />

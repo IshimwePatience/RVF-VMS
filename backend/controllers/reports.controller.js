@@ -5,10 +5,10 @@ const { Op } = require('sequelize');
 exports.getGlobalOverview = async (req, res) => {
   try {
     const { province, district, sector, dateFrom, dateTo, timeFrom, timeTo, dateFromIso, dateToIso, search } = req.query;
-    
+
     // Construct cache key (using v6 to bypass poisoned cache)
     const cacheKey = `global_overview_v6_${province || 'all'}_${district || 'all'}_${sector || 'all'}_${dateFromIso || dateFrom || 'all'}_${dateToIso || dateTo || 'all'}_${search || 'all'}`;
-    
+
     // Check cache
     if (redisClient.isReady) {
       const cached = await redisClient.get(cacheKey);
@@ -40,34 +40,22 @@ exports.getGlobalOverview = async (req, res) => {
     if (dateFrom || dateTo) {
       const dateFilter = {};
       let hasDate = false;
-      
+
       if (dateFromIso || dateFrom) {
-        let dFrom;
-        if (dateFromIso) {
-          dFrom = new Date(dateFromIso);
-        } else {
-          const cleanTime = timeFrom ? timeFrom.substring(0, 5) : '00:00';
-          dFrom = new Date(`${dateFrom}T${cleanTime}:00`);
-        }
+        const dFrom = dateFromIso ? new Date(dateFromIso) : new Date(timeFrom ? `${dateFrom}T${timeFrom}:00` : `${dateFrom}T00:00:00`);
         if (!isNaN(dFrom)) {
           dateFilter[Op.gte] = dFrom;
           hasDate = true;
         }
       }
       if (dateToIso || dateTo) {
-        let dTo;
-        if (dateToIso) {
-          dTo = new Date(dateToIso);
-        } else {
-          const cleanTime = timeTo ? timeTo.substring(0, 5) : '23:59';
-          dTo = new Date(`${dateTo}T${cleanTime}:59`);
-        }
+        const dTo = dateToIso ? new Date(dateToIso) : new Date(timeTo ? `${dateTo}T${timeTo}:59` : `${dateTo}T23:59:59`);
         if (!isNaN(dTo)) {
           dateFilter[Op.lte] = dTo;
           hasDate = true;
         }
       }
-      
+
       if (hasDate) {
         surveillanceWhere[Op.or] = [
           { collection_date: dateFilter },
@@ -113,7 +101,7 @@ exports.getGlobalOverview = async (req, res) => {
 
     // 5. Lab Results
     const totalLabResults = await LabResult.count({ where: labWhere });
-    
+
     // We can count positive and negative directly in SQL instead of mapping in Node
     // Or at least just query the counts!
     const positiveCount = await LabResult.count({
