@@ -8,6 +8,7 @@ import { Search } from 'lucide-react';
 import { usePagination } from '../../hooks/usePagination';
 import Pagination from '../../components/Pagination';
 import SprayingReportView from '../../components/SprayingReportView';
+import LocationDropdown from '../../components/LocationDropdown';
 
 export default function RabPortal() {
   const navigate = useNavigate();
@@ -15,7 +16,12 @@ export default function RabPortal() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [districtFilter, setDistrictFilter] = useState('All');
+  const [filters, setFilters] = useState({
+    district: '',
+    sector: '',
+    cell: '',
+    village: ''
+  });
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -44,14 +50,20 @@ export default function RabPortal() {
     navigate('/rab-login');
   };
 
-  const availableDistricts = [...new Set(forms.map(f => f.district))].filter(Boolean).sort();
-
   const filteredForms = forms.filter(form => {
     let matches = true;
 
-    if (districtFilter !== 'All' && form.district !== districtFilter) {
-      matches = false;
-    }
+    const matchLocation = (field, filterValue) => {
+      if (!filterValue) return true;
+      if (form[field] === filterValue) return true;
+      if (form.records && form.records.some(r => r[field] === filterValue)) return true;
+      return false;
+    };
+
+    if (!matchLocation('district', filters.district)) matches = false;
+    if (!matchLocation('sector', filters.sector)) matches = false;
+    if (!matchLocation('cell', filters.cell)) matches = false;
+    if (!matchLocation('village', filters.village)) matches = false;
 
     if (dateFrom && new Date(form.updatedAt) < new Date(dateFrom)) {
       matches = false;
@@ -203,16 +215,50 @@ export default function RabPortal() {
           <div className="flex flex-wrap items-center gap-4 text-sm bg-slate-50 p-4 rounded-lg border border-slate-100">
             <div className="flex items-center gap-2">
               <span className="font-medium text-slate-700">District</span>
-              <select 
-                value={districtFilter} 
-                onChange={e => setDistrictFilter(e.target.value)}
-                className="border-slate-200 rounded-md py-1.5 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              >
-                <option value="All">All</option>
-                {availableDistricts.map(d => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
+              <div className="w-36">
+                <LocationDropdown 
+                  type="districts"
+                  value={filters.district}
+                  onChange={(val) => setFilters({ ...filters, district: val, sector: '', cell: '', village: '' })}
+                  placeholder="All"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-slate-700">Sector</span>
+              <div className="w-36">
+                <LocationDropdown 
+                  type="sectors"
+                  params={{ district: filters.district }}
+                  value={filters.sector}
+                  onChange={(val) => setFilters({ ...filters, sector: val, cell: '', village: '' })}
+                  placeholder="All"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-slate-700">Cell</span>
+              <div className="w-36">
+                <LocationDropdown 
+                  type="cells"
+                  params={{ district: filters.district, sector: filters.sector }}
+                  value={filters.cell}
+                  onChange={(val) => setFilters({ ...filters, cell: val, village: '' })}
+                  placeholder="All"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-slate-700">Village</span>
+              <div className="w-36">
+                <LocationDropdown 
+                  type="villages"
+                  params={{ district: filters.district, sector: filters.sector, cell: filters.cell }}
+                  value={filters.village}
+                  onChange={(val) => setFilters({ ...filters, village: val })}
+                  placeholder="All"
+                />
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium text-slate-700">From</span>
