@@ -839,50 +839,50 @@ export default function Reports() {
                   <tr className="hover:bg-slate-50/50">
                     <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Sample Test Forms</td>
                     <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                      {globalOverview?.totalForms || 0}
+                      {filteredSurveillance.length || 0}
                     </td>
                   </tr>
                   <tr className="hover:bg-slate-50/50">
                     <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Samples Collected</td>
                     <td className="py-3 px-6 border-r border-slate-200 text-center text-blue-600 font-bold text-lg">
-                      {globalOverview?.totalSamples || 0}
+                      {filteredSurveillance.reduce((acc, form) => acc + (form.samples?.length || 0), 0) || 0}
                     </td>
                   </tr>
 
                   <tr className="hover:bg-slate-50/50">
                     <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Home Vaccination Records</td>
                     <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                      {globalOverview?.totalVaxRecords || 0}
+                      {filteredHomeVaccinations.length || 0}
                     </td>
                   </tr>
                   <tr className="bg-slate-100 hover:bg-slate-200 transition-colors">
                     <td className="py-4 px-6 font-bold text-slate-900 border-r border-slate-300">Total Vaccines Given</td>
                     <td className="py-4 px-6 border-r border-slate-300 text-center font-bold text-xl text-slate-900">
-                      {Number(globalOverview?.totalVaccinesGiven || 0).toLocaleString()}
+                      {Number(filteredHomeVaccinations.reduce((acc, r) => acc + Number(r.dose_given || 0), 0) || 0).toLocaleString()}
                     </td>
                   </tr>
                   <tr className="hover:bg-slate-50/50">
                     <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Total Tested (Has Results)</td>
                     <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-slate-900">
-                      {globalOverview?.totalLabResults || 0}
+                      {filteredLabResults.length || 0}
                     </td>
                   </tr>
                   <tr className="hover:bg-slate-50/50">
                     <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Positive Results</td>
                     <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-red-600">
-                      {globalOverview?.positive || 0}
+                      {filteredLabResults.filter(r => r.rvf_pcr_results?.toLowerCase().includes('positive')).length || 0}
                     </td>
                   </tr>
                   <tr className="hover:bg-slate-50/50">
                     <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Negative Results</td>
                     <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-green-600">
-                      {globalOverview?.negative || 0}
+                      {filteredLabResults.filter(r => r.rvf_pcr_results?.toLowerCase().includes('negative')).length || 0}
                     </td>
                   </tr>
                   <tr className="hover:bg-slate-50/50">
                     <td className="py-3 px-6 font-medium text-slate-700 border-r border-slate-200 bg-slate-50/30">Pending Lab Results</td>
                     <td className="py-3 px-6 border-r border-slate-200 text-center font-bold text-lg text-amber-500">
-                      {globalOverview?.pending || 0}
+                      {Math.max(0, filteredSurveillance.reduce((acc, form) => acc + (form.samples?.length || 0), 0) - filteredLabResults.length) || 0}
                     </td>
                   </tr>
                 </tbody>
