@@ -337,20 +337,12 @@ export default function Reports() {
   if (filters.search) queryParams.append('search', filters.search);
   if (filters.dateFrom) {
     queryParams.append('dateFrom', filters.dateFrom);
-    let [y, m, d] = filters.dateFrom.includes('/') && filters.dateFrom.split('/').length === 3 
-      ? (filters.dateFrom.split('/')[2].length === 4 ? [filters.dateFrom.split('/')[2], filters.dateFrom.split('/')[1], filters.dateFrom.split('/')[0]] : [filters.dateFrom.split('/')[0], filters.dateFrom.split('/')[1], filters.dateFrom.split('/')[2]]) 
-      : filters.dateFrom.split('-');
-    const dateFromStr = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-    const dFrom = new Date(filters.timeFrom ? `${dateFromStr}T${filters.timeFrom}:00` : `${dateFromStr}T00:00:00`);
+    const dFrom = new Date(filters.timeFrom ? `${filters.dateFrom} ${filters.timeFrom}:00` : `${filters.dateFrom} 00:00:00`);
     if (!isNaN(dFrom)) queryParams.append('dateFromIso', dFrom.toISOString());
   }
   if (filters.dateTo) {
     queryParams.append('dateTo', filters.dateTo);
-    let [y, m, d] = filters.dateTo.includes('/') && filters.dateTo.split('/').length === 3
-      ? (filters.dateTo.split('/')[2].length === 4 ? [filters.dateTo.split('/')[2], filters.dateTo.split('/')[1], filters.dateTo.split('/')[0]] : [filters.dateTo.split('/')[0], filters.dateTo.split('/')[1], filters.dateTo.split('/')[2]])
-      : filters.dateTo.split('-');
-    const dateToStr = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
-    const dTo = new Date(filters.timeTo ? `${dateToStr}T${filters.timeTo}:59` : `${dateToStr}T23:59:59`);
+    const dTo = new Date(filters.timeTo ? `${filters.dateTo} ${filters.timeTo}:59` : `${filters.dateTo} 23:59:59`);
     if (!isNaN(dTo)) queryParams.append('dateToIso', dTo.toISOString());
   }
   if (filters.timeFrom) queryParams.append('timeFrom', filters.timeFrom);

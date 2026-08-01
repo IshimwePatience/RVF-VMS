@@ -47,10 +47,7 @@ exports.getGlobalOverview = async (req, res) => {
           dFrom = new Date(dateFromIso);
         } else {
           const cleanTime = timeFrom ? timeFrom.substring(0, 5) : '00:00';
-          let [y, m, d] = dateFrom.includes('/') && dateFrom.split('/').length === 3
-            ? (dateFrom.split('/')[2].length === 4 ? [dateFrom.split('/')[2], dateFrom.split('/')[1], dateFrom.split('/')[0]] : [dateFrom.split('/')[0], dateFrom.split('/')[1], dateFrom.split('/')[2]])
-            : dateFrom.split('-');
-          dFrom = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}T${cleanTime}:00`);
+          dFrom = new Date(`${dateFrom} ${cleanTime}:00`);
         }
         if (!isNaN(dFrom)) {
           dateFilter[Op.gte] = dFrom;
@@ -63,10 +60,7 @@ exports.getGlobalOverview = async (req, res) => {
           dTo = new Date(dateToIso);
         } else {
           const cleanTime = timeTo ? timeTo.substring(0, 5) : '23:59';
-          let [y, m, d] = dateTo.includes('/') && dateTo.split('/').length === 3
-            ? (dateTo.split('/')[2].length === 4 ? [dateTo.split('/')[2], dateTo.split('/')[1], dateTo.split('/')[0]] : [dateTo.split('/')[0], dateTo.split('/')[1], dateTo.split('/')[2]])
-            : dateTo.split('-');
-          dTo = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}T${cleanTime}:59`);
+          dTo = new Date(`${dateTo} ${cleanTime}:59`);
         }
         if (!isNaN(dTo)) {
           dateFilter[Op.lte] = dTo;
