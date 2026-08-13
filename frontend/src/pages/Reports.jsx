@@ -233,17 +233,6 @@ export default function Reports() {
                 'Health Status': sample.health_status
               });
             });
-          } else {
-            data.push({
-              'Date Submitted': submittedStr,
-              'Collection Date': collectionStr,
-              'Veterinary Phone': form.veterinary_email || form.phone_number,
-              'Test Requested': form.test_requested,
-              'District': form.district,
-              'Sector': form.sector,
-              'Cell': form.cell,
-              'Village': form.village
-            });
           }
         });
       } else if (type === 'lab_results') {
