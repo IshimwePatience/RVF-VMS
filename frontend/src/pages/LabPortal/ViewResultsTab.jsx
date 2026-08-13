@@ -94,11 +94,15 @@ export default function ViewResultsTab({ isLabPortal, filters, veterinaryPhone, 
     
     let baseResults = results.map(r => {
       let collectedAt = null;
+      let veterinary_name = r.veterinary_name || null;
+      let veterinary_phone = null;
       const lookupKey = r.sample_tracking_id || r.animal_id;
       if (!isLabPortal && lookupKey && trackingIdToVetMap[lookupKey]) {
         collectedAt = trackingIdToVetMap[lookupKey].collectedAt;
+        veterinary_name = trackingIdToVetMap[lookupKey].name;
+        veterinary_phone = trackingIdToVetMap[lookupKey].phone;
       }
-      return { ...r, collectedAt };
+      return { ...r, collectedAt, veterinary_name, veterinary_phone };
     });
 
     return baseResults.filter(r => {

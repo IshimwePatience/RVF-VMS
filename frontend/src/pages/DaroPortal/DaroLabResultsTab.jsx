@@ -38,6 +38,8 @@ export default function DaroLabResultsTab({ district }) {
       'Date Uploaded': new Date(r.createdAt).toLocaleDateString(),
       'Farmer Name': r.farmer_name || 'N/A',
       'Farmer Phone': r.phone || 'N/A',
+      'Veterinary Name': r.veterinary_name || 'N/A',
+      'Veterinary Phone': r.veterinary_phone || 'N/A',
       'Animal ID': r.animal_id || 'N/A',
       'Species': r.specie || 'N/A',
       'Breed': r.breed || 'N/A',
